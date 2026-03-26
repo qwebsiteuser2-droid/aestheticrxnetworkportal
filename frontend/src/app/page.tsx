@@ -1505,8 +1505,8 @@ export default function Home() {
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-6">
-              <img src="/logo.png" alt="AestheticRxNetwork" className="w-20 h-20 sm:w-24 sm:h-24 object-contain shadow-xl rounded-xl" />
-              <span className="text-4xl font-bold text-gray-900">AestheticRxNetwork</span>
+              <img src="/logo.png" alt="AestheticRx Network" className="w-60 h-60 sm:w-72 sm:h-72 object-contain" />
+              <span className="text-4xl font-bold"><span style={{ color: '#1E66FF' }}>Aesthetic</span><span style={{ color: '#F5C24C' }}>RX</span><span style={{ color: '#7AAC52' }}> Network</span></span>
             </div>
             <p className="text-gray-600 text-lg mb-8">
               Professional B2B platform for clinics
@@ -1733,8 +1733,8 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-4">
-              <img src="/logo.png" alt="AestheticRxNetwork" className="w-12 h-12 object-contain shadow-md rounded-lg" />
-              <span className="text-xl font-bold">AestheticRxNetwork</span>
+              <img src="/logo.png" alt="AestheticRx Network" className="w-12 h-12 object-contain shadow-md rounded-lg" />
+              <span className="text-xl font-bold"><span style={{ color: '#1E66FF' }}>Aesthetic</span><span style={{ color: '#F5C24C' }}>RX</span><span style={{ color: '#7AAC52' }}> Network</span></span>
             </div>
             <p className="text-gray-400 text-sm mb-4">
               Professional B2B platform for clinics. Connect, order, research, and grow together.

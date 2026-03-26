@@ -30,11 +30,9 @@ const seedDatabase = async (): Promise<void> => {
     console.log('\n📋 Default Admin Credentials:');
     console.log('Main Admin:');
     console.log(`  Email: ${process.env.MAIN_ADMIN_EMAIL || 'ADMIN_MAIN_EMAIL'}`);
-    console.log('  Password: Qasim7878,,');
     console.log('\nSecondary Admin:');
     console.log(`  Email: ${process.env.SECONDARY_ADMIN_EMAIL || 'ADMIN_SECONDARY_EMAIL'}`);
-    console.log('  Password: Qasim7878,,');
-    console.log('\n⚠️  IMPORTANT: Change these passwords immediately after first login!');
+    console.log('\n⚠️  IMPORTANT: Change default passwords immediately after first login!');
     console.log('\n🔑 Allowed Signup IDs: 42001-42030');
     console.log('📦 Sample products created for slots 1-6');
 
@@ -59,7 +57,10 @@ const seedAdminUsers = async (): Promise<void> => {
 
   const mainAdminEmail = process.env.MAIN_ADMIN_EMAIL || 'ADMIN_MAIN_EMAIL';
   const secondaryAdminEmail = process.env.SECONDARY_ADMIN_EMAIL || 'ADMIN_SECONDARY_EMAIL';
-  const defaultPassword = 'Qasim7878,,';
+  const defaultPassword = process.env.ADMIN_DEFAULT_PASSWORD;
+  if (!defaultPassword) {
+    throw new Error('ADMIN_DEFAULT_PASSWORD environment variable is required for seeding');
+  }
 
   // Hash password
   const passwordHash = await hashPassword(defaultPassword);

@@ -244,14 +244,6 @@ export function LoginModal({ isOpen, onClose, onSwitchToRegister }: LoginModalPr
             </p>
           </div>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">Demo Credentials</h3>
-            <div className="text-xs text-gray-600 space-y-1">
-              <p><strong>Admin:</strong> admin@aestheticrxnetwork.com / ChangeMe123!</p>
-              <p><strong>Doctor:</strong> doctor@clinic.com / ChangeMe123!</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -59,8 +59,7 @@ export class GoogleDriveService {
       this.auth = new google.auth.GoogleAuth({
         credentials,
         scopes: [
-          'https://www.googleapis.com/auth/drive.file',
-          'https://www.googleapis.com/auth/drive'
+          'https://www.googleapis.com/auth/drive.file'
         ]
       });
 

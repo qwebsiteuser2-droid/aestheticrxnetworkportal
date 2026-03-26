@@ -12,6 +12,15 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/privacy-policy/:path*',
+        destination: '/privacy',
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     // Only use rewrites in development or if NEXT_PUBLIC_API_URL is not set
     // In production (Vercel), use NEXT_PUBLIC_API_URL environment variable instead

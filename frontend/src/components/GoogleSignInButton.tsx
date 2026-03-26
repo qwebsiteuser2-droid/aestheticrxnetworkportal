@@ -77,8 +77,16 @@ export default function GoogleSignInButton({
       
       const response = await authApi.googleAuth(credentialResponse.credential, userType);
 
+      // Backend returns redirectToSignup when no account exists for this Google email
+      if (!response.success && response.redirectToSignup) {
+        toast.error('No account found for this Google email. Please sign up first.');
+        onError?.('No account found. Please sign up.');
+        setTimeout(() => router.push('/signup'), 1500);
+        return;
+      }
+
       if (response.success && response.data) {
-        const { user, accessToken, refreshToken, isNewUser } = response.data;
+        const { user, accessToken, refreshToken } = response.data;
 
         // Set auth data in cookies/localStorage (wrap in AuthResponse format)
         setAuthData({
@@ -89,11 +97,7 @@ export default function GoogleSignInButton({
         // Update auth context
         login(user);
 
-        // Show success message
-        const message = isNewUser 
-          ? 'Account created successfully! Welcome!' 
-          : 'Signed in with Google successfully!';
-        toast.success(message);
+        toast.success('Signed in with Google successfully!');
 
         // Set fromLogin flag to allow auto-login (skip OTP for Google users)
         sessionStorage.setItem('fromLogin', 'true');
@@ -103,15 +107,14 @@ export default function GoogleSignInButton({
         onSuccess?.();
 
         // Redirect based on user type and approval status
-        const userType = user.user_type || '';
-        const isRegularUser = userType === 'regular' || userType === 'regular_user';
+        const accountType = user.user_type || '';
+        const isRegularUser = accountType === 'regular' || accountType === 'regular_user';
         
         if (user.is_admin) {
           router.push('/admin');
         } else if (user.is_approved || isRegularUser) {
           router.push('/');
         } else {
-          // New doctor/employee users who need approval
           router.push('/waiting-approval');
         }
       } else {
@@ -122,7 +125,17 @@ export default function GoogleSignInButton({
       }
     } catch (error: any) {
       console.error('❌ Google Sign-In error:', error);
-      const errorMsg = error.response?.data?.message || error.message || 'Google Sign-In failed';
+
+      // axios wraps the response body under error.response.data
+      const data = error.response?.data;
+      if (data?.redirectToSignup) {
+        toast.error('No account found for this Google email. Please sign up first.');
+        onError?.('No account found. Please sign up.');
+        setTimeout(() => router.push('/signup'), 1500);
+        return;
+      }
+
+      const errorMsg = data?.message || error.message || 'Google Sign-In failed';
       onError?.(errorMsg);
       toast.error(errorMsg);
     } finally {

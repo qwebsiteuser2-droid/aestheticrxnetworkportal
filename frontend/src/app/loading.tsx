@@ -10,7 +10,7 @@ export default function Loading() {
           <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-blue-600 opacity-20 animate-ping mx-auto"></div>
         </div>
         <p className="mt-4 text-gray-600 font-medium">Loading...</p>
-        <p className="mt-1 text-sm text-gray-400">AestheticRxNetwork</p>
+        <p className="mt-1 text-sm font-semibold"><span style={{ color: '#1E66FF' }}>Aesthetic</span><span style={{ color: '#F5C24C' }}>RX</span><span style={{ color: '#7AAC52' }}> Network</span></p>
       </div>
     </div>
   );

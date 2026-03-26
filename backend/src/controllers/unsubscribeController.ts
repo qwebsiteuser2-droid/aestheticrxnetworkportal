@@ -7,7 +7,10 @@ import crypto from 'crypto';
  * Generate unsubscribe token for a user
  */
 function generateUnsubscribeToken(userId: string, email: string): string {
-  const secret = process.env.UNSUBSCRIBE_SECRET || 'default-secret-change-in-production';
+  const secret = process.env.UNSUBSCRIBE_SECRET;
+  if (!secret) {
+    throw new Error('UNSUBSCRIBE_SECRET environment variable is required');
+  }
   const data = `${userId}:${email}:${secret}`;
   return crypto.createHash('sha256').update(data).digest('hex');
 }

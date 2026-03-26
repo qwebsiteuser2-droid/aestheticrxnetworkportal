@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import axios from 'axios';
 
 const HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
-const HF_TOKEN = "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";
+const HF_TOKEN = process.env.HF_API_TOKEN;
 
 interface AIRequest {
   prompt: string;
@@ -19,6 +19,11 @@ export const generateAIContent = async (req: Request, res: Response): Promise<vo
         success: false, 
         error: 'Missing required fields: prompt, contentType, researchType' 
       });
+      return;
+    }
+
+    if (!HF_TOKEN) {
+      res.status(503).json({ success: false, error: 'AI service not configured. Set HF_API_TOKEN environment variable.' });
       return;
     }
 

@@ -162,14 +162,12 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
           <div className="flex items-center justify-between py-2">
             {/* Logo and BAx */}
             <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
-              <div className="relative p-1 bg-gradient-to-br from-amber-100 via-yellow-50 to-amber-50 rounded-xl shadow-md border border-amber-200/50">
-                <img 
-                  src="/logo.png" 
-                  alt="AestheticRxNetwork" 
-                  className="w-10 h-10 object-contain"
-                />
-              </div>
-              <span className="text-lg font-black bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent">BAx</span>
+              <img 
+                src="/logo.png" 
+                alt="AestheticRx Network" 
+                className="w-10 h-10 object-contain"
+              />
+              <span className="text-lg font-black"><span style={{ color: '#1E66FF' }}>A</span><span style={{ color: '#F5C24C' }}>RX</span></span>
             </Link>
             
             {/* Auth Section */}
@@ -259,15 +257,13 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
           {/* Logo - Desktop */}
           <div className="flex items-center flex-shrink-0">
             <Link href="/" className="flex items-center space-x-3">
-              <div className="relative p-1.5 bg-gradient-to-br from-amber-100 via-yellow-50 to-amber-50 rounded-2xl shadow-lg border border-amber-200/50">
-                <img 
-                  src="/logo.png" 
-                  alt="AestheticRxNetwork" 
-                  className="w-16 h-16 lg:w-20 lg:h-20 object-contain"
-                />
-              </div>
-              <span className="text-2xl lg:text-3xl font-black bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent hidden lg:block">AestheticRx</span>
-              <span className="text-2xl font-black bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent lg:hidden">BAx</span>
+              <img 
+                src="/logo.png" 
+                alt="AestheticRx Network" 
+                className="w-16 h-16 lg:w-20 lg:h-20 object-contain"
+              />
+              <span className="text-2xl lg:text-3xl font-black hidden lg:block"><span style={{ color: '#1E66FF' }}>Aesthetic</span><span style={{ color: '#F5C24C' }}>RX</span><span style={{ color: '#7AAC52' }}> Network</span></span>
+              <span className="text-2xl font-black lg:hidden"><span style={{ color: '#1E66FF' }}>A</span><span style={{ color: '#F5C24C' }}>RX</span></span>
             </Link>
           </div>
 

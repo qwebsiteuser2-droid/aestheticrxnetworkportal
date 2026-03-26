@@ -1,10 +1,8 @@
 import { Request, Response } from 'express';
 import { OAuth2Client } from 'google-auth-library';
 import { AppDataSource } from '../db/data-source';
-import { Doctor, UserType } from '../models/Doctor';
+import { Doctor } from '../models/Doctor';
 import { generateTokenPair } from '../utils/jwt';
-import { hashPassword } from '../utils/password';
-import { v4 as uuidv4 } from 'uuid';
 
 // Initialize Google OAuth client
 const GOOGLE_CLIENT_ID = process.env.CLIENT_ID_GOOGLESIGNIN;
@@ -53,15 +51,16 @@ async function verifyGoogleToken(idToken: string): Promise<GoogleTokenPayload | 
 }
 
 /**
- * Google Sign-In / Sign-Up
- * 
- * This endpoint handles both login and registration via Google.
+ * Google Sign-In (login only)
+ *
+ * Google Sign-In is restricted to existing accounts only.
  * - If user exists: logs them in (skips OTP since Google verified email)
- * - If user doesn't exist: creates new account and logs them in
+ * - If user does NOT exist: returns redirectToSignup so the frontend
+ *   can redirect them to the regular signup page
  */
 export const googleAuth = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { idToken, userType = 'regular_user' } = req.body;
+    const { idToken } = req.body;
 
     if (!idToken) {
       res.status(400).json({
@@ -93,78 +92,48 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
     console.log('✅ Google token verified for:', googleUser.email);
 
     const doctorRepository = AppDataSource.getRepository(Doctor);
-    
+
     // Check if user already exists (by email or Google ID)
     let user = await doctorRepository.findOne({
       where: [
         { email: googleUser.email.toLowerCase() },
-        { google_id: googleUser.sub }
-      ]
+        { google_id: googleUser.sub },
+      ],
     });
 
-    let isNewUser = false;
-
-    if (user) {
-      // Existing user - update Google info if not already set
-      if (!user.google_id) {
-        user.google_id = googleUser.sub;
-        user.is_google_user = true;
-        user.google_email_verified = true;
-        await doctorRepository.save(user);
-        console.log('🔗 Linked Google account to existing user:', user.email);
-      }
-
-      // Check if user is deactivated
-      if (user.is_deactivated) {
-        res.status(403).json({
-          success: false,
-          message: 'Your account has been deactivated. Please contact support.',
-          requiresReactivation: true,
-        });
-        return;
-      }
-
-      console.log('🔑 Google Sign-In - Existing user:', user.email);
-    } else {
-      // New user - create account
-      isNewUser = true;
-      
-      // Determine user type
-      let newUserType: UserType;
-      const userTypeStr = String(userType || 'regular_user').toLowerCase();
-      if (userTypeStr === 'regular_user' || userTypeStr === 'regular') {
-        newUserType = UserType.REGULAR;
-      } else if (userTypeStr === 'employee') {
-        newUserType = UserType.EMPLOYEE;
-      } else {
-        newUserType = UserType.REGULAR; // Default to regular for Google sign-ups
-      }
-
-      // Generate a random password (user won't need it since they use Google)
-      const randomPassword = uuidv4() + uuidv4();
-      const hashedPassword = await hashPassword(randomPassword);
-
-      // Create new user
-      user = doctorRepository.create({
-        email: googleUser.email.toLowerCase(),
-        password_hash: hashedPassword,
-        doctor_name: googleUser.name || googleUser.email.split('@')[0],
-        clinic_name: '', // Can be updated later
-        user_type: newUserType,
-        google_id: googleUser.sub,
-        is_google_user: true,
-        google_email_verified: true,
-        profile_photo_url: googleUser.picture,
-        consent_flag: true,
-        consent_at: new Date(),
-        // Google users are auto-approved since their email is verified
-        is_approved: newUserType === UserType.REGULAR, // Auto-approve regular users
-        approved_at: newUserType === UserType.REGULAR ? new Date() : undefined,
+    if (!user) {
+      // No account found — Google Sign-In is for existing users only
+      console.log('❌ Google Sign-In - No account found for:', googleUser.email);
+      res.status(404).json({
+        success: false,
+        message: 'No account found for this Google email. Please sign up first.',
+        redirectToSignup: true,
       });
-
-      await doctorRepository.save(user);
-      console.log('✨ Created new Google user:', user.email, 'Type:', newUserType);
+      return;
     }
+
+    // Existing user — link Google ID if not already linked
+    if (!user.google_id) {
+      user.google_id = googleUser.sub;
+      user.is_google_user = true;
+      user.google_email_verified = true;
+      await doctorRepository.save(user);
+      console.log('🔗 Linked Google account to existing user:', user.email);
+    }
+
+    // Check if user is deactivated
+    if (user.is_deactivated) {
+      res.status(403).json({
+        success: false,
+        message: 'Your account has been deactivated. Please contact support.',
+        requiresReactivation: true,
+      });
+      return;
+    }
+
+    console.log('🔑 Google Sign-In - Existing user:', user.email);
+
+    const isNewUser = false;
 
     // Generate JWT tokens (skip OTP since Google verified the email)
     const { accessToken, refreshToken } = generateTokenPair({

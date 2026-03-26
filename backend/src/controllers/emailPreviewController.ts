@@ -81,7 +81,11 @@ export const sendTestEmail = async (req: Request, res: Response): Promise<void> 
 
     // Send test email to admin using gmailService
     const gmailService = (await import('../services/gmailService')).default;
-    const adminEmail = process.env.ADMIN_EMAIL || 'muhammadqasimshabbir3@gmail.com';
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.MAIN_ADMIN_EMAIL;
+    if (!adminEmail) {
+      res.status(500).json({ success: false, message: 'Admin email not configured. Set MAIN_ADMIN_EMAIL environment variable.' });
+      return;
+    }
 
     await gmailService.sendEmail(
       adminEmail,

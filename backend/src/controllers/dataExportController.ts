@@ -1173,7 +1173,7 @@ export class DataExportController {
 
     const fileName = `export_${jobId}_${new Date().toISOString().split('T')[0]}.zip`;
     const currentDate = new Date().toLocaleDateString();
-    const adminEmail = process.env.GMAIL_USER || 'asadkhanbloch4949@gmail.com';
+    const adminEmail = process.env.GMAIL_USER || process.env.MAIN_ADMIN_EMAIL || '';
     
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -1723,7 +1723,7 @@ export class DataExportController {
       
       // Use gmailService for sending emails (Gmail API with SMTP fallback)
       const gmailService = (await import('../services/gmailService')).default;
-      const adminEmail = process.env.GMAIL_USER || 'asadkhanbloch4949@gmail.com';
+      const adminEmail = process.env.GMAIL_USER || process.env.MAIN_ADMIN_EMAIL || '';
       
       const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

@@ -3,7 +3,10 @@ import { APIToken } from '../entities/APIToken';
 import crypto from 'crypto';
 
 // Simple encryption/decryption functions
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-character-secret-key-here!'; // 32 characters
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+if (!ENCRYPTION_KEY) {
+  throw new Error('ENCRYPTION_KEY environment variable is required');
+}
 const ALGORITHM = 'aes-256-cbc';
 
 function encrypt(text: string): string {
@@ -30,7 +33,7 @@ const defaultTokens = [
     display_name: 'Hugging Face Main Token',
     description: 'Primary Hugging Face API token for AI model access',
     provider: 'huggingface',
-    token_value: process.env.HF_TOKEN || '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',
+    token_value: process.env.HF_TOKEN || process.env.HF_API_TOKEN || '',
     is_active: true,
     is_default: true,
     metadata: {
