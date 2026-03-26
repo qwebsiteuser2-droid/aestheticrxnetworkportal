@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayFast Integration Test - BioAestheticAx Network</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #007cba 0%, #005a87 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #28a745;
+        }
+        
+        .test-section h3 {
+            color: #007cba;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #007cba;
+            box-shadow: 0 0 0 3px rgba(0, 124, 186, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #007cba 0%, #005a87 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 124, 186, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .signature-display {
+            background: #e8f5e8;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .signature-display h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        
+        .signature-display code {
+            background: #f8f9fa;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        
+        .form-data {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .form-data h4 {
+            color: #007cba;
+            margin-bottom: 10px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007cba;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .footer a {
+            color: #007cba;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 PayFast Integration Test</h1>
+            <p>Test the working PayFast payment integration for BioAestheticAx Network</p>
+        </div>
+        
+        <div class="content">
+            <div class="test-section">
+                <h3>📋 Test Payment Details</h3>
+                <form id="testForm">
+                    <div class="form-group">
+                        <label for="customerName">Customer Name:</label>
+                        <input type="text" id="customerName" value="Test Customer" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customerEmail">Customer Email:</label>
+                        <input type="email" id="customerEmail" value="test@example.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="amount">Amount (ZAR):</label>
+                        <input type="number" id="amount" value="100.00" step="0.01" min="5.00" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="itemName">Item Name:</label>
+                        <input type="text" id="itemName" value="Test Product" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="itemDescription">Item Description:</label>
+                        <input type="text" id="itemDescription" value="Test product for PayFast integration" required>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="testBtn">
+                        🚀 Test PayFast Integration
+                    </button>
+                </form>
+            </div>
+            
+            <div id="statusContainer" class="hidden">
+                <div id="status" class="status"></div>
+            </div>
+            
+            <div id="signatureContainer" class="hidden">
+                <div class="signature-display">
+                    <h4>🔐 Generated Signature</h4>
+                    <p>Signature: <code id="signatureValue"></code></p>
+                    <p>Length: <span id="signatureLength"></span> characters</p>
+                </div>
+            </div>
+            
+            <div id="formDataContainer" class="hidden">
+                <div class="form-data">
+                    <h4>📋 Form Data</h4>
+                    <pre id="formDataDisplay"></pre>
+                </div>
+            </div>
+            
+            <div id="payfastFormContainer" class="hidden">
+                <div class="test-section">
+                    <h3>🚀 PayFast Payment Form</h3>
+                    <p>This form will be automatically submitted to PayFast sandbox:</p>
+                    <div id="payfastForm"></div>
+                    <button class="btn" id="submitToPayFast" onclick="submitToPayFast()">
+                        💳 Submit to PayFast
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>BioAestheticAx Network PayFast Integration Test | <a href="http://localhost:3000">Back to Home</a></p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:4000/api';
+        
+        // Form submission handler
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const testBtn = document.getElementById('testBtn');
+            const statusContainer = document.getElementById('statusContainer');
+            const status = document.getElementById('status');
+            
+            // Show loading state
+            testBtn.disabled = true;
+            testBtn.innerHTML = '<span class="loading-spinner"></span>Testing PayFast Integration...';
+            
+            statusContainer.classList.remove('hidden');
+            status.className = 'status loading';
+            status.innerHTML = '<span class="loading-spinner"></span>Initializing PayFast payment...';
+            
+            try {
+                // Get form data
+                const formData = {
+                    orderIds: [`TEST-${Date.now()}`],
+                    totalAmount: parseFloat(document.getElementById('amount').value),
+                    customerName: document.getElementById('customerName').value,
+                    customerEmail: document.getElementById('customerEmail').value,
+                    items: [{
+                        name: document.getElementById('itemName').value,
+                        description: document.getElementById('itemDescription').value,
+                        quantity: 1,
+                        price: parseFloat(document.getElementById('amount').value)
+                    }]
+                };
+                
+                console.log('🚀 Testing PayFast integration with data:', formData);
+                
+                // Call backend API
+                const response = await fetch(`${API_BASE_URL}/payments/test/payfast/initialize`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                console.log('✅ PayFast API response:', result);
+                
+                if (result.success && result.data) {
+                    // Show success status
+                    status.className = 'status success';
+                    status.innerHTML = '✅ PayFast integration working! Form generated successfully.';
+                    
+                    // Show signature
+                    const signatureContainer = document.getElementById('signatureContainer');
+                    const signatureValue = document.getElementById('signatureValue');
+                    const signatureLength = document.getElementById('signatureLength');
+                    
+                    // Extract signature from form HTML
+                    const signatureMatch = result.data.paymentForm.match(/name="signature" value="([^"]+)"/);
+                    const signature = signatureMatch ? signatureMatch[1] : 'Not found';
+                    
+                    signatureValue.textContent = signature;
+                    signatureLength.textContent = signature.length;
+                    signatureContainer.classList.remove('hidden');
+                    
+                    // Show form data
+                    const formDataContainer = document.getElementById('formDataContainer');
+                    const formDataDisplay = document.getElementById('formDataDisplay');
+                    formDataDisplay.textContent = JSON.stringify(result.data.paymentData, null, 2);
+                    formDataContainer.classList.remove('hidden');
+                    
+                    // Show PayFast form
+                    const payfastFormContainer = document.getElementById('payfastFormContainer');
+                    const payfastForm = document.getElementById('payfastForm');
+                    payfastForm.innerHTML = result.data.paymentForm;
+                    payfastFormContainer.classList.remove('hidden');
+                    
+                    // Store form for submission
+                    window.payfastFormData = result.data;
+                    
+                } else {
+                    throw new Error(result.message || 'Unknown error occurred');
+                }
+                
+            } catch (error) {
+                console.error('❌ PayFast integration test failed:', error);
+                
+                status.className = 'status error';
+                status.innerHTML = `❌ Error: ${error.message}`;
+                
+                // Hide other containers
+                document.getElementById('signatureContainer').classList.add('hidden');
+                document.getElementById('formDataContainer').classList.add('hidden');
+                document.getElementById('payfastFormContainer').classList.add('hidden');
+            } finally {
+                // Reset button
+                testBtn.disabled = false;
+                testBtn.innerHTML = '🚀 Test PayFast Integration';
+            }
+        });
+        
+        // Submit to PayFast function
+        function submitToPayFast() {
+            if (window.payfastFormData && window.payfastFormData.paymentForm) {
+                console.log('🚀 Submitting to PayFast...');
+                
+                // Create a temporary form and submit it
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = window.payfastFormData.paymentForm;
+                const form = tempDiv.querySelector('form');
+                
+                if (form) {
+                    // Add to body temporarily
+                    document.body.appendChild(form);
+                    
+                    // Submit the form
+                    form.submit();
+                    
+                    // Remove from body
+                    document.body.removeChild(form);
+                } else {
+                    alert('Error: Could not find PayFast form');
+                }
+            } else {
+                alert('Error: No PayFast form data available');
+            }
+        }
+        
+        // Auto-submit after 10 seconds if form is generated
+        let autoSubmitTimer = null;
+        
+        function startAutoSubmit() {
+            if (autoSubmitTimer) {
+                clearTimeout(autoSubmitTimer);
+            }
+            
+            autoSubmitTimer = setTimeout(() => {
+                if (window.payfastFormData) {
+                    console.log('⏰ Auto-submitting to PayFast in 10 seconds...');
+                    submitToPayFast();
+                }
+            }, 10000);
+        }
+        
+        // Start auto-submit when form is generated
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                    const payfastFormContainer = document.getElementById('payfastFormContainer');
+                    if (!payfastFormContainer.classList.contains('hidden')) {
+                        startAutoSubmit();
+                    }
+                }
+            });
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        console.log('🧪 PayFast Integration Test Page Loaded');
+        console.log('📋 Ready to test PayFast integration');
+    </script>
+</body>
+</html>

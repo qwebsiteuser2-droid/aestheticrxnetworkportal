@@ -1,0 +1,61 @@
+# Production Backend Dockerfile for BioAestheticAx Network
+# Cache bust: 2026-01-27-v1 - Force clean rebuild
+FROM node:18-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies for building)
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Build TypeScript to JavaScript
+# Using build:prod which uses tsconfig.prod.json with relaxed strict checks
+RUN npm run build:prod
+
+# Production stage
+FROM node:18-alpine AS production
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies + dev dependencies needed for migrations
+# TypeORM migrations require ts-node and typeorm CLI tools
+RUN npm install && npm cache clean --force
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+# Note: Migrations are compiled to dist/db/migrations/*.js
+# Do NOT copy src/db/migrations as TypeScript files can't run at runtime
+
+# Create non-root user first (needed for COPY --chown)
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+
+# Copy image directories from builder stage
+# products_pics is now committed to git and will be available
+COPY --chown=nodejs:nodejs --from=builder /app/products_pics ./products_pics
+# Create uploads directory for runtime uploads
+RUN mkdir -p /app/uploads && chown -R nodejs:nodejs /app/uploads
+
+# Change ownership of the app directory
+RUN chown -R nodejs:nodejs /app
+USER nodejs
+
+# Expose port
+EXPOSE 4000
+
+# Health check - use PORT environment variable (Railway sets this dynamically)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || '4000') + '/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Start the application (runs compiled JavaScript)
+CMD ["npm", "start"]

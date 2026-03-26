@@ -1,0 +1,138 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: bioaestheticax1_db
+    environment:
+      POSTGRES_DB: bioaestheticax1
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - bioaestheticax1_network
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    container_name: bioaestheticax1_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - bioaestheticax1_network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bioaestheticax1_backend
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgres://postgres:password@db:5432/bioaestheticax1
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      - JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-this-in-production
+      - BCRYPT_SALT_ROUNDS=12
+      - GMAIL_USER=asadkhanbloch4949@gmail.com
+      - GMAIL_APP_PASSWORD=ccsb uozs vyom pddi
+      - TWILIO_ACCOUNT_SID=ACbfa0042d6a724b5782a0e3082251bee2
+      - TWILIO_AUTH_TOKEN=YOUR_ACTUAL_AUTH_TOKEN_HERE
+      - WHATSAPP_PHONE_NUMBER=+14155238886
+      - MAIN_ADMIN_EMAIL=asadkhanbloch4949@gmail.com
+      - SECONDARY_ADMIN_EMAIL=asadkhanbloch4949@gmail.com
+      - FRONTEND_URL=http://localhost:3000
+      - BACKEND_URL=http://localhost:4000
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=1000
+      - DISABLE_RATE_LIMIT=true
+      # PayFast Payment Gateway Configuration (User Credentials)
+      - PAYFAST_MERCHANT_ID=10042666
+      - PAYFAST_MERCHANT_KEY=aacjyg5h02c4s
+      - PAYFAST_PASSPHRASE=qV9t7Gz2Rkx8Lm4FhS0pW1
+      # Google Drive Service Account Configuration
+      - GOOGLE_PRIVATE_KEY_ID=8296bd9ebfcd842c680b87ad9e3fff7a4ce8cb15
+      - GOOGLE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDfEUviTOB0UU7v\n4boG6Z1CYC8bArlRY6BEESak6tKh7I8FFCmNZUL4txj64xlY2lRItKtmba0gGi0w\nc/JJCTl96ZxXex/KkgpB1dbNG5pyuZcnBYFdtv56jZT8IEefkJgjqpa2PD1mh7Hl\nwH0VVAJaxGeSwkx9ZD7SLrv+CSTXxtWMZoRq4VxJdTLmexzDwtHfuURNGhLJzlL+\nSq6VeitunY0zpc+5y5+gUEC1UpWclHJGD+yRC2D623If8725uIy68iZDD+Be78bP\nvY7fHa6jRxwY18/PWVpaIDarUFRBJP5NThAX3JHP2BqSJsjogAi0sS+PHsjNfrEd\nVbdotJvzAgMBAAECggEAMOARz+ZHQcU09gNv5qbWMZ5wg8sPfsFE8tUNMhJPj3IN\nDjBSQGxhBazcmNAclCbWU83eRkWeqsuBfj3RZuZSBgAjJNnR5+kivTUU6QD00NFQ\nSJkAtN9tF74g2DNcbh5Y72untQsy6t2tgWkxHvS2xVuGVBYle031I8lgoHMxcuNx\nzxMPt+lSYEaXMeLe03DgfMmQmkHjsjMGAIvx9nF5JT7CBZPAcpGy//9FshVMG9Jj\nr43XVk5xoh/KOvAM3QUxoRZFFy2jJkBi9JhsVjWaH1LHscCBYLLVVdnJ+oBwyWH8\nwiYXxVgYcoiWWULTNQmcHDecaBGex0MCCgEj6mgb4QKBgQD2aHPgRgA3aZoR4nsY\nkS4vaLg+Frmch+JYCHelYzP1J16CUGX4pp2jaZZRMnorf1QihDA8N67+Rv4MR8qo\nz2kRJf9R3p+tx6shO/6HSPeNUmibZS6R4OqjGHpOrJj5Ie3kvSNWu+ODpoEe3c8L\nYQzZwQaTQxB1FlLzTgEsBGPZIQKBgQDnwD9bwRiMT26+ofaSnoiw8nYeuFVkQjZI\nkqYJwEQP6urNBNLJTBDe+PTl4vlAB4KWMkmJAA5Km2EqpIjkeb51eIPLUaAxhfBT\ncblKTh3H3+LuwwsETtMD3l7/rJfnAMBYd27tGx4GdSAqGrUh6WHH3W5b32mCuI5s\nKq1kL/sukwKBgAxdt5sEyFP/l7zYCed0ucWlUsHC8DO72g8i9aY2MVBXVnXhxQxS\niEzAKswOZXUzYayNx8Ht5XlbZLqHC9Om/RXgO00HiCn3gE4dratqbQoJnbhWvpyR\nlhTzUIgMP20ZV9AH8fMTYNqli4taBF8E0tlGx6ayUeweX7FYM9Tar4whAoGAa2eQ\ntZBvNQ/XLmhXoynwBbnI/oHFqXp6N/YnF1vQ72ObQDsdCYfEReIxdZ1UkNUqMzvJ\nEsJA3VjXlnC8tM6rczvQMNl6mZkOgU2yZvp/GNPtE2S3ZV62sxNLCclOeRPDEP0B\nHsgziSCdMIZCLh5AX+WCsPeAqcGo1/6Lb2RBUBsCgYEAr1nC8LUTqHcZmQTDt/6O\nSeWC34v3IimJjTtpa0pVdJgsMWVB7WKAohFgCI3/ylQeOV1gEo7Oj5P/6BEMHIHU\nlsir3LumQJry3iZ/sgekww5ySWumh+n91j5L+uq0Eq40oxiDxx8FzD8cSHIKrSvN\n+H80AYd9PJxb2hLuVNxgZBc=\n-----END PRIVATE KEY-----
+      - GOOGLE_CLIENT_ID=107284311721266654505
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - db
+      - redis
+    networks:
+      - bioaestheticax1_network
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    command: npm run dev
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bioaestheticax1_frontend
+    user: "0:0"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:4000/api
+      - HOSTNAME=0.0.0.0
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - bioaestheticax1_network
+    command: npm run dev
+
+  # Adminer for database management
+  adminer:
+    image: adminer:4.8.1
+    container_name: bioaestheticax1_adminer
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    depends_on:
+      - db
+    networks:
+      - bioaestheticax1_network
+
+  # MinIO for S3-compatible storage (local development)
+  minio:
+    image: minio/minio:latest
+    container_name: bioaestheticax1_minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - bioaestheticax1_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  bioaestheticax1_network:
+    driver: bridge
