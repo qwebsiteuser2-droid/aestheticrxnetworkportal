@@ -25,7 +25,7 @@ The `updateUserProfileAndRanking` function was:
 ## ✅ **Solutions Applied**
 
 ### **Solution: Enhanced updateUserProfileAndRanking Function**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/controllers/orderController.ts`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/controllers/orderController.ts`
 
 **Before (Missing Tier Update):**
 ```typescript

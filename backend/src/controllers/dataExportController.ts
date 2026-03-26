@@ -1177,7 +1177,7 @@ export class DataExportController {
     
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2563eb;">📊 BioAestheticAx Network Data Export</h2>
+        <h2 style="color: #2563eb;">📊 AestheticRxNetwork Data Export</h2>
         <p>Hello Admin,</p>
         <p>Your requested data export has been completed successfully!</p>
         
@@ -1207,7 +1207,7 @@ export class DataExportController {
         
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
         <p style="color: #9ca3af; font-size: 12px;">
-          This is an automated message from BioAestheticAx Network Data Export System.
+          This is an automated message from AestheticRxNetwork Data Export System.
         </p>
       </div>
     `;
@@ -1217,7 +1217,7 @@ export class DataExportController {
     
     await gmailService.sendEmailWithAttachments(
       adminEmail,
-      `📊 BioAestheticAx Network Data Export - ${currentDate}`,
+      `📊 AestheticRxNetwork Data Export - ${currentDate}`,
       htmlContent,
       [{
         filename: fileName,
@@ -1599,15 +1599,15 @@ export class DataExportController {
         isServiceInitialized = false;
       }
       
-      // If service is initialized, ensure the BioAestheticAx Network_Exports folder exists
+      // If service is initialized, ensure the AestheticRxNetwork_Exports folder exists
       let folderExists = false;
       if (isServiceInitialized && this.googleDriveService) {
         try {
-          await this.googleDriveService.ensureFolderExists('BioAestheticAx Network_Exports');
+          await this.googleDriveService.ensureFolderExists('AestheticRxNetwork_Exports');
           folderExists = true;
-          console.log('✅ BioAestheticAx Network_Exports folder ensured to exist');
+          console.log('✅ AestheticRxNetwork_Exports folder ensured to exist');
         } catch (folderError) {
-          console.error('⚠️ Error ensuring BioAestheticAx Network_Exports folder exists:', folderError);
+          console.error('⚠️ Error ensuring AestheticRxNetwork_Exports folder exists:', folderError);
           folderExists = false;
         }
       }
@@ -1633,7 +1633,7 @@ export class DataExportController {
           serviceAccount: 'asadkhanbloch4949@alien-cedar-476317-c8.iam.gserviceaccount.com',
           message: hasGoogleCredentials 
             ? (isServiceInitialized 
-                ? (folderExists ? 'Google Drive is ready and BioAestheticAx Network_Exports folder exists' : 'Google Drive is ready but folder creation failed')
+                ? (folderExists ? 'Google Drive is ready and AestheticRxNetwork_Exports folder exists' : 'Google Drive is ready but folder creation failed')
                 : 'Google Drive credentials found but service not initialized')
             : 'Google Drive credentials not configured. Set GOOGLE_PRIVATE_KEY_ID, GOOGLE_PRIVATE_KEY, and GOOGLE_CLIENT_ID environment variables.'
         }
@@ -1668,9 +1668,9 @@ export class DataExportController {
       if (hasGoogleCredentials && this.googleDriveService) {
         // Test Google Drive connection and ensure folder exists
         try {
-          // Ensure the BioAestheticAx Network_Exports folder exists
-          await this.googleDriveService.ensureFolderExists('BioAestheticAx Network_Exports');
-          const folderContents = await this.googleDriveService.getFolderContents('BioAestheticAx Network_Exports');
+          // Ensure the AestheticRxNetwork_Exports folder exists
+          await this.googleDriveService.ensureFolderExists('AestheticRxNetwork_Exports');
+          const folderContents = await this.googleDriveService.getFolderContents('AestheticRxNetwork_Exports');
           
           res.json({
             success: true,
@@ -1678,7 +1678,7 @@ export class DataExportController {
             data: {
               configured: true,
               method: 'google-drive',
-              serviceAccount: 'q-service-account@bioaestheticax.iam.gserviceaccount.com',
+              serviceAccount: 'q-service-account@aestheticrx.iam.gserviceaccount.com',
               connectionTest: 'passed',
               existingFiles: folderContents.length
             }
@@ -1691,7 +1691,7 @@ export class DataExportController {
             data: {
               configured: true,
               method: 'google-drive',
-              serviceAccount: 'q-service-account@bioaestheticax.iam.gserviceaccount.com',
+              serviceAccount: 'q-service-account@aestheticrx.iam.gserviceaccount.com',
               connectionTest: 'failed',
               error: driveError instanceof Error ? driveError.message : 'Unknown error'
             }
@@ -1747,14 +1747,14 @@ export class DataExportController {
           
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
           <p style="color: #9ca3af; font-size: 12px;">
-            This is a test message from BioAestheticAx Network Data Export System.
+            This is a test message from AestheticRxNetwork Data Export System.
           </p>
         </div>
       `;
 
       await gmailService.sendEmail(
         adminEmail,
-        '🧪 Gmail Integration Test - BioAestheticAx Network Data Export',
+        '🧪 Gmail Integration Test - AestheticRxNetwork Data Export',
         htmlContent,
         { isMarketing: false }
       );

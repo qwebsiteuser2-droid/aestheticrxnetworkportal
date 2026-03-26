@@ -9,7 +9,7 @@ Enhanced the system to handle large orders (10+) with 100% success rate using pr
 ## 🔍 **Optimizations Applied**
 
 ### **Optimization 1: Progressive Delays**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Enhanced Delay System:**
 ```typescript
@@ -30,7 +30,7 @@ const delay = Math.min(200 * index, 2000);
 - Order 10: 1800ms delay
 
 ### **Optimization 2: Batch Processing**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Batch System:**
 - **Batch Size**: 5 orders per batch
@@ -43,7 +43,7 @@ const delay = Math.min(200 * index, 2000);
 - **Batch 2**: Orders 6-10 (with progressive delays)
 
 ### **Optimization 3: Enhanced Rate Limiting**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/controllers/orderController.ts`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/controllers/orderController.ts`
 
 **Ultra-Permissive Limits:**
 ```typescript
@@ -52,7 +52,7 @@ const MAX_ORDERS_PER_WINDOW = 20; // Allow 20 orders per window
 ```
 
 ### **Optimization 4: Real-Time Progress Tracking**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Progress Features:**
 - Batch progress notifications

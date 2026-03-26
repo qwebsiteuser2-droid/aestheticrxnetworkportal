@@ -336,7 +336,7 @@ class AdvertisementRotationService {
                           </div>
                           
                           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-                            <p>This is an automated message from BioAestheticAx Network system.</p>
+                            <p>This is an automated message from AestheticRxNetwork system.</p>
                           </div>
                         </div>
                       `;

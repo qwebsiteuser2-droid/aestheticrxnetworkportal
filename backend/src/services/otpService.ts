@@ -190,19 +190,19 @@ export class OTPService {
     
     switch (purpose) {
       case 'password_reset':
-        subject = `Your OTP for Password Reset - BioAestheticAx Network`;
-        message = 'You have requested a password reset to your BioAestheticAx Network account.';
+        subject = `Your OTP for Password Reset - AestheticRxNetwork`;
+        message = 'You have requested a password reset to your AestheticRxNetwork account.';
         break;
       case 'login':
-        subject = `Your OTP for Login Verification - BioAestheticAx Network`;
-        message = 'You are attempting to log in to your BioAestheticAx Network account. Please use the OTP below to complete your login.';
+        subject = `Your OTP for Login Verification - AestheticRxNetwork`;
+        message = 'You are attempting to log in to your AestheticRxNetwork account. Please use the OTP below to complete your login.';
         break;
       case 'admin_access':
-        subject = `Your OTP for Admin Dashboard Access - BioAestheticAx Network`;
+        subject = `Your OTP for Admin Dashboard Access - AestheticRxNetwork`;
         message = 'You are attempting to access the Admin Dashboard. Please use the OTP below to verify your admin access.';
         break;
       default:
-        subject = `Your OTP Verification - BioAestheticAx Network`;
+        subject = `Your OTP Verification - AestheticRxNetwork`;
         message = 'Please use the OTP below to verify your access.';
     }
     
@@ -227,7 +227,7 @@ export class OTPService {
         <div class="container">
           <div class="header">
             <h1>🔐 OTP Verification</h1>
-            <p>Secure Access to BioAestheticAx Network</p>
+            <p>Secure Access to AestheticRxNetwork</p>
           </div>
           
           <h2>Hello ${name}!</h2>
@@ -249,7 +249,7 @@ export class OTPService {
           </div>
           
           <div class="footer">
-            <p>This is an automated message from BioAestheticAx Network Security System</p>
+            <p>This is an automated message from AestheticRxNetwork Security System</p>
             <p>If you have any concerns, please contact our support team</p>
           </div>
         </div>

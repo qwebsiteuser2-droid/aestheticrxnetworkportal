@@ -118,7 +118,7 @@ export const createHallOfPrideEntry = async (req: AuthenticatedRequest, res: Res
 
     // Send email notification to the doctor (non-blocking)
     if (doctor.email) {
-      const emailSubject = `🏆 Congratulations! You've been added to the Hall of Pride - BioAestheticAx Network`;
+      const emailSubject = `🏆 Congratulations! You've been added to the Hall of Pride - AestheticRxNetwork`;
       const emailContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
@@ -131,7 +131,7 @@ export const createHallOfPrideEntry = async (req: AuthenticatedRequest, res: Res
             
             <p style="font-size: 16px; color: #333;">
               We are thrilled to inform you that you have been recognized and added to the 
-              <strong>Hall of Pride</strong> at BioAestheticAx Network!
+              <strong>Hall of Pride</strong> at AestheticRxNetwork!
             </p>
             
             <div style="background-color: #fff; border-left: 4px solid #ffd700; padding: 20px; margin: 20px 0; border-radius: 4px;">
@@ -162,7 +162,7 @@ export const createHallOfPrideEntry = async (req: AuthenticatedRequest, res: Res
           
           <div style="padding: 20px; background-color: #333; text-align: center; border-radius: 0 0 10px 10px;">
             <p style="color: #999; font-size: 12px; margin: 0;">
-              This is an automated message from BioAestheticAx Network system.
+              This is an automated message from AestheticRxNetwork system.
             </p>
           </div>
         </div>

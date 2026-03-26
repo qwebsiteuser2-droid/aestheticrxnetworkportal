@@ -24,7 +24,7 @@
 ## 🔧 **Technical Changes Made**
 
 ### **File 1: Frontend Order Page**
-`/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+`/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Removed:**
 ```typescript
@@ -46,7 +46,7 @@ if (!finalConfirm) {
 ```
 
 ### **File 2: Backend Order Controller**
-`/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/controllers/orderController.ts`
+`/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/controllers/orderController.ts`
 
 **Added Error Handling:**
 ```typescript

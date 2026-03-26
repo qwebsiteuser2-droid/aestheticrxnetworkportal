@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Script to create bioaestheticax1 database on Railway
+# Script to create aestheticrx1 database on Railway
 # Usage: ./create-railway-database.sh
 
 set -e
 
-echo "🔧 Creating bioaestheticax1 database on Railway..."
+echo "🔧 Creating aestheticrx1 database on Railway..."
 echo ""
 
 # Get Railway DATABASE_URL (using default database)
@@ -46,12 +46,12 @@ if ! command -v psql &> /dev/null; then
 fi
 
 # Create database
-echo "📝 Creating bioaestheticax1 database..."
-psql "$RAILWAY_DEFAULT_URL" -c "SELECT 1 FROM pg_database WHERE datname='bioaestheticax1';" 2>&1 | grep -q "1 row" && {
-    echo "✅ Database bioaestheticax1 already exists"
+echo "📝 Creating aestheticrx1 database..."
+psql "$RAILWAY_DEFAULT_URL" -c "SELECT 1 FROM pg_database WHERE datname='aestheticrx1';" 2>&1 | grep -q "1 row" && {
+    echo "✅ Database aestheticrx1 already exists"
 } || {
-    psql "$RAILWAY_DEFAULT_URL" -c "CREATE DATABASE bioaestheticax1;" 2>&1 && {
-        echo "✅ Database bioaestheticax1 created successfully"
+    psql "$RAILWAY_DEFAULT_URL" -c "CREATE DATABASE aestheticrx1;" 2>&1 && {
+        echo "✅ Database aestheticrx1 created successfully"
     } || {
         echo "⚠️  Database may already exist or connection failed"
     }

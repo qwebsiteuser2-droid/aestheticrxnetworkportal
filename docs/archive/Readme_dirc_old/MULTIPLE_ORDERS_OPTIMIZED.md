@@ -28,7 +28,7 @@ Fixed the multiple order failure issue by optimizing backend performance and imp
 ## 🔧 **Optimizations Applied**
 
 ### **Optimization 1: Non-Blocking Notifications**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/controllers/orderController.ts`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/controllers/orderController.ts`
 
 **Before (Blocking - 2-3 seconds):**
 ```typescript
@@ -48,7 +48,7 @@ whatsappService.sendOrderPlacedAlert(orderWithRelations).catch(err =>
 ```
 
 ### **Optimization 2: Frontend Timeout Handling**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Added:**
 - 10-second timeout for each order request
@@ -57,7 +57,7 @@ whatsappService.sendOrderPlacedAlert(orderWithRelations).catch(err =>
 - Specific error messages for timeouts
 
 ### **Optimization 3: Database Numeric Fix**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/controllers/orderController.ts`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/controllers/orderController.ts`
 
 **Fixed:**
 ```typescript
@@ -69,7 +69,7 @@ const newSalesTotal = completedOrders.reduce((sum, order) => sum + Number(order.
 ```
 
 ### **Optimization 4: Rate Limiting Adjustment**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/controllers/orderController.ts`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/controllers/orderController.ts`
 
 **Improved:**
 - Increased from 2 to 5 orders per window

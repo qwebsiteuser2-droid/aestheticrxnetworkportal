@@ -42,7 +42,7 @@ class WhatsAppService {
 
 Please review and approve in admin panel.
 
-_BioAestheticAx Network System_`;
+_AestheticRxNetwork System_`;
 
       const adminPhones = [mainAdminPhone, secondaryAdminPhone].filter(Boolean);
       
@@ -75,7 +75,7 @@ _BioAestheticAx Network System_`;
 
 Dear Dr. ${doctor.doctor_name},
 
-Your account has been approved! You can now access all features of BioAestheticAx Network.
+Your account has been approved! You can now access all features of AestheticRxNetwork.
 
 *Account Details:*
 • Clinic: ${doctor.clinic_name}
@@ -88,9 +88,9 @@ You can now:
 ✅ Submit research papers
 ✅ Access all platform features
 
-Welcome to BioAestheticAx Network!
+Welcome to AestheticRxNetwork!
 
-_BioAestheticAx Network System_`;
+_AestheticRxNetwork System_`;
 
       await twilioClient!.messages.create({
         from: `whatsapp:${WHATSAPP_PHONE_NUMBER}`,
@@ -152,7 +152,7 @@ ${paymentMethod === 'payfast_online' && order.payment_status === 'paid' ?
 
 Please review and process in admin panel.
 
-_BioAestheticAx Network System_`;
+_AestheticRxNetwork System_`;
 
       const adminPhones = [mainAdminPhone, secondaryAdminPhone].filter(Boolean);
       
@@ -194,7 +194,7 @@ _BioAestheticAx Network System_`;
 
 This is a significant milestone! Keep up the excellent work.
 
-_BioAestheticAx Network System_`;
+_AestheticRxNetwork System_`;
 
       await twilioClient!.messages.create({
         from: `whatsapp:${WHATSAPP_PHONE_NUMBER}`,
@@ -232,7 +232,7 @@ Great news! Your research paper has been approved and is now public.
 
 Your research is now visible to all doctors and can receive upvotes and views.
 
-_BioAestheticAx Network System_`;
+_AestheticRxNetwork System_`;
 
       await twilioClient!.messages.create({
         from: `whatsapp:${WHATSAPP_PHONE_NUMBER}`,
@@ -261,7 +261,7 @@ _BioAestheticAx Network System_`;
 
 Dear Dr. ${doctor.doctor_name},
 
-Thank you for your interest in joining BioAestheticAx Network. After careful review by our admin team, we are unable to approve your registration at this time.
+Thank you for your interest in joining AestheticRxNetwork. After careful review by our admin team, we are unable to approve your registration at this time.
 
 *Admin Review Result:*
 • Status: Not Approved
@@ -271,11 +271,11 @@ Thank you for your interest in joining BioAestheticAx Network. After careful rev
 If you believe this is an error or have additional information to provide, please contact our support team:
 
 📱 WhatsApp: +92 325 1531780
-📧 Email: support@bioaestheticax1.com
+📧 Email: support@aestheticrx1.com
 
 We appreciate your understanding and look forward to potentially welcoming you to our platform in the future.
 
-_BioAestheticAx Network System_`;
+_AestheticRxNetwork System_`;
 
       await twilioClient!.messages.create({
         from: `whatsapp:${WHATSAPP_PHONE_NUMBER}`,
@@ -314,7 +314,7 @@ _BioAestheticAx Network System_`;
 
 Detailed reports sent via email.
 
-_BioAestheticAx Network System_`;
+_AestheticRxNetwork System_`;
 
       const adminPhones = [mainAdminPhone, secondaryAdminPhone].filter(Boolean);
       
@@ -381,7 +381,7 @@ If you believe this is an error or have any questions, please contact our suppor
 
 Thank you for your understanding.
 
-_BioAestheticAx Network System_`;
+_AestheticRxNetwork System_`;
 
       await twilioClient!.messages.create({
         from: `whatsapp:${WHATSAPP_PHONE_NUMBER}`,

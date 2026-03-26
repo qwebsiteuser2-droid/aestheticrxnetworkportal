@@ -1,6 +1,6 @@
 # Deployment Guide
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -11,7 +11,7 @@
 
 ---
 
-This guide provides comprehensive instructions for deploying the BioAestheticAx Network application to production.
+This guide provides comprehensive instructions for deploying the AestheticRxNetwork application to production.
 
 ## Table of Contents
 
@@ -67,8 +67,8 @@ sudo apt install certbot python3-certbot-nginx -y
 ### 2. Clone Repository
 
 ```bash
-git clone https://github.com/qasimjungle/BioAestheticAx Network_App.git
-cd BioAestheticAx Network_App
+git clone https://github.com/qasimjungle/AestheticRxNetwork_App.git
+cd AestheticRxNetwork_App
 ```
 
 ### 3. Configure Environment
@@ -278,9 +278,9 @@ NODE_ENV=production npm start
 
 1. **Create Database**:
    ```sql
-   CREATE DATABASE bioaestheticax1;
-   CREATE USER bioaestheticax_user WITH PASSWORD 'secure_password';
-   GRANT ALL PRIVILEGES ON DATABASE bioaestheticax1 TO bioaestheticax_user;
+   CREATE DATABASE aestheticrx1;
+   CREATE USER aestheticrx_user WITH PASSWORD 'secure_password';
+   GRANT ALL PRIVILEGES ON DATABASE aestheticrx1 TO aestheticrx_user;
    ```
 
 2. **Run Migrations**:
@@ -298,10 +298,10 @@ NODE_ENV=production npm start
 
 ```bash
 # Create backup
-pg_dump -U postgres bioaestheticax1 > backup_$(date +%Y%m%d).sql
+pg_dump -U postgres aestheticrx1 > backup_$(date +%Y%m%d).sql
 
 # Restore backup
-psql -U postgres bioaestheticax1 < backup_20240101.sql
+psql -U postgres aestheticrx1 < backup_20240101.sql
 ```
 
 ## Monitoring

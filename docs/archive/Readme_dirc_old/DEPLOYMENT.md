@@ -1,6 +1,6 @@
-# BioAestheticAx Network Production Deployment Guide
+# AestheticRxNetwork Production Deployment Guide
 
-This guide will help you deploy your BioAestheticAx Network application to production with SSL, security, and monitoring.
+This guide will help you deploy your AestheticRxNetwork application to production with SSL, security, and monitoring.
 
 ## Prerequisites
 
@@ -44,7 +44,7 @@ sudo apt install certbot -y
 ```bash
 # Clone your repository
 git clone <your-repository-url>
-cd BioAestheticAx Network
+cd AestheticRxNetwork
 
 # Copy and configure environment
 cp env.example production.env
@@ -58,7 +58,7 @@ Edit `production.env` with your actual values:
 ```bash
 # Required: Update these values
 NEXT_PUBLIC_API_URL=https://your-domain.com/api
-DATABASE_URL=postgres://postgres:your_secure_password@db:5432/bioaestheticax1
+DATABASE_URL=postgres://postgres:your_secure_password@db:5432/aestheticrx1
 JWT_SECRET=your-super-secure-jwt-secret-key
 JWT_REFRESH_SECRET=your-super-secure-refresh-secret-key
 MAIN_ADMIN_EMAIL=admin@your-domain.com
@@ -185,10 +185,10 @@ docker-compose -f docker-compose.prod.yml logs -f nginx
 
 ```bash
 # Create backup
-docker-compose -f docker-compose.prod.yml exec db pg_dump -U postgres bioaestheticax1 > backup_$(date +%Y%m%d_%H%M%S).sql
+docker-compose -f docker-compose.prod.yml exec db pg_dump -U postgres aestheticrx1 > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Restore backup
-docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres bioaestheticax1 < backup_file.sql
+docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres aestheticrx1 < backup_file.sql
 ```
 
 ### Update Application
@@ -310,7 +310,7 @@ Add:
 2. **Database optimization**
    ```bash
    # Connect to database
-   docker-compose -f docker-compose.prod.yml exec db psql -U postgres bioaestheticax1
+   docker-compose -f docker-compose.prod.yml exec db psql -U postgres aestheticrx1
    
    # Run ANALYZE
    ANALYZE;

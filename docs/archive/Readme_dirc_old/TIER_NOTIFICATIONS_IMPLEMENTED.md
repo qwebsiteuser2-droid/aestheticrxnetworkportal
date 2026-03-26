@@ -26,7 +26,7 @@ Implemented comprehensive tier management with automatic notifications, benefits
 - ✅ **Admin Control** - Full admin can add/remove viewer admins
 
 ### **2. Tier Update Notifications**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/services/gmailService.ts`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/services/gmailService.ts`
 
 **New Function**: `sendTierUpdateNotification()`
 
@@ -46,7 +46,7 @@ Implemented comprehensive tier management with automatic notifications, benefits
 - 🔗 **Leaderboard Link** - Direct link to view progress
 
 ### **3. Tier Benefits Information**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/controllers/orderController.ts`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/controllers/orderController.ts`
 
 **Function**: `getTierBenefits()`
 

@@ -13,7 +13,7 @@ The "Insufficient stock available" errors were caused by products having `stock_
 - **Order 8 failed**: Product `b1cabc90-3034-4dc2-adf4-629dc7b43d6d` (Testing product) - stock_quantity = 0
 
 ### **Stock Validation Logic:**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/controllers/orderController.ts`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/controllers/orderController.ts`
 ```typescript
 // Check stock if available
 if (product.stock_quantity !== null && product.stock_quantity < qty) {
@@ -46,7 +46,7 @@ WHERE id = '516e4935-4231-4717-9032-8ee645e76698';
 ```
 
 ### **Solution 2: Enhanced Error Handling**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Improved Error Messages:**
 ```typescript

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to copy all tables from bioaestheticax1 to railway database
+# Script to copy all tables from aestheticrx1 to railway database
 # Uses temporary SQL files to work around cross-database limitations
 
 set -e
@@ -9,7 +9,7 @@ RAILWAY_HOST="tramway.proxy.rlwy.net"
 RAILWAY_PORT="22589"
 RAILWAY_USER="postgres"
 RAILWAY_PASSWORD="icbMyRDBMxDvNBKxTBleHZCbvekroZmS"
-SOURCE_DB="bioaestheticax1"
+SOURCE_DB="aestheticrx1"
 TARGET_DB="railway"
 
 export PGPASSWORD="$RAILWAY_PASSWORD"
@@ -20,7 +20,7 @@ trap "rm -rf $TEMP_DIR" EXIT
 echo "🔄 Copying tables from $SOURCE_DB to $TARGET_DB..."
 echo ""
 
-# Step 1: Export schema from bioaestheticax1
+# Step 1: Export schema from aestheticrx1
 echo "📤 Exporting schema from $SOURCE_DB..."
 docker run --rm -e PGPASSWORD="$RAILWAY_PASSWORD" postgres:17 \
     pg_dump -h "$RAILWAY_HOST" -U "$RAILWAY_USER" -p "$RAILWAY_PORT" \

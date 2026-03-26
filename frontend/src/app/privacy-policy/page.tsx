@@ -3,12 +3,12 @@ import type { Metadata } from 'next';
 
 // SEO Metadata - Static page, pre-rendered at build time
 export const metadata: Metadata = {
-  title: 'Privacy Policy | BioAestheticAx Network',
-  description: 'Learn how BioAestheticAx Network collects, uses, and protects your personal information. Read our comprehensive privacy policy.',
-  keywords: 'privacy policy, data protection, GDPR, personal information, BioAestheticAx',
+  title: 'Privacy Policy | AestheticRxNetwork',
+  description: 'Learn how AestheticRxNetwork collects, uses, and protects your personal information. Read our comprehensive privacy policy.',
+  keywords: 'privacy policy, data protection, GDPR, personal information, AestheticRx',
   openGraph: {
-    title: 'Privacy Policy | BioAestheticAx Network',
-    description: 'Learn how BioAestheticAx Network protects your privacy and personal data.',
+    title: 'Privacy Policy | AestheticRxNetwork',
+    description: 'Learn how AestheticRxNetwork protects your privacy and personal data.',
     type: 'website',
   },
 };
@@ -27,7 +27,7 @@ export default function PrivacyPolicyPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
             <p className="text-gray-700 mb-4">
-              Welcome to BioAestheticAx Network. We are committed to protecting your privacy and ensuring the security of your personal information. 
+              Welcome to AestheticRxNetwork. We are committed to protecting your privacy and ensuring the security of your personal information. 
               This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform.
             </p>
             <p className="text-gray-700">

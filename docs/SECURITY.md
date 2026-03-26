@@ -1,6 +1,6 @@
 # Security Guide
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -14,7 +14,7 @@
 
 ## Overview
 
-This document describes the security architecture, implemented measures, and best practices for the BioAestheticAx Network platform. Security is implemented across all layers of the application.
+This document describes the security architecture, implemented measures, and best practices for the AestheticRxNetwork platform. Security is implemented across all layers of the application.
 
 ---
 

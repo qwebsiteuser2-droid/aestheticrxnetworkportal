@@ -46,7 +46,7 @@ The error message "Only undefined items available in stock" was caused by the `s
 ## ✅ **Solutions Applied**
 
 ### **Solution 1: Backend API Fix**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/models/Product.ts`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/models/Product.ts`
 
 **Problem**: The `toPublicJSON()` method was missing `stock_quantity` field
 
@@ -87,7 +87,7 @@ toPublicJSON(): Partial<Product> {
 ```
 
 ### **Solution 2: Frontend Error Handling**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Enhanced Error Message:**
 ```typescript

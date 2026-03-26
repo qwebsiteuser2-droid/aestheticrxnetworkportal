@@ -23,7 +23,7 @@ Applied additional fixes to eliminate the remaining 2 order failures when placin
 ## 🔧 **Additional Fixes Applied**
 
 ### **Fix 1: Sequential Order Processing**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Before (Parallel Processing):**
 ```typescript
@@ -53,7 +53,7 @@ for (let i = 0; i < orderPromises.length; i++) {
 ```
 
 ### **Fix 2: Request Delays**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Added:**
 ```typescript
@@ -64,7 +64,7 @@ if (index > 0) {
 ```
 
 ### **Fix 3: More Permissive Rate Limiting**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/controllers/orderController.ts`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/controllers/orderController.ts`
 
 **Before:**
 ```typescript

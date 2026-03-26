@@ -1,6 +1,6 @@
-# BioAestheticAx Network User Guide
+# AestheticRxNetwork User Guide
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -11,12 +11,12 @@
 
 ---
 
-Welcome to BioAestheticAx Network! This comprehensive guide will help you understand and use all the features of our B2B medical platform.
+Welcome to AestheticRxNetwork! This comprehensive guide will help you understand and use all the features of our B2B medical platform.
 
 ## Table of Contents
 
 ### 1. Getting Started
-- [1.1 What is BioAestheticAx Network?](#11-what-is-bioaestheticax)
+- [1.1 What is AestheticRxNetwork?](#11-what-is-aestheticrx)
 - [1.2 Accessing the Website](#12-accessing-the-website)
 
 ### 2. User Types & Access
@@ -61,9 +61,9 @@ Welcome to BioAestheticAx Network! This comprehensive guide will help you unders
 
 ## 1. Getting Started
 
-### 1.1 What is BioAestheticAx Network?
+### 1.1 What is AestheticRxNetwork?
 
-BioAestheticAx Network is a B2B platform designed for medical clinics and doctors. It allows you to:
+AestheticRxNetwork is a B2B platform designed for medical clinics and doctors. It allows you to:
 - Order medical products
 - Share and view research papers
 - Track your performance and achievements

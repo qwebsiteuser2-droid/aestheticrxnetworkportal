@@ -4,16 +4,16 @@ services:
   # PostgreSQL Database
   db:
     image: postgres:15-alpine
-    container_name: bioaestheticax1_db_prod
+    container_name: aestheticrx1_db_prod
     environment:
-      POSTGRES_DB: bioaestheticax1
+      POSTGRES_DB: aestheticrx1
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your_secure_password}
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
       - ./backend/migrations:/docker-entrypoint-initdb.d
     networks:
-      - bioaestheticax1_network_prod
+      - aestheticrx1_network_prod
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -24,11 +24,11 @@ services:
   # Redis for caching and sessions
   redis:
     image: redis:7-alpine
-    container_name: bioaestheticax1_redis_prod
+    container_name: aestheticrx1_redis_prod
     volumes:
       - redis_data_prod:/data
     networks:
-      - bioaestheticax1_network_prod
+      - aestheticrx1_network_prod
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -41,12 +41,12 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
-    container_name: bioaestheticax1_backend_prod
+    container_name: aestheticrx1_backend_prod
     env_file:
       - production.env
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD:-your_secure_password}@db:5432/bioaestheticax1
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD:-your_secure_password}@db:5432/aestheticrx1
       - REDIS_URL=redis://redis:6379
     volumes:
       - ./backend/uploads:/app/uploads
@@ -56,7 +56,7 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - bioaestheticax1_network_prod
+      - aestheticrx1_network_prod
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
@@ -69,7 +69,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
-    container_name: bioaestheticax1_frontend_prod
+    container_name: aestheticrx1_frontend_prod
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=http://localhost/api
@@ -77,13 +77,13 @@ services:
       backend:
         condition: service_healthy
     networks:
-      - bioaestheticax1_network_prod
+      - aestheticrx1_network_prod
     restart: unless-stopped
 
   # Nginx Reverse Proxy (HTTP only)
   nginx:
     image: nginx:alpine
-    container_name: bioaestheticax1_nginx_prod
+    container_name: aestheticrx1_nginx_prod
     ports:
       - "80:80"
     volumes:
@@ -93,7 +93,7 @@ services:
       - frontend
       - backend
     networks:
-      - bioaestheticax1_network_prod
+      - aestheticrx1_network_prod
     restart: unless-stopped
 
 volumes:
@@ -101,5 +101,5 @@ volumes:
   redis_data_prod:
 
 networks:
-  bioaestheticax1_network_prod:
+  aestheticrx1_network_prod:
     driver: bridge

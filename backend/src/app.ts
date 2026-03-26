@@ -209,7 +209,7 @@ app.get('/', (req, res) => {
   try {
     res.json({
       success: true,
-      message: 'BioAestheticAx Network API',
+      message: 'AestheticRxNetwork API',
       version: '1.0.0',
       endpoints: {
         health: '/health',
@@ -648,7 +648,7 @@ app.get('/api/images/:path(*)', async (req, res): Promise<void> => {
   if (origin) {
     const isAllowed = frontendUrls.some(url => {
       if (url.includes('*')) {
-        // Handle wildcard patterns (e.g., https://bioaestheticaxdepolying-*.vercel.app)
+        // Handle wildcard patterns (e.g., https://aestheticrxdepolying-*.vercel.app)
         const pattern = url.replace(/\*/g, '.*');
         const regex = new RegExp(`^${pattern}$`);
         return regex.test(origin);
@@ -838,7 +838,7 @@ app.get('/', (req, res) => {
   try {
     res.json({
       success: true,
-      message: 'BioAestheticAx Network API',
+      message: 'AestheticRxNetwork API',
       version: '1.0.0',
       endpoints: {
         health: '/health',
@@ -859,7 +859,7 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
   res.json({
     success: true,
-    message: 'BioAestheticAx Network API is running',
+    message: 'AestheticRxNetwork API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     version: process.env.npm_package_version || '1.0.0'
@@ -1151,7 +1151,7 @@ if (process.env.NODE_ENV === 'development' || process.env.ALLOW_TEST_ENDPOINTS =
 app.get('/api', (req, res) => {
   res.json({
     success: true,
-    message: 'BioAestheticAx Network API',
+    message: 'AestheticRxNetwork API',
     version: '1.0.0',
     endpoints: {
       auth: {

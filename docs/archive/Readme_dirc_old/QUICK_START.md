@@ -1,4 +1,4 @@
-# BioAestheticAx Network - Quick Start Guide
+# AestheticRxNetwork - Quick Start Guide
 
 ## 🚀 Get Your Website Live in 5 Minutes
 
@@ -126,4 +126,4 @@ docker-compose -f docker-compose.prod-http.yml up --build -d
 
 ---
 
-**🎉 Your BioAestheticAx Network application is now live and ready to use!**
+**🎉 Your AestheticRxNetwork application is now live and ready to use!**

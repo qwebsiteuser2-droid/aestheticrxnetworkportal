@@ -1,6 +1,6 @@
 # Railway Deployment Guide
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -64,13 +64,13 @@ See **[Environment Variables Reference](ENVIRONMENT_VARIABLES_REFERENCE.md)** fo
 ### Database Connection Issue Fix
 
 **Problem:** Backend connects to wrong database
-- Backend uses: `bioaestheticax1` (has only new signups)
+- Backend uses: `aestheticrx1` (has only new signups)
 - Actual data is in: `railway` (has all users)
 
 **Solution:** Update `DATABASE_URL` in Railway backend service:
 1. Go to Railway Dashboard → Backend Service → Variables
 2. Find `DATABASE_URL`
-3. Change from: `.../bioaestheticax1` to `.../railway`
+3. Change from: `.../aestheticrx1` to `.../railway`
 4. Save (Railway will auto-redeploy)
 
 ### Database View in Railway Dashboard
@@ -152,7 +152,7 @@ railway redeploy
 **Solution:**
 1. Check `FRONTEND_URL` in Railway Variables
 2. Should include your Vercel domain
-3. Example: `https://bioaestheticaxdepolying.vercel.app`
+3. Example: `https://aestheticrxdepolying.vercel.app`
 4. Verify CORS configuration in `backend/src/app.ts`
 
 ### Import Statement Errors
@@ -184,7 +184,7 @@ railway redeploy
 **Root Cause:** Backend connecting to wrong database
 
 **Fix:**
-1. Update `DATABASE_URL` to use `/railway` instead of `/bioaestheticax1`
+1. Update `DATABASE_URL` to use `/railway` instead of `/aestheticrx1`
 2. Verify email exists in `railway` database
 3. Check Railway logs for database connection status
 
@@ -216,7 +216,7 @@ railway redeploy
 
 ### Railway Backend URL
 ```
-https://bioaestheticaxdepolying-production.up.railway.app/api
+https://aestheticrxdepolying-production.up.railway.app/api
 ```
 
 ### Database Connection
@@ -234,12 +234,12 @@ Password: (from Railway Variables)
 
 ### Verify Deployment
 ```bash
-curl https://bioaestheticaxdepolying-production.up.railway.app/api/health
+curl https://aestheticrxdepolying-production.up.railway.app/api/health
 ```
 
 Should return:
 ```json
-{"success":true,"message":"BioAestheticAx Network API is running"}
+{"success":true,"message":"AestheticRxNetwork API is running"}
 ```
 
 ---
@@ -297,7 +297,7 @@ Your frontend is deployed on **Vercel** and needs to connect to your **Railway**
 
 **Set `FRONTEND_URL` in Railway:**
 1. Go to Railway Dashboard → Backend Service → Variables
-2. Add/Update: `FRONTEND_URL = https://bioaestheticaxdepolying.vercel.app`
+2. Add/Update: `FRONTEND_URL = https://aestheticrxdepolying.vercel.app`
 3. Can include multiple URLs (comma-separated) for preview deployments
 4. Save (Railway will auto-redeploy)
 
@@ -305,7 +305,7 @@ Your frontend is deployed on **Vercel** and needs to connect to your **Railway**
 
 **Set `NEXT_PUBLIC_API_URL` in Vercel:**
 1. Go to Vercel Dashboard → Project → Settings → Environment Variables
-2. Add: `NEXT_PUBLIC_API_URL = https://bioaestheticaxdepolying-production.up.railway.app/api`
+2. Add: `NEXT_PUBLIC_API_URL = https://aestheticrxdepolying-production.up.railway.app/api`
 3. Select all environments (Production, Preview, Development)
 4. Save
 
@@ -318,24 +318,24 @@ Your frontend is deployed on **Vercel** and needs to connect to your **Railway**
 2. Open Developer Tools (F12) → Console tab
 3. Should see:
    ```
-   ✅ Vercel domain detected: bioaestheticaxdepolying.vercel.app
-   ✅ Using Railway backend URL: https://bioaestheticaxdepolying-production.up.railway.app/api
+   ✅ Vercel domain detected: aestheticrxdepolying.vercel.app
+   ✅ Using Railway backend URL: https://aestheticrxdepolying-production.up.railway.app/api
    ```
 
 **Check Network Requests:**
 1. Open Network tab in Developer Tools
 2. Try to login or access any API feature
-3. Requests should go to: `https://bioaestheticaxdepolying-production.up.railway.app/api/...`
+3. Requests should go to: `https://aestheticrxdepolying-production.up.railway.app/api/...`
 4. Should NOT see: `http://localhost:4000/api/...`
 
 **Test Backend Directly:**
 ```bash
-curl https://bioaestheticaxdepolying-production.up.railway.app/api/health
+curl https://aestheticrxdepolying-production.up.railway.app/api/health
 ```
 
 Should return:
 ```json
-{"success":true,"message":"BioAestheticAx Network API is running"}
+{"success":true,"message":"AestheticRxNetwork API is running"}
 ```
 
 ### Common Connection Issues
@@ -359,17 +359,17 @@ Should return:
 
 **Railway Backend URL:**
 ```
-https://bioaestheticaxdepolying-production.up.railway.app/api
+https://aestheticrxdepolying-production.up.railway.app/api
 ```
 
 **Vercel Environment Variable:**
 ```
-NEXT_PUBLIC_API_URL = https://bioaestheticaxdepolying-production.up.railway.app/api
+NEXT_PUBLIC_API_URL = https://aestheticrxdepolying-production.up.railway.app/api
 ```
 
 **Railway Environment Variable:**
 ```
-FRONTEND_URL = https://bioaestheticaxdepolying.vercel.app
+FRONTEND_URL = https://aestheticrxdepolying.vercel.app
 ```
 
 ## Related Documentation

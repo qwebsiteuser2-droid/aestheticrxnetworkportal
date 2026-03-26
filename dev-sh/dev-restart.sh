@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Development Restart Script for BioAestheticAx Network
+# Development Restart Script for AestheticRxNetwork
 set -e
 
-echo "🔄 Restarting BioAestheticAx Network Development Environment..."
+echo "🔄 Restarting AestheticRxNetwork Development Environment..."
 
 # Colors for output
 RED='\033[0;31m'

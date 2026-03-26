@@ -64,7 +64,7 @@ const MESSAGE_TEMPLATES: MessageTemplate[] = [
         <li>✅ Special recognition</li>
       </ul>
       <p>Don't miss out on these incredible benefits! Place your next order today and level up your clinic's success.</p>
-      <p>Best regards,<br>BioAestheticAx Network Team</p>
+      <p>Best regards,<br>AestheticRxNetwork Team</p>
     `,
     whatsapp_content: `🎉 *Amazing Progress!*
 
@@ -82,7 +82,7 @@ You only need *{{remaining_amount}} PKR* more in sales to reach the next level a
 Don't miss out! Place your next order today and level up your clinic's success.
 
 Best regards,
-BioAestheticAx Network Team`,
+AestheticRxNetwork Team`,
     target_criteria: {
       tier_progress_min: 90,
       tier_progress_max: 100,
@@ -99,7 +99,7 @@ BioAestheticAx Network Team`,
       <p>You're doing fantastic! You're <strong>{{tier_progress}}%</strong> of the way to your next tier: <strong>{{next_tier}}</strong>!</p>
       <p>Just <strong>{{remaining_amount}} PKR</strong> more in sales and you'll unlock premium benefits.</p>
       <p>Keep up the momentum and reach for the stars! 🌟</p>
-      <p>Best regards,<br>BioAestheticAx Network Team</p>
+      <p>Best regards,<br>AestheticRxNetwork Team</p>
     `,
     whatsapp_content: `🚀 *Great Progress!*
 
@@ -112,7 +112,7 @@ Just *{{remaining_amount}} PKR* more in sales and you'll unlock premium benefits
 Keep up the momentum and reach for the stars! 🌟
 
 Best regards,
-BioAestheticAx Network Team`,
+AestheticRxNetwork Team`,
     target_criteria: {
       tier_progress_min: 80,
       tier_progress_max: 89,
@@ -177,7 +177,7 @@ We're excited to announce new medical products that could benefit your practice 
 📞 **Contact us today** to learn more about these exclusive offers!
 
 Best regards,
-BioAestheticAx Network Team
+AestheticRxNetwork Team
 
 ---
 This email was sent to {{email}}`
@@ -204,7 +204,7 @@ Don't miss out on our exclusive seasonal offer!
 
 🛒 **Order Now:** Contact us to place your order
 
-Thank you for choosing BioAestheticAx Network!
+Thank you for choosing AestheticRxNetwork!
 
 Best regards,
 Sales Team
@@ -218,7 +218,7 @@ Sent to: {{email}}`
       subject: '🚀 Exciting Updates: New Features Available!',
       content: `Dear {{doctor_name}},
 
-We're thrilled to share some exciting updates that will enhance your experience with BioAestheticAx Network!
+We're thrilled to share some exciting updates that will enhance your experience with AestheticRxNetwork!
 
 ✨ **What's New:**
 • Enhanced user dashboard
@@ -238,7 +238,7 @@ Simply log in to your account to explore these new features!
 Need help? Our support team is here to assist you.
 
 Best regards,
-BioAestheticAx Network Development Team
+AestheticRxNetwork Development Team
 
 ---
 Account: {{email}}`

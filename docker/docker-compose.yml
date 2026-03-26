@@ -4,9 +4,9 @@ services:
   # PostgreSQL Database
   db:
     image: postgres:15-alpine
-    container_name: bioaestheticax1_db
+    container_name: aestheticrx1_db
     environment:
-      POSTGRES_DB: bioaestheticax1
+      POSTGRES_DB: aestheticrx1
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
@@ -15,30 +15,30 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/migrations:/docker-entrypoint-initdb.d
     networks:
-      - bioaestheticax1_network
+      - aestheticrx1_network
 
   # Redis for caching and sessions
   redis:
     image: redis:7-alpine
-    container_name: bioaestheticax1_redis
+    container_name: aestheticrx1_redis
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
-      - bioaestheticax1_network
+      - aestheticrx1_network
 
   # Backend API
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: bioaestheticax1_backend
+    container_name: aestheticrx1_backend
     env_file:
       - .env
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgres://postgres:password@db:5432/bioaestheticax1
+      - DATABASE_URL=postgres://postgres:password@db:5432/aestheticrx1
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
       - JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-this-in-production
@@ -72,7 +72,7 @@ services:
       - db
       - redis
     networks:
-      - bioaestheticax1_network
+      - aestheticrx1_network
     dns:
       - 8.8.8.8
       - 8.8.4.4
@@ -83,7 +83,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: bioaestheticax1_frontend
+    container_name: aestheticrx1_frontend
     user: "0:0"
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:4000/api
@@ -96,13 +96,13 @@ services:
     depends_on:
       - backend
     networks:
-      - bioaestheticax1_network
+      - aestheticrx1_network
     command: npm run dev
 
   # Adminer for database management
   adminer:
     image: adminer:4.8.1
-    container_name: bioaestheticax1_adminer
+    container_name: aestheticrx1_adminer
     ports:
       - "8080:8080"
     environment:
@@ -110,12 +110,12 @@ services:
     depends_on:
       - db
     networks:
-      - bioaestheticax1_network
+      - aestheticrx1_network
 
   # MinIO for S3-compatible storage (local development)
   minio:
     image: minio/minio:latest
-    container_name: bioaestheticax1_minio
+    container_name: aestheticrx1_minio
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin123
@@ -126,7 +126,7 @@ services:
       - minio_data:/data
     command: server /data --console-address ":9001"
     networks:
-      - bioaestheticax1_network
+      - aestheticrx1_network
 
 volumes:
   postgres_data:
@@ -134,5 +134,5 @@ volumes:
   minio_data:
 
 networks:
-  bioaestheticax1_network:
+  aestheticrx1_network:
     driver: bridge

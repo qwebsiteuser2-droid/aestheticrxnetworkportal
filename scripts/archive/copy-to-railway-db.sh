@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to copy all tables from bioaestheticax1 to railway database
+# Script to copy all tables from aestheticrx1 to railway database
 # This allows Railway's database viewer to display the tables
 
 set -e
@@ -9,7 +9,7 @@ RAILWAY_HOST="tramway.proxy.rlwy.net"
 RAILWAY_PORT="22589"
 RAILWAY_USER="postgres"
 RAILWAY_PASSWORD="icbMyRDBMxDvNBKxTBleHZCbvekroZmS"
-SOURCE_DB="bioaestheticax1"
+SOURCE_DB="aestheticrx1"
 TARGET_DB="railway"
 
 export PGPASSWORD="$RAILWAY_PASSWORD"

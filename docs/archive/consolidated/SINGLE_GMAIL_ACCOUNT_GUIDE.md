@@ -1,4 +1,4 @@
-# Single Gmail Account Usage Guide - BioAestheticAx Network
+# Single Gmail Account Usage Guide - AestheticRxNetwork
 
 **Date:** December 17, 2025  
 **Status:** ✅ **OPTIMIZED FOR SINGLE GMAIL ACCOUNT**

@@ -1,7 +1,7 @@
 {
   "name": "q-website-backend",
   "version": "1.0.0",
-  "description": "BioAestheticAx Network Backend API",
+  "description": "AestheticRxNetwork Backend API",
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
@@ -83,6 +83,6 @@
     "express",
     "typescript"
   ],
-  "author": "BioAestheticAx Network Team",
+  "author": "AestheticRxNetwork Team",
   "license": "MIT"
 }

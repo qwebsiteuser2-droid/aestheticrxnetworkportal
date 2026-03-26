@@ -70,7 +70,7 @@ async function testGmailSending() {
           </div>
           
           <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-            <p>This is a test email from BioAestheticAx Network Email Service</p>
+            <p>This is a test email from AestheticRxNetwork Email Service</p>
           </div>
         </div>
       </div>

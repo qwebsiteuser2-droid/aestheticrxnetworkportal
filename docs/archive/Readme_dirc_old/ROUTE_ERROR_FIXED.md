@@ -24,7 +24,7 @@ The issue was in the **Docker Compose configuration**:
 ## 🔧 **Fix Applied**
 
 ### **File Modified:**
-`/home/enigmatix/Q_project/BioAestheticAx Network/docker-compose.yml`
+`/home/enigmatix/Q_project/AestheticRxNetwork/docker-compose.yml`
 
 ### **Change Made:**
 ```yaml

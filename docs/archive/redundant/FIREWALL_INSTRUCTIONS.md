@@ -13,7 +13,7 @@
 **Open a terminal and run:**
 
 ```bash
-cd /home/enigmatix/Q_project/BioAestheticAx Network
+cd /home/enigmatix/Q_project/AestheticRxNetwork
 sudo bash open-firewall-ports.sh
 ```
 
@@ -193,7 +193,7 @@ ss -tuln | grep -E "(3000|4000)"
 
 1. **Restart services** (if needed):
    ```bash
-   cd /home/enigmatix/Q_project/BioAestheticAx Network
+   cd /home/enigmatix/Q_project/AestheticRxNetwork
    ./dev-sh/dev-restart.sh
    ```
 

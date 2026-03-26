@@ -1,6 +1,6 @@
 # Environment Variables Reference
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -163,7 +163,7 @@ NODE_ENV=development
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
 FRONTEND_URL=http://localhost:3000
 BACKEND_URL=http://localhost:4000
-DATABASE_URL=postgres://postgres:password@localhost:5432/bioaestheticax
+DATABASE_URL=postgres://postgres:password@localhost:5432/aestheticrx
 CORS_ORIGIN=http://localhost:3000
 ```
 
@@ -208,7 +208,7 @@ BACKEND_URL=http://localhost:4000
 CORS_ORIGIN=http://localhost:3000
 
 # Database
-DATABASE_URL=postgres://postgres:password@localhost:5432/bioaestheticax
+DATABASE_URL=postgres://postgres:password@localhost:5432/aestheticrx
 
 # Auth
 JWT_SECRET=your_64_char_secret

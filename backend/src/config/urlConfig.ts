@@ -46,7 +46,7 @@ export const getFrontendUrl = (requestOrigin?: string): string => {
   // Priority 3: Fallback based on environment
   if (process.env.NODE_ENV === 'production') {
     // In production, default to Vercel if not set
-    return 'https://bioaestheticaxnetwork.vercel.app';
+    return 'https://aestheticrxnetwork.vercel.app';
   }
 
   // Development fallback
@@ -65,14 +65,14 @@ export const getAllFrontendUrls = (): string[] => {
   ];
 
   // Production Vercel domains
-  urls.push('https://bioaestheticaxnetwork.vercel.app');
-  urls.push('https://bioaestheticaxnetwork-*.vercel.app');
+  urls.push('https://aestheticrxnetwork.vercel.app');
+  urls.push('https://aestheticrxnetwork-*.vercel.app');
   
   // Legacy domains (keep for backward compatibility)
-  urls.push('https://bioaestheticaxdepolying.vercel.app');
-  urls.push('https://bioaestheticaxdepolying-*.vercel.app');
-  urls.push('https://qwebsitedepolying.vercel.app');
-  urls.push('https://qwebsitedepolying-*.vercel.app');
+  urls.push('https://aestheticrxdepolying.vercel.app');
+  urls.push('https://aestheticrxdepolying-*.vercel.app');
+  urls.push('https://aestheticrxnetworkdepolying.vercel.app');
+  urls.push('https://aestheticrxnetworkdepolying-*.vercel.app');
 
   // Add environment variable URLs (supports comma-separated)
   if (process.env.FRONTEND_URL) {
@@ -143,20 +143,20 @@ export const getBackendUrl = (): string => {
     }
     // Fallback to known Railway URL if not set
     console.log('🌐 Railway detected, using production URL');
-    return 'https://qwebsitedepolying-production.up.railway.app';
+    return 'https://aestheticrxnetworkdepolying-production.up.railway.app';
   }
 
   // Priority 3: Check NODE_ENV for production
   if (process.env.NODE_ENV === 'production') {
     // In production but not Railway, still use production URL
     console.log('🌐 Production environment detected, using production URL');
-    return 'https://qwebsitedepolying-production.up.railway.app';
+    return 'https://aestheticrxnetworkdepolying-production.up.railway.app';
   }
 
   // Priority 4: If PORT is set (Railway always sets this), assume production
   if (process.env.PORT && process.env.PORT !== '4000' && process.env.PORT !== '3000') {
     console.log('🌐 Non-standard PORT detected, assuming production');
-    return 'https://qwebsitedepolying-production.up.railway.app';
+    return 'https://aestheticrxnetworkdepolying-production.up.railway.app';
   }
 
   // Development fallback (only if truly local)

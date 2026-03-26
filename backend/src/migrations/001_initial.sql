@@ -1,4 +1,4 @@
--- Initial migration for BioAestheticAx Network database
+-- Initial migration for AestheticRxNetwork database
 -- This file contains the complete database schema
 
 -- Enable UUID extension

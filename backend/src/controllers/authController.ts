@@ -868,7 +868,7 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
       });
       
       // Send email in background (non-blocking to avoid timeout)
-      const emailSubject = '🔐 Password Reset OTP - BioAestheticAx Network';
+      const emailSubject = '🔐 Password Reset OTP - AestheticRxNetwork';
       const emailMessage = 'You have requested to reset your password. Use the OTP below to complete the process:';
       const htmlContent = `
         <!DOCTYPE html>
@@ -891,7 +891,7 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
           <div class="container">
             <div class="header">
               <h1>🔐 OTP Verification</h1>
-              <p>Secure Access to BioAestheticAx Network</p>
+              <p>Secure Access to AestheticRxNetwork</p>
             </div>
             
             <h2>Hello ${user.doctor_name || user.email}!</h2>
@@ -913,7 +913,7 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
             </div>
             
             <div class="footer">
-              <p>This is an automated message from BioAestheticAx Network Security System</p>
+              <p>This is an automated message from AestheticRxNetwork Security System</p>
               <p>If you have any concerns, please contact our support team</p>
             </div>
           </div>

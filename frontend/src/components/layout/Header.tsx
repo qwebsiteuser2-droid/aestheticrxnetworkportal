@@ -165,7 +165,7 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
               <div className="relative p-1 bg-gradient-to-br from-amber-100 via-yellow-50 to-amber-50 rounded-xl shadow-md border border-amber-200/50">
                 <img 
                   src="/logo.png" 
-                  alt="BioAestheticAx Network" 
+                  alt="AestheticRxNetwork" 
                   className="w-10 h-10 object-contain"
                 />
               </div>
@@ -262,11 +262,11 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
               <div className="relative p-1.5 bg-gradient-to-br from-amber-100 via-yellow-50 to-amber-50 rounded-2xl shadow-lg border border-amber-200/50">
                 <img 
                   src="/logo.png" 
-                  alt="BioAestheticAx Network" 
+                  alt="AestheticRxNetwork" 
                   className="w-16 h-16 lg:w-20 lg:h-20 object-contain"
                 />
               </div>
-              <span className="text-2xl lg:text-3xl font-black bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent hidden lg:block">BioAestheticAx</span>
+              <span className="text-2xl lg:text-3xl font-black bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent hidden lg:block">AestheticRx</span>
               <span className="text-2xl font-black bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 bg-clip-text text-transparent lg:hidden">BAx</span>
             </Link>
           </div>

@@ -31,7 +31,7 @@ Insufficient stock available
 ## ✅ **Solutions Applied**
 
 ### **Solution 1: Enhanced addToCart Function**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Before:**
 ```typescript
@@ -76,7 +76,7 @@ const addToCart = (productId: string) => {
 ```
 
 ### **Solution 2: Cart Modal Stock Validation**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Enhanced Cart Modal:**
 ```typescript
@@ -94,7 +94,7 @@ const addToCart = (productId: string) => {
 ```
 
 ### **Solution 3: Automatic Cart Cleanup**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Added to fetchProducts function:**
 ```typescript

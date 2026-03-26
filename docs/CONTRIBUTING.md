@@ -1,6 +1,6 @@
 # Contributing Guide
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -11,7 +11,7 @@
 
 ---
 
-Thank you for your interest in contributing to BioAestheticAx Network! This guide will help you get started.
+Thank you for your interest in contributing to AestheticRxNetwork! This guide will help you get started.
 
 ## Table of Contents
 
@@ -46,8 +46,8 @@ Thank you for your interest in contributing to BioAestheticAx Network! This guid
 ```bash
 # Fork the repository on GitHub
 # Then clone your fork
-git clone https://github.com/your-username/BioAestheticAx Network_App.git
-cd BioAestheticAx Network_App
+git clone https://github.com/your-username/AestheticRxNetwork_App.git
+cd AestheticRxNetwork_App
 ```
 
 ### 2. Set Up Development Environment

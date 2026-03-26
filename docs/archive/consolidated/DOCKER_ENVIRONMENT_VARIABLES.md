@@ -6,10 +6,10 @@ Complete list of all environment variables and credentials configured in Docker 
 
 ### Database Configuration
 ```yaml
-POSTGRES_DB: bioaestheticax1
+POSTGRES_DB: aestheticrx1
 POSTGRES_USER: postgres
 POSTGRES_PASSWORD: password
-DATABASE_URL: postgres://postgres:password@db:5432/bioaestheticax1
+DATABASE_URL: postgres://postgres:password@db:5432/aestheticrx1
 ```
 
 ### Redis Configuration
@@ -117,10 +117,10 @@ MINIO_ROOT_PASSWORD: minioadmin123
 
 ### Database Configuration
 ```yaml
-POSTGRES_DB: bioaestheticax1
+POSTGRES_DB: aestheticrx1
 POSTGRES_USER: postgres
 POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your_secure_password}
-DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-your_secure_password}@db:5432/bioaestheticax1
+DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-your_secure_password}@db:5432/aestheticrx1
 ```
 
 ### Redis Configuration
@@ -171,8 +171,8 @@ SECONDARY_ADMIN_EMAIL=asadkhanbloch4949@gmail.com
 
 #### URLs
 ```
-FRONTEND_URL=https://bioaestheticaxdepolying.vercel.app
-RAILWAY_PUBLIC_DOMAIN=bioaestheticaxdepolying-production.up.railway.app
+FRONTEND_URL=https://aestheticrxdepolying.vercel.app
+RAILWAY_PUBLIC_DOMAIN=aestheticrxdepolying-production.up.railway.app
 ```
 
 #### PayFast Payment Gateway
@@ -221,8 +221,8 @@ GMAIL_USER=asadkhanbloch4949@gmail.com
 GMAIL_APP_PASSWORD=ccsb uozs vyom pddi
 MAIN_ADMIN_EMAIL=asadkhanbloch4949@gmail.com
 SECONDARY_ADMIN_EMAIL=asadkhanbloch4949@gmail.com
-FRONTEND_URL=https://bioaestheticaxdepolying.vercel.app
-RAILWAY_PUBLIC_DOMAIN=bioaestheticaxdepolying-production.up.railway.app
+FRONTEND_URL=https://aestheticrxdepolying.vercel.app
+RAILWAY_PUBLIC_DOMAIN=aestheticrxdepolying-production.up.railway.app
 PAYFAST_MERCHANT_ID=10042666
 PAYFAST_MERCHANT_KEY=aacjyg5h02c4s
 PAYFAST_PASSPHRASE=qV9t7Gz2Rkx8Lm4FhS0pW1

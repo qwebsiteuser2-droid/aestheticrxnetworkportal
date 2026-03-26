@@ -1,4 +1,4 @@
-# BioAestheticAx Network - Development Guide
+# AestheticRxNetwork - Development Guide
 
 ## 🚀 Quick Start for Development
 
@@ -90,7 +90,7 @@ docker compose exec frontend sh
 ## 📁 Project Structure
 
 ```
-BioAestheticAx Network/
+AestheticRxNetwork/
 ├── backend/                 # Node.js/Express backend
 │   ├── src/
 │   │   ├── controllers/     # API controllers
@@ -172,7 +172,7 @@ docker compose down -v
 ./dev-sh/dev-start.sh
 
 # Check database connection
-docker compose exec db psql -U postgres -d bioaestheticax1 -c "SELECT version();"
+docker compose exec db psql -U postgres -d aestheticrx1 -c "SELECT version();"
 ```
 
 ### Frontend Not Loading
@@ -221,7 +221,7 @@ Both frontend and backend support hot reloading:
 
 Development uses `.env` file with these defaults:
 - `NODE_ENV=development`
-- `DATABASE_URL=postgres://postgres:password@db:5432/bioaestheticax1`
+- `DATABASE_URL=postgres://postgres:password@db:5432/aestheticrx1`
 - `JWT_SECRET=your-super-secret-jwt-key-change-this-in-production`
 - `FRONTEND_URL=http://localhost:3000`
 

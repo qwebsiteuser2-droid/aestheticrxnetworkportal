@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# SSL Certificate Setup Script for BioAestheticAx Network
+# SSL Certificate Setup Script for AestheticRxNetwork
 set -e
 
-echo "🔒 Setting up SSL certificates for BioAestheticAx Network..."
+echo "🔒 Setting up SSL certificates for AestheticRxNetwork..."
 
 # Colors for output
 RED='\033[0;31m'

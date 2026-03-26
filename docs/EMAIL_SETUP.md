@@ -1,6 +1,6 @@
 # Email Setup Guide
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -12,7 +12,7 @@
 
 ---
 
-This guide covers all email configuration options, deliverability, spam reduction, and unsubscribe functionality for the BioAestheticAx Network platform.
+This guide covers all email configuration options, deliverability, spam reduction, and unsubscribe functionality for the AestheticRxNetwork platform.
 
 ---
 
@@ -35,7 +35,7 @@ This guide covers all email configuration options, deliverability, spam reductio
 
 ## Overview
 
-The BioAestheticAx Network backend supports multiple email providers:
+The AestheticRxNetwork backend supports multiple email providers:
 
 | Method | Best For | Limits | Railway Free |
 |--------|----------|--------|--------------|
@@ -69,7 +69,7 @@ Best for local development. Gmail SMTP is blocked on Railway Free/Hobby plans.
 2. **Generate App Password**
    - Go to [App Passwords](https://myaccount.google.com/apppasswords)
    - Select "Mail" and "Other (Custom name)"
-   - Enter name: "BioAestheticAx Network Backend"
+   - Enter name: "AestheticRxNetwork Backend"
    - Click "Generate"
    - Copy the 16-character password (looks like: `abcd efgh ijkl mnop`)
 
@@ -171,7 +171,7 @@ Best option for Railway Free/Hobby plans. Simple API-based sending.
 2. **Create API Key**
    - Go to **Settings** → **API Keys**
    - Click **Create API Key**
-   - Name: "BioAestheticAx Network Backend"
+   - Name: "AestheticRxNetwork Backend"
    - Select **Full Access** or **Mail Send** permission
    - **Copy the API key** (starts with `SG.`)
 
@@ -317,7 +317,7 @@ You are receiving this email because you are a registered user.
 
 [Unsubscribe from marketing emails]
 
-This is an automated message from BioAestheticAx Network.
+This is an automated message from AestheticRxNetwork.
 ─────────────────────────────────────────
 ```
 

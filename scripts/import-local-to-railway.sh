@@ -30,19 +30,19 @@ try:
         for v in data:
             if v.get('name') == 'DATABASE_PUBLIC_URL':
                 url = v.get('value', '')
-                # Change /railway to /bioaestheticax1
+                # Change /railway to /aestheticrx1
                 if url.endswith('/railway'):
-                    url = url[:-8] + '/bioaestheticax1'
+                    url = url[:-8] + '/aestheticrx1'
                 elif url.endswith('/postgres'):
-                    url = url[:-9] + '/bioaestheticax1'
+                    url = url[:-9] + '/aestheticrx1'
                 print(url)
                 break
     else:
         url = data.get('DATABASE_PUBLIC_URL', '')
         if url.endswith('/railway'):
-            url = url[:-8] + '/bioaestheticax1'
+            url = url[:-8] + '/aestheticrx1'
         elif url.endswith('/postgres'):
-            url = url[:-9] + '/bioaestheticax1'
+            url = url[:-9] + '/aestheticrx1'
         print(url)
 except:
     pass
@@ -55,7 +55,7 @@ if [ -z "$RAILWAY_DB_URL" ]; then
     echo "Please provide your Railway DATABASE_PUBLIC_URL:"
     echo "1. Go to Railway Dashboard → Postgres Service → Variables"
     echo "2. Find DATABASE_PUBLIC_URL"
-    echo "3. Copy it and paste below (change /railway to /bioaestheticax1 at the end)"
+    echo "3. Copy it and paste below (change /railway to /aestheticrx1 at the end)"
     echo ""
     read -p "Railway DATABASE_URL: " RAILWAY_DB_URL
     
@@ -69,7 +69,7 @@ echo "✅ Railway database URL found"
 echo ""
 
 # Local database connection
-LOCAL_DB_URL="postgresql://postgres:password@localhost:5432/bioaestheticax1"
+LOCAL_DB_URL="postgresql://postgres:password@localhost:5432/aestheticrx1"
 
 # Check if local database is running
 echo "🔍 Checking local database..."
@@ -89,7 +89,7 @@ echo "📤 Exporting data from local database..."
 TEMP_DIR=$(mktemp -d)
 EXPORT_FILE="$TEMP_DIR/local_data.sql"
 
-docker exec bioaestheticax1_db pg_dump -U postgres -d bioaestheticax1 --data-only --inserts > "$EXPORT_FILE" 2>/dev/null || {
+docker exec aestheticrx1_db pg_dump -U postgres -d aestheticrx1 --data-only --inserts > "$EXPORT_FILE" 2>/dev/null || {
     echo "❌ Failed to export from local database"
     echo "   Make sure local database is running: docker-compose up -d postgres"
     rm -rf "$TEMP_DIR"

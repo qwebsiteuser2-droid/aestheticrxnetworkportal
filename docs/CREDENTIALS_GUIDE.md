@@ -1,6 +1,6 @@
 # Credentials Guide
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -66,13 +66,13 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSy...your_key
 4. Click **Create Credentials** → **OAuth client ID**
 5. Select **Web application**
 6. Configure:
-   - **Name**: "BioAestheticAx Network OAuth"
+   - **Name**: "AestheticRxNetwork OAuth"
    - **Authorized JavaScript origins**:
-     - `https://bioaestheticaxnetwork.vercel.app`
+     - `https://aestheticrxnetwork.vercel.app`
      - `https://your-domain.vercel.app` (your Vercel domain)
      - `http://localhost:3000` (for development)
    - **Authorized redirect URIs**:
-     - `https://bioaestheticaxnetwork.vercel.app`
+     - `https://aestheticrxnetwork.vercel.app`
      - `https://your-domain.vercel.app`
      - `http://localhost:3000`
 7. Click **Create**
@@ -145,7 +145,7 @@ GMAIL_USER=your_email@gmail.com
 2. Enable **2-Step Verification**
 3. Go to **App Passwords**
 4. Select **Mail** and **Other (Custom name)**
-5. Enter name: "BioAestheticAx Network Backend"
+5. Enter name: "AestheticRxNetwork Backend"
 6. Click **Generate**
 7. Copy the 16-character password
 
@@ -252,7 +252,7 @@ DATABASE_URL=postgres://user:password@host:5432/database?sslmode=require
 ### Local Development
 
 ```env
-DATABASE_URL=postgres://postgres:password@localhost:5432/bioaestheticax1
+DATABASE_URL=postgres://postgres:password@localhost:5432/aestheticrx1
 ```
 
 ---

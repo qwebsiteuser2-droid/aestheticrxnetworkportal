@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 // SEO Metadata for 404 page
 export const metadata: Metadata = {
-  title: '404 - Page Not Found | BioAestheticAx Network',
+  title: '404 - Page Not Found | AestheticRxNetwork',
   description: 'The page you are looking for does not exist or has been moved.',
 };
 
@@ -96,7 +96,7 @@ export default function NotFound() {
 
         {/* Brand footer */}
         <p className="mt-12 text-sm text-gray-400">
-          BioAestheticAx Network • B2B Medical Platform
+          AestheticRxNetwork • B2B Medical Platform
         </p>
       </div>
     </div>

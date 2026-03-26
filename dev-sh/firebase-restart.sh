@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Firebase Restart/Redeploy Script for BioAestheticAx Network
+# Firebase Restart/Redeploy Script for AestheticRxNetwork
 set -e
 
-echo "🔄 Restarting BioAestheticAx Network on Firebase Hosting..."
+echo "🔄 Restarting AestheticRxNetwork on Firebase Hosting..."
 
 # Colors for output
 RED='\033[0;31m'

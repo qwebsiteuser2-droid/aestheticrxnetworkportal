@@ -14,7 +14,7 @@ if ! command -v railway &> /dev/null; then
     exit 1
 fi
 
-RAILWAY_SERVICE="${RAILWAY_SERVICE:-bioaestheticaxdepolying}"
+RAILWAY_SERVICE="${RAILWAY_SERVICE:-aestheticrxdepolying}"
 
 # List of missing images from the error logs
 MISSING_IMAGES=(

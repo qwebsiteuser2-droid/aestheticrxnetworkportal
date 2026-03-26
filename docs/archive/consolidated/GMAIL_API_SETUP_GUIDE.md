@@ -61,11 +61,11 @@ This guide will walk you through setting up the official Gmail API for sending e
 6. Enter a name: `QWebsiteGmailAPIClient`
 7. Under **"Authorized JavaScript origins"**, click **"+ ADD URI"** and add:
    - For local development: `http://localhost:4000`
-   - For production: `https://bioaestheticaxdepolying-production.up.railway.app`
+   - For production: `https://aestheticrxdepolying-production.up.railway.app`
    - (You can add multiple origins)
 8. Under **"Authorized redirect URIs"**, click **"+ ADD URI"** and add:
    - For local development: `http://localhost:4000/auth/google/callback`
-   - For production: `https://bioaestheticaxdepolying-production.up.railway.app/auth/google/callback`
+   - For production: `https://aestheticrxdepolying-production.up.railway.app/auth/google/callback`
    - **Also add OAuth Playground** (for getting refresh token): `https://developers.google.com/oauthplayground`
    - (You can add multiple redirect URIs)
 9. Click **"Create"**

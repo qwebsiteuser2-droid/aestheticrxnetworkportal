@@ -20,7 +20,7 @@ You now have:
 
 ### Step 2: Set Environment Variable in Vercel
 
-1. Go to [Vercel Dashboard](https://vercel.com/qasim3/bioaestheticaxdepolying)
+1. Go to [Vercel Dashboard](https://vercel.com/qasim3/aestheticrxdepolying)
 2. Click on your project → **Settings** → **Environment Variables**
 3. Add a new variable:
    - **Name:** `NEXT_PUBLIC_API_URL`
@@ -65,8 +65,8 @@ Should return:
 ### 3. Check CORS Configuration
 
 The backend should allow requests from:
-- Your Vercel production domain: `https://bioaestheticaxdepolying.vercel.app`
-- Your Vercel preview domains: `https://bioaestheticaxdepolying-*.vercel.app`
+- Your Vercel production domain: `https://aestheticrxdepolying.vercel.app`
+- Your Vercel preview domains: `https://aestheticrxdepolying-*.vercel.app`
 - Any custom domains you've configured
 
 If you see CORS errors:
@@ -80,10 +80,10 @@ If you see CORS errors:
 Go to Railway → Backend Service → Settings → Variables
 
 **Required:**
-- ✅ `DATABASE_URL` - PostgreSQL connection string (points to `bioaestheticax1` database)
+- ✅ `DATABASE_URL` - PostgreSQL connection string (points to `aestheticrx1` database)
 - ✅ `JWT_SECRET` - At least 32 characters
 - ✅ `JWT_REFRESH_SECRET` - At least 32 characters
-- ✅ `FRONTEND_URL` - Your Vercel frontend URL (e.g., `https://bioaestheticaxdepolying.vercel.app`)
+- ✅ `FRONTEND_URL` - Your Vercel frontend URL (e.g., `https://aestheticrxdepolying.vercel.app`)
 
 **Optional (but recommended):**
 - `NODE_ENV=production`
@@ -142,8 +142,8 @@ Go to Vercel → Project → Settings → Environment Variables
 
 2. **Check database connection:**
    - Railway → Database → Settings → Variables
-   - Verify `DATABASE_URL` points to `bioaestheticax1` database
-   - Format: `postgresql://user:pass@host:port/bioaestheticax1`
+   - Verify `DATABASE_URL` points to `aestheticrx1` database
+   - Format: `postgresql://user:pass@host:port/aestheticrx1`
 
 3. **Manually run migrations (if needed):**
    ```bash
@@ -160,7 +160,7 @@ Go to Vercel → Project → Settings → Environment Variables
 1. **Update `FRONTEND_URL` in Railway:**
    - Should match your Vercel domain exactly
    - Include `https://` protocol
-   - Example: `https://bioaestheticaxdepolying.vercel.app`
+   - Example: `https://aestheticrxdepolying.vercel.app`
 
 2. **Check backend CORS config:**
    - File: `backend/src/app.ts`
@@ -229,7 +229,7 @@ https://your-project.vercel.app
 
 ### Database Connection
 ```
-postgresql://user:password@host:port/bioaestheticax1
+postgresql://user:password@host:port/aestheticrx1
 ```
 
 ### Environment Variable Priority
