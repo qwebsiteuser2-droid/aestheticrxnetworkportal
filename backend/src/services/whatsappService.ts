@@ -3,16 +3,35 @@ import { Doctor } from '../models/Doctor';
 import { Order } from '../models/Order';
 import { ResearchPaper } from '../models/ResearchPaper';
 
-// Initialize Twilio
-const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
-const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
-const WHATSAPP_PHONE_NUMBER = process.env.WHATSAPP_PHONE_NUMBER;
+const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID?.trim();
+const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN?.trim();
+const WHATSAPP_PHONE_NUMBER = process.env.WHATSAPP_PHONE_NUMBER?.trim();
 
-let twilioClient: twilio.Twilio | null = null;
-
-if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN) {
-  twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+/** Twilio Account SID must start with AC; otherwise the SDK throws at construct time. */
+function isValidTwilioAccountSid(sid: string | undefined): sid is string {
+  if (!sid) return false;
+  return sid.startsWith('AC') && sid.length >= 34;
 }
+
+function createTwilioClient(): twilio.Twilio | null {
+  if (!isValidTwilioAccountSid(TWILIO_ACCOUNT_SID) || !TWILIO_AUTH_TOKEN) {
+    if (TWILIO_ACCOUNT_SID || process.env.TWILIO_AUTH_TOKEN) {
+      console.warn(
+        'WhatsApp/Twilio: TWILIO_ACCOUNT_SID must start with "AC" (real Twilio Account SID). ' +
+          'Invalid or placeholder credentials — WhatsApp notifications disabled.'
+      );
+    }
+    return null;
+  }
+  try {
+    return twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+  } catch (err) {
+    console.warn('WhatsApp/Twilio: failed to initialize client:', err);
+    return null;
+  }
+}
+
+let twilioClient: twilio.Twilio | null = createTwilioClient();
 
 class WhatsAppService {
   private isConfigured(): boolean {
