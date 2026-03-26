@@ -1,11 +1,11 @@
 {
-  "name": "AestheticRxNetwork",
-  "short_name": "BAx",
+  "name": "AestheticRx Network",
+  "short_name": "AestheticRx",
   "description": "Professional B2B platform for aesthetic clinics and medical professionals",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#f59e0b",
+  "theme_color": "#1E66FF",
   "icons": [
     {
       "src": "/favicon.ico",

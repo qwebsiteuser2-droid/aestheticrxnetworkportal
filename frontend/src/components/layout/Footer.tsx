@@ -42,10 +42,10 @@ export function Footer() {
             <Link href="/" className="flex items-center space-x-2 mb-4">
               <img 
                 src="/logo.png" 
-                alt="AestheticRxNetwork" 
-                className="w-12 h-12 object-contain shadow-md rounded-lg"
+                alt="AestheticRx Network" 
+                className="w-12 h-12 object-contain"
               />
-              <span className="text-xl font-bold">AestheticRx</span>
+              <span className="text-xl font-bold"><span style={{ color: '#1E66FF' }}>Aesthetic</span><span style={{ color: '#F5C24C' }}>RX</span><span style={{ color: '#7AAC52' }}> Network</span></span>
             </Link>
             <p className="text-gray-400 text-sm mb-4">
               Professional B2B platform for aesthetic clinics. Connect, order, research, and grow together.

@@ -29,6 +29,7 @@ export default function DebtRestrictionModal({ isOpen, onClose, debtStatus }: De
 
   if (!isOpen) return null;
 
+  const isZeroLimitConfig = debtStatus.debtLimit === 0 && debtStatus.currentDebt === 0;
   const overLimitAmount = Math.max(0, debtStatus.currentDebt - debtStatus.debtLimit);
   const debtPercentage = debtStatus.debtLimit > 0 
     ? Math.min(100, (debtStatus.currentDebt / debtStatus.debtLimit) * 100) 
@@ -46,15 +47,17 @@ export default function DebtRestrictionModal({ isOpen, onClose, debtStatus }: De
         </button>
 
         {/* Header with Icon */}
-        <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-t-2xl p-6 text-center">
-          <div className="flex items-center justify-center w-20 h-20 mx-auto bg-white rounded-full mb-4 shadow-lg">
-            <ExclamationTriangleIcon className="h-12 w-12 text-red-600" />
+        <div className={`bg-gradient-to-r ${isZeroLimitConfig ? 'from-orange-500 to-orange-600' : 'from-red-500 to-red-600'} rounded-t-2xl p-6 text-center`}>
+          <div className={`flex items-center justify-center w-20 h-20 mx-auto bg-white rounded-full mb-4 shadow-lg`}>
+            <ExclamationTriangleIcon className={`h-12 w-12 ${isZeroLimitConfig ? 'text-orange-600' : 'text-red-600'}`} />
           </div>
           <h2 className="text-2xl font-bold text-white">
-            Debt Limit Reached
+            {isZeroLimitConfig ? 'No Debt Limit Configured' : 'Debt Limit Reached'}
           </h2>
-          <p className="text-red-100 mt-2 text-sm">
-            Your order cannot be placed at this time
+          <p className="text-white/80 mt-2 text-sm">
+            {isZeroLimitConfig
+              ? 'Your tier has no debt limit set'
+              : 'Your order cannot be placed at this time'}
           </p>
         </div>
 
@@ -115,20 +118,26 @@ export default function DebtRestrictionModal({ isOpen, onClose, debtStatus }: De
             <h4 className="font-semibold text-blue-900 mb-3">
               💡 What you need to do:
             </h4>
-            <ul className="text-sm text-blue-800 space-y-2">
-              <li className="flex items-start">
-                <span className="text-blue-500 mr-2">✓</span>
-                <span><strong>Pay outstanding debts</strong> to reduce your total debt below the limit</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-blue-500 mr-2">✓</span>
-                <span><strong>Contact admin</strong> if you need to request a temporary limit increase</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-blue-500 mr-2">✓</span>
-                <span>Once your debt is below <strong>PKR {debtStatus.debtLimit.toLocaleString()}</strong>, you can place new orders</span>
-              </li>
-            </ul>
+            {isZeroLimitConfig ? (
+              <p className="text-sm text-blue-800">
+                Your tier currently has <strong>no debt limit configured (PKR 0)</strong>. Please contact admin to have a debt limit assigned to your tier before placing orders.
+              </p>
+            ) : (
+              <ul className="text-sm text-blue-800 space-y-2">
+                <li className="flex items-start">
+                  <span className="text-blue-500 mr-2">✓</span>
+                  <span><strong>Pay outstanding debts</strong> to reduce your total debt below the limit</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-500 mr-2">✓</span>
+                  <span><strong>Contact admin</strong> if you need to request a temporary limit increase</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-500 mr-2">✓</span>
+                  <span>Once your debt is below <strong>PKR {debtStatus.debtLimit.toLocaleString()}</strong>, you can place new orders</span>
+                </li>
+              </ul>
+            )}
           </div>
 
           {/* Contact Info */}

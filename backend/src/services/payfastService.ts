@@ -34,9 +34,9 @@ export class PayFastService {
 
   constructor() {
           // Use user's PayFast credentials
-          this.merchantId = process.env.PAYFAST_MERCHANT_ID || '10042666';
-          this.merchantKey = process.env.PAYFAST_MERCHANT_KEY || 'aacjyg5h02c4s';
-          this.passphrase = process.env.PAYFAST_PASSPHRASE || 'qV9t7Gz2Rkx8Lm4FhS0pW1';
+          this.merchantId = process.env.PAYFAST_MERCHANT_ID || '';
+          this.merchantKey = process.env.PAYFAST_MERCHANT_KEY || '';
+          this.passphrase = process.env.PAYFAST_PASSPHRASE || '';
     this.sandboxUrl = 'https://sandbox.payfast.co.za/eng/process';
     this.liveUrl = 'https://www.payfast.co.za/eng/process';
     this.isSandbox = process.env.NODE_ENV !== 'production';

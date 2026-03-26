@@ -291,7 +291,11 @@ export class TierNotificationService {
     previousTier: string
   ): Promise<void> {
     try {
-      const adminEmail = process.env.MAIN_ADMIN_EMAIL || 'asadkhanbloch4949@gmail.com';
+      const adminEmail = process.env.MAIN_ADMIN_EMAIL;
+      if (!adminEmail) {
+        console.warn('TierNotificationService: MAIN_ADMIN_EMAIL not set, skipping admin notification');
+        return;
+      }
       const emailSubject = `🏆 New Tier Achievement - ${doctor.doctor_name}`;
       const emailContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">

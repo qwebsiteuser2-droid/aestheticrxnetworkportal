@@ -52,10 +52,6 @@ export const getAllOrders = async (req: Request, res: Response) => {
         paymentStatus = 'pending';
       }
       
-      // Debug logging for payment status mapping
-      if (order.doctor_email && order.doctor_email.includes('muhammadqasimshabbir825@gmail.com')) {
-        console.log(`Order ${order.order_number}: payment_status=${order.payment_status}, payment_amount=${order.payment_amount}, payment_completed_at=${order.payment_completed_at}, mapped_status=${paymentStatus}`);
-      }
 
       return {
         id: order.id,

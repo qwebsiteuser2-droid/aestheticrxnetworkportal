@@ -124,7 +124,11 @@ class GmailApiService {
         'urn:ietf:wg:oauth:2.0:oob' // Out-of-band redirect (for server-to-server)
       );
 
-      // Set credentials with refresh token
+      // Set credentials with refresh token.
+      // IMPORTANT: GMAIL_API_REFRESH_TOKEN must be generated with ONLY the
+      // https://www.googleapis.com/auth/gmail.send scope (not https://mail.google.com/).
+      // Using the full mail.google.com scope is a RESTRICTED scope requiring a Google security audit.
+      // Re-generate at: https://developers.google.com/oauthplayground
       this.oauth2Client.setCredentials({
         refresh_token: refreshToken
       });

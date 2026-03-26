@@ -203,6 +203,48 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">14. Google API Services</h2>
+            <p className="text-gray-700 mb-4">
+              AestheticRx Network's use of information received from Google APIs will adhere to the{' '}
+              <a
+                href="https://developers.google.com/terms/api-services-user-data-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                Google API Services User Data Policy
+              </a>
+              , including the Limited Use requirements.
+            </p>
+            <ul className="list-disc pl-6 mb-4 text-gray-700 space-y-3">
+              <li>
+                <strong>Google Sign-In:</strong> We use Google Sign-In solely to verify your identity and
+                authenticate your account. We access only your name, email address, and profile picture.
+                This data is used only to identify you within our platform and is not shared with third
+                parties or used for advertising purposes.
+              </li>
+              <li>
+                <strong>Gmail API:</strong> We use the Gmail API solely to send transactional emails
+                (order confirmations, OTP codes, account notifications, and administrative alerts) on
+                behalf of the platform administrator. We do not read, store, scan, or process any email
+                content from your Gmail account. We do not use Gmail data for any purpose other than
+                sending these transactional messages.
+              </li>
+              <li>
+                <strong>Google Drive API:</strong> We use the Google Drive API only to store data export
+                files that you or an administrator explicitly generates within this application. We do
+                not access, read, or modify any pre-existing files in your Google Drive. Only files
+                created by AestheticRx Network are accessible to us.
+              </li>
+            </ul>
+            <p className="text-gray-700">
+              We do not transfer, sell, or use Google user data for any purpose beyond those explicitly
+              stated above. Our use of Google API data is limited to providing and improving the
+              AestheticRx Network platform features described in this policy.
+            </p>
+          </section>
+
+          <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">13. Contact Us</h2>
             <p className="text-gray-700 mb-4">
               If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:

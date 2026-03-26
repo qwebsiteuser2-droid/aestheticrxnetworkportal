@@ -11,6 +11,7 @@ import { ordersApi } from '@/lib/api';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '@/lib/auth';
 import { getApiUrl } from '@/lib/getApiUrl';
+import DebtRestrictionModal from '@/components/DebtRestrictionModal';
 
 const orderSchema = z.object({
   qty: z.number().min(1, 'Quantity must be at least 1'),
@@ -44,6 +45,13 @@ export function OrderModal({ product, isOpen, onClose, onSuccess }: OrderModalPr
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [showDebtModal, setShowDebtModal] = useState(false);
+  const [debtStatus, setDebtStatus] = useState<{
+    currentDebt: number;
+    debtLimit: number;
+    tierName: string;
+    remainingLimit: number;
+  } | null>(null);
 
   const {
     register,
@@ -89,7 +97,24 @@ export function OrderModal({ product, isOpen, onClose, onSuccess }: OrderModalPr
         onSuccess();
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to place order');
+      const data = error.response?.data;
+      if (data?.debtStatus) {
+        setDebtStatus(data.debtStatus);
+        setShowDebtModal(true);
+      } else if (
+        data?.message?.toLowerCase().includes('debt limit') ||
+        data?.message?.toLowerCase().includes('debt restriction')
+      ) {
+        setDebtStatus({
+          currentDebt: data?.currentDebt ?? 0,
+          debtLimit: data?.debtLimit ?? 0,
+          tierName: data?.tierName ?? 'Unknown',
+          remainingLimit: data?.remainingLimit ?? 0,
+        });
+        setShowDebtModal(true);
+      } else {
+        toast.error(data?.message || 'Failed to place order');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -105,7 +130,21 @@ export function OrderModal({ product, isOpen, onClose, onSuccess }: OrderModalPr
     setValue('customLocation', location);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen && !showDebtModal) return null;
+
+  if (showDebtModal && debtStatus) {
+    return (
+      <DebtRestrictionModal
+        isOpen={showDebtModal}
+        onClose={() => {
+          setShowDebtModal(false);
+          setDebtStatus(null);
+          handleClose();
+        }}
+        debtStatus={debtStatus}
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">

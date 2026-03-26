@@ -97,10 +97,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             <Link href="/" className="flex items-center space-x-2">
               <img 
                 src="/logo.png" 
-                alt="AestheticRxNetwork" 
-                className="w-12 h-12 object-contain shadow-md rounded-lg"
+                alt="AestheticRx Network" 
+                className="w-12 h-12 object-contain"
               />
-              <span className="text-xl font-bold text-gray-900">AestheticRx</span>
+              <span className="text-xl font-bold"><span style={{ color: '#1E66FF' }}>Aesthetic</span><span style={{ color: '#F5C24C' }}>RX</span><span style={{ color: '#7AAC52' }}> Network</span></span>
             </Link>
             
             {/* Close button for mobile */}

@@ -35,7 +35,10 @@ export function initializeSocketServer(httpServer: HttpServer): Server {
         return next(new Error('Authentication required'));
       }
 
-      const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        return next(new Error('JWT_SECRET environment variable is not configured'));
+      }
       const decoded = jwt.verify(token, jwtSecret) as { userId: string; email: string };
       
       socket.userId = decoded.userId;
