@@ -55,7 +55,7 @@ export class CreateOTPTable1700000000004 implements MigrationInterface {
         foreignKeys: [
           {
             columnNames: ['user_id'],
-            referencedTableName: 'users',
+            referencedTableName: 'doctors',
             referencedColumnNames: ['id'],
             onDelete: 'CASCADE',
           },
