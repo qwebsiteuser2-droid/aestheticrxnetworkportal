@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# BioAestheticAx Network Production Deployment Script
+# AestheticRxNetwork Production Deployment Script
 set -e
 
-echo "🚀 Starting BioAestheticAx Network Production Deployment..."
+echo "🚀 Starting AestheticRxNetwork Production Deployment..."
 
 # Colors for output
 RED='\033[0;31m'

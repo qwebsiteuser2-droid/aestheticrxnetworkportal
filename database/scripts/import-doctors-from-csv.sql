@@ -1,7 +1,7 @@
 -- Import doctors from CSV file
 -- This script imports doctors using COPY command
 
-\c bioaestheticax1
+\c aestheticrx1
 
 -- Create temporary table with same structure
 CREATE TEMP TABLE doctors_temp (LIKE doctors INCLUDING ALL);

@@ -79,7 +79,7 @@ export class GoogleDriveService {
     }
   }
 
-  async uploadFile(filePath: string, fileName: string, folderName: string = 'BioAestheticAx Network_Exports'): Promise<string> {
+  async uploadFile(filePath: string, fileName: string, folderName: string = 'AestheticRxNetwork_Exports'): Promise<string> {
     if (!this.drive || !this.auth) {
       throw new Error('Google Drive service is not configured. Please set GOOGLE_PRIVATE_KEY_ID, GOOGLE_PRIVATE_KEY, and GOOGLE_CLIENT_ID environment variables.');
     }
@@ -149,11 +149,11 @@ export class GoogleDriveService {
       if (response.data.drives && response.data.drives.length > 0) {
         // Look for our specific shared drive
         const qWebsiteDrive = response.data.drives.find((drive: any) => 
-          drive.name === 'BioAestheticAx Network_Data' || drive.name === 'BioAestheticAx Network_Data_Shared'
+          drive.name === 'AestheticRxNetwork_Data' || drive.name === 'AestheticRxNetwork_Data_Shared'
         );
         
         if (qWebsiteDrive) {
-          console.log('📁 Found BioAestheticAx Network_Data shared drive:', qWebsiteDrive.name);
+          console.log('📁 Found AestheticRxNetwork_Data shared drive:', qWebsiteDrive.name);
           return qWebsiteDrive.id;
         }
         
@@ -165,7 +165,7 @@ export class GoogleDriveService {
       // Try to create a shared drive
       try {
         const sharedDriveMetadata = {
-          name: 'BioAestheticAx Network_Data',
+          name: 'AestheticRxNetwork_Data',
           capabilities: {
             canAddChildren: true,
             canDeleteChildren: true,
@@ -182,12 +182,12 @@ export class GoogleDriveService {
         return sharedDrive.data.id;
       } catch (createError) {
         console.log('📁 Could not create shared drive, using personal drive');
-        console.log('💡 Please create a shared drive named "BioAestheticAx Network_Data" and add the service account as a member');
+        console.log('💡 Please create a shared drive named "AestheticRxNetwork_Data" and add the service account as a member');
         return null;
       }
     } catch (error: unknown) {
       console.log('📁 Could not access shared drives, using personal drive');
-      console.log('💡 Please create a shared drive named "BioAestheticAx Network_Data" and add the service account as a member');
+      console.log('💡 Please create a shared drive named "AestheticRxNetwork_Data" and add the service account as a member');
       return null;
     }
   }
@@ -250,7 +250,7 @@ export class GoogleDriveService {
   /**
    * Ensure a folder exists, create it if it doesn't
    */
-  async ensureFolderExists(folderName: string = 'BioAestheticAx Network_Exports'): Promise<string | null> {
+  async ensureFolderExists(folderName: string = 'AestheticRxNetwork_Exports'): Promise<string | null> {
     if (!this.drive || !this.auth) {
       throw new Error('Google Drive service is not configured.');
     }
@@ -277,7 +277,7 @@ export class GoogleDriveService {
     }
   }
 
-  async getFolderContents(folderName: string = 'BioAestheticAx Network_Exports'): Promise<any[]> {
+  async getFolderContents(folderName: string = 'AestheticRxNetwork_Exports'): Promise<any[]> {
     if (!this.drive || !this.auth) {
       throw new Error('Google Drive service is not configured.');
     }

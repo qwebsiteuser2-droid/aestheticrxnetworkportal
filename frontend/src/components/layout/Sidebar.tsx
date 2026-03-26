@@ -97,10 +97,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             <Link href="/" className="flex items-center space-x-2">
               <img 
                 src="/logo.png" 
-                alt="BioAestheticAx Network" 
+                alt="AestheticRxNetwork" 
                 className="w-12 h-12 object-contain shadow-md rounded-lg"
               />
-              <span className="text-xl font-bold text-gray-900">BioAestheticAx</span>
+              <span className="text-xl font-bold text-gray-900">AestheticRx</span>
             </Link>
             
             {/* Close button for mobile */}
@@ -220,7 +220,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           {/* Footer */}
           <div className="p-4 border-t border-gray-200">
             <div className="text-xs text-gray-500 text-center">
-              <p>BioAestheticAx Network Platform</p>
+              <p>AestheticRxNetwork Platform</p>
               <p>Version 1.0.0</p>
             </div>
           </div>

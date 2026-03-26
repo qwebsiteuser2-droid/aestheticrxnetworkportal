@@ -1,6 +1,6 @@
 # Development Scripts
 
-This folder contains development and testing shell scripts for the BioAestheticAx Network project. These scripts are used during local development and testing, and are kept separate from production deployment scripts.
+This folder contains development and testing shell scripts for the AestheticRxNetwork project. These scripts are used during local development and testing, and are kept separate from production deployment scripts.
 
 ## Scripts Overview
 

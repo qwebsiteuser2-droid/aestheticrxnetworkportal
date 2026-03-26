@@ -653,7 +653,7 @@ export default function UserProfilePage() {
         ` : ''}
 
         <div class="footer">
-          <p>Generated on ${new Date().toLocaleDateString()} from BioAestheticAx Network Research Platform</p>
+          <p>Generated on ${new Date().toLocaleDateString()} from AestheticRxNetwork Research Platform</p>
           <p>This document was automatically generated from the research paper content.</p>
         </div>
       </body>

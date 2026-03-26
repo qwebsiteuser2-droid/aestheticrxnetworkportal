@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Quick Production Start Script for BioAestheticAx Network
+# Quick Production Start Script for AestheticRxNetwork
 set -e
 
-echo "🚀 Starting BioAestheticAx Network in Production Mode..."
+echo "🚀 Starting AestheticRxNetwork in Production Mode..."
 
 # Colors for output
 RED='\033[0;31m'

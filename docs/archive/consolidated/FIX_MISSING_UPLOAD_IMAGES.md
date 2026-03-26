@@ -18,7 +18,7 @@ After Railway rebuilds with the latest code, you can fix this by calling the adm
 4. Run this JavaScript:
 
 ```javascript
-fetch('https://bioaestheticaxdepolying-production.up.railway.app/api/admin/images/fix-missing', {
+fetch('https://aestheticrxdepolying-production.up.railway.app/api/admin/images/fix-missing', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ fetch('https://bioaestheticaxdepolying-production.up.railway.app/api/admin/image
 ### Option 2: Using curl (if you have admin token)
 
 ```bash
-curl -X POST "https://bioaestheticaxdepolying-production.up.railway.app/api/admin/images/fix-missing" \
+curl -X POST "https://aestheticrxdepolying-production.up.railway.app/api/admin/images/fix-missing" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
 ```

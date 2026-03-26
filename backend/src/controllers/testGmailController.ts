@@ -71,7 +71,7 @@ export const testGmailConnection = async (req: Request, res: Response): Promise<
         <p>If you receive this email, Gmail notifications are working correctly!</p>
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-          <p>This is a test message from BioAestheticAx Network system.</p>
+          <p>This is a test message from AestheticRxNetwork system.</p>
         </div>
       </div>
     `;
@@ -80,7 +80,7 @@ export const testGmailConnection = async (req: Request, res: Response): Promise<
     
     await gmailService.sendEmail(
       recipientEmail,
-      'Gmail Test - BioAestheticAx Network',
+      'Gmail Test - AestheticRxNetwork',
       testHtml
     );
 

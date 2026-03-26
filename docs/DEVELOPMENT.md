@@ -1,6 +1,6 @@
 # Development Guide
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -11,7 +11,7 @@
 
 ---
 
-This guide provides detailed instructions for setting up and developing the BioAestheticAx Network application.
+This guide provides detailed instructions for setting up and developing the AestheticRxNetwork application.
 
 ## Table of Contents
 
@@ -44,8 +44,8 @@ This guide provides detailed instructions for setting up and developing the BioA
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/qasimjungle/BioAestheticAx Network_App.git
-cd BioAestheticAx Network_App
+git clone https://github.com/qasimjungle/AestheticRxNetwork_App.git
+cd AestheticRxNetwork_App
 ```
 
 ### 2. Install Dependencies
@@ -84,7 +84,7 @@ See **[Environment Variables Reference](ENVIRONMENT_VARIABLES_REFERENCE.md)** fo
 NODE_ENV=development
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
 FRONTEND_URL=http://localhost:3000
-DATABASE_URL=postgres://postgres:password@localhost:5432/bioaestheticax
+DATABASE_URL=postgres://postgres:password@localhost:5432/aestheticrx
 JWT_SECRET=your_64_char_secret
 JWT_REFRESH_SECRET=your_64_char_secret
 GMAIL_USER=your@gmail.com
@@ -110,7 +110,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```bash
 # Using psql
 psql -U postgres
-CREATE DATABASE bioaestheticax1;
+CREATE DATABASE aestheticrx1;
 \q
 ```
 
@@ -356,7 +356,7 @@ npm run migration:revert
 sudo systemctl status postgresql
 
 # Check connection
-psql -U postgres -d bioaestheticax1
+psql -U postgres -d aestheticrx1
 ```
 
 ### Port Already in Use

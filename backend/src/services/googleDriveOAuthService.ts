@@ -50,7 +50,7 @@ export class GoogleDriveOAuthService {
     }
   }
 
-  async uploadFile(filePath: string, fileName: string, folderName: string = 'BioAestheticAx Network_Data'): Promise<string> {
+  async uploadFile(filePath: string, fileName: string, folderName: string = 'AestheticRxNetwork_Data'): Promise<string> {
     try {
       console.log('📤 Uploading file to Google Drive:', fileName);
 

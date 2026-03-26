@@ -1,6 +1,6 @@
 # API Documentation
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -9,7 +9,7 @@
 | **Version** | 3.4.0 |
 | **Last Updated** | January 31, 2026 |
 | **Base URL (Development)** | `http://localhost:4000/api` |
-| **Base URL (Production)** | `https://qwebsitedepolying-production.up.railway.app/api` |
+| **Base URL (Production)** | `https://aestheticrxnetworkdepolying-production.up.railway.app/api` |
 
 ---
 

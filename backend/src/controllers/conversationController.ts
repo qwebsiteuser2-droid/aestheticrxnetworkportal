@@ -368,14 +368,14 @@ export const acceptConversation = async (req: Request, res: Response): Promise<v
                     ${doctorContact.address ? `<div class="contact-item">📍 <strong style="margin-left: 10px;">Address:</strong> <span style="margin-left: 10px;">${doctorContact.address}</span></div>` : ''}
                   </div>
                   
-                  <p>You can now contact the doctor directly using the information above, or continue your conversation on BioAestheticAx Network.</p>
+                  <p>You can now contact the doctor directly using the information above, or continue your conversation on AestheticRxNetwork.</p>
                   
                   <center>
-                    <a href="${process.env.FRONTEND_URL || 'https://bioaestheticaxdepolying.vercel.app'}/messages/${id}" class="btn">View Conversation</a>
+                    <a href="${process.env.FRONTEND_URL || 'https://aestheticrxdepolying.vercel.app'}/messages/${id}" class="btn">View Conversation</a>
                   </center>
                   
                   <div class="footer">
-                    <p>This is an automated message from BioAestheticAx Network.</p>
+                    <p>This is an automated message from AestheticRxNetwork.</p>
                   </div>
                 </div>
               </div>
@@ -654,21 +654,21 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
                 </div>
                 <div class="content">
                   <p>Hello <strong>${doctorName}</strong>,</p>
-                  <p>You have received a new message from <strong>${senderName}</strong> on BioAestheticAx Network.</p>
+                  <p>You have received a new message from <strong>${senderName}</strong> on AestheticRxNetwork.</p>
                   
                   <div class="message-box">
                     <strong>Message:</strong>
                     <p style="color: #374151; margin-top: 10px;">${content.substring(0, 200)}${content.length > 200 ? '...' : ''}</p>
                   </div>
                   
-                  <p>Please login to your BioAestheticAx Network account to view the full message and respond to your patient.</p>
+                  <p>Please login to your AestheticRxNetwork account to view the full message and respond to your patient.</p>
                   
                   <center>
-                    <a href="${process.env.FRONTEND_URL || 'https://bioaestheticaxdepolying.vercel.app'}/messages/${id}" class="btn">View Message</a>
+                    <a href="${process.env.FRONTEND_URL || 'https://aestheticrxdepolying.vercel.app'}/messages/${id}" class="btn">View Message</a>
                   </center>
                   
                   <div class="footer">
-                    <p>This is an automated message from BioAestheticAx Network.</p>
+                    <p>This is an automated message from AestheticRxNetwork.</p>
                     <p>Please do not reply to this email.</p>
                   </div>
                 </div>

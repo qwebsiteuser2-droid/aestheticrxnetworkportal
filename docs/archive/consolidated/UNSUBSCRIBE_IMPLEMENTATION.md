@@ -1,4 +1,4 @@
-# Unsubscribe Links Implementation - BioAestheticAx Network
+# Unsubscribe Links Implementation - AestheticRxNetwork
 
 **Date:** December 16, 2025  
 **Status:** ✅ **COMPLETED**
@@ -127,11 +127,11 @@ All marketing emails now include:
 
 ```
 ─────────────────────────────────────────
-You are receiving this email because you are a registered user of BioAestheticAx Network.
+You are receiving this email because you are a registered user of AestheticRxNetwork.
 
 [Unsubscribe from marketing emails]
 
-This is an automated message from BioAestheticAx Network system.
+This is an automated message from AestheticRxNetwork system.
 ─────────────────────────────────────────
 ```
 

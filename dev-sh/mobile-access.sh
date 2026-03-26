@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /home/enigmatix/Q_project/BioAestheticAx Network
+cd /home/enigmatix/Q_project/AestheticRxNetwork
 CURRENT_IP=$(hostname -I | awk '{print $1}' || ip addr show | grep -oP 'inet \K[\d.]+' | grep -v '127.0.0.1' | head -1)
 
 echo "📱 Mobile Access Information:"

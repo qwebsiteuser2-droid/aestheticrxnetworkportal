@@ -1,6 +1,6 @@
 # System Architecture
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -13,7 +13,7 @@
 
 ## Overview
 
-BioAestheticAx Network is a full-stack B2B medical platform built with modern web technologies following a microservices-oriented architecture with clear separation between frontend, backend, and data layers.
+AestheticRxNetwork is a full-stack B2B medical platform built with modern web technologies following a microservices-oriented architecture with clear separation between frontend, backend, and data layers.
 
 ### Key Principles
 

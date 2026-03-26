@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Development Start Script for BioAestheticAx Network
+# Development Start Script for AestheticRxNetwork
 set -e
 
-echo "🚀 Starting BioAestheticAx Network Development Environment..."
+echo "🚀 Starting AestheticRxNetwork Development Environment..."
 
 # Colors for output
 RED='\033[0;31m'

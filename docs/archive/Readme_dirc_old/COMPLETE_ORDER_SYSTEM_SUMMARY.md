@@ -139,7 +139,7 @@ const adminEmails = [
 
 await transporter.sendMail({
   to: adminEmails.join(', '),
-  subject: `📦 New Order #${order.order_number} - BioAestheticAx Network`,
+  subject: `📦 New Order #${order.order_number} - AestheticRxNetwork`,
   html: detailedOrderTemplate
 });
 ```

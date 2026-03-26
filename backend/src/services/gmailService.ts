@@ -157,11 +157,11 @@ class GmailService {
     const unsubscribeUrl = getUnsubscribeUrl(userId, email);
     const unsubscribeFooter = `
       <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; text-align: center;">
-        <p style="margin: 10px 0;">You are receiving this email because you are a registered user of BioAestheticAx Network.</p>
+        <p style="margin: 10px 0;">You are receiving this email because you are a registered user of AestheticRxNetwork.</p>
         <p style="margin: 10px 0;">
           <a href="${unsubscribeUrl}" style="color: #666; text-decoration: underline;">Unsubscribe from marketing emails</a>
         </p>
-        <p style="margin: 10px 0; color: #999;">This is an automated message from BioAestheticAx Network system.</p>
+        <p style="margin: 10px 0; color: #999;">This is an automated message from AestheticRxNetwork system.</p>
       </div>
     `;
 
@@ -517,7 +517,7 @@ class GmailService {
           <p>Please review and approve this registration in the admin panel.</p>
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-            <p>This is an automated message from BioAestheticAx Network system.</p>
+            <p>This is an automated message from AestheticRxNetwork system.</p>
           </div>
         </div>
       `;
@@ -549,7 +549,7 @@ class GmailService {
           <h2 style="color: #28a745;">Registration Approved!</h2>
           <p>Dear Dr. ${doctor.doctor_name},</p>
           
-          <p>Great news! Your registration has been approved and you can now access the BioAestheticAx Network platform.</p>
+          <p>Great news! Your registration has been approved and you can now access the AestheticRxNetwork platform.</p>
           
           <div style="background-color: #d4edda; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #28a745;">
             <h3 style="margin-top: 0; color: #155724;">Account Details</h3>
@@ -562,14 +562,14 @@ class GmailService {
           <p>You can now log in to your account and start using our services.</p>
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-            <p>This is an automated message from BioAestheticAx Network system.</p>
+            <p>This is an automated message from AestheticRxNetwork system.</p>
           </div>
         </div>
       `;
 
       await this.sendEmail(
         doctor.email,
-        'Registration Approved - BioAestheticAx Network',
+        'Registration Approved - AestheticRxNetwork',
         htmlContent,
         { isMarketing: false, userId: doctor.id } // Transactional email to user
       );
@@ -835,7 +835,7 @@ class GmailService {
 
           <!-- Footer -->
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; color: #666; font-size: 12px;">
-            <p style="margin: 0;">This is an automated message from BioAestheticAx Network system.</p>
+            <p style="margin: 0;">This is an automated message from AestheticRxNetwork system.</p>
           </div>
         </div>
       `;
@@ -890,7 +890,7 @@ class GmailService {
         
         await this.sendEmailWithAttachments(
           recipientEmails,
-          `New Order #${order.order_number} - BioAestheticAx Network`,
+          `New Order #${order.order_number} - AestheticRxNetwork`,
           htmlContent,
           [
             {
@@ -920,7 +920,7 @@ class GmailService {
           // Send ONE email to ALL recipients (all admins will receive it)
           await this.sendEmail(
             recipientEmails, // Pass array - all admins will be in TO field
-            `New Order #${order.order_number} - BioAestheticAx Network`,
+            `New Order #${order.order_number} - AestheticRxNetwork`,
             htmlContent,
             { 
               isMarketing: false, // Transactional email to admins
@@ -1125,7 +1125,7 @@ class GmailService {
 
           <!-- Footer -->
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; color: #666; font-size: 12px;">
-            <p style="margin: 0;">This is an automated message from BioAestheticAx Network system.</p>
+            <p style="margin: 0;">This is an automated message from AestheticRxNetwork system.</p>
           </div>
         </div>
       `;
@@ -1135,7 +1135,7 @@ class GmailService {
       // Send email
       await this.sendEmail(
         recipientEmails,
-        `New Batch Order - ${orders.length} Order(s) - Total: PKR ${totalAmount.toLocaleString()} - BioAestheticAx Network`,
+        `New Batch Order - ${orders.length} Order(s) - Total: PKR ${totalAmount.toLocaleString()} - AestheticRxNetwork`,
         htmlContent,
         { 
           isMarketing: false,
@@ -1235,8 +1235,8 @@ class GmailService {
             <!-- Footer -->
             <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
               <p style="color: #6b7280; font-size: 14px; margin: 0;">
-                This is an automated message from BioAestheticAx Network system.<br>
-                For support, contact us at ${process.env.MAIN_ADMIN_EMAIL || 'support@bioaestheticax.com'}
+                This is an automated message from AestheticRxNetwork system.<br>
+                For support, contact us at ${process.env.MAIN_ADMIN_EMAIL || 'support@aestheticrx.com'}
               </p>
             </div>
           </div>
@@ -1324,7 +1324,7 @@ class GmailService {
               </div>
               
               <div class="footer">
-                <p>Best regards,<br>The BioAestheticAx Network Team</p>
+                <p>Best regards,<br>The AestheticRxNetwork Team</p>
                 <p><small>This certificate is digitally verified and can be used for professional purposes.</small></p>
               </div>
             </div>
@@ -1402,7 +1402,7 @@ class GmailService {
             </div>
             
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-              <p>Best regards,<br>The BioAestheticAx Network Team</p>
+              <p>Best regards,<br>The AestheticRxNetwork Team</p>
             </div>
           </div>
         </body>
@@ -1476,7 +1476,7 @@ class GmailService {
             </div>
             
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-              <p>Best regards,<br>The BioAestheticAx Network Team</p>
+              <p>Best regards,<br>The AestheticRxNetwork Team</p>
             </div>
           </div>
         </body>
@@ -1604,7 +1604,7 @@ class GmailService {
               </div>
               
               <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-                <p>Best regards,<br>The BioAestheticAx Network Team</p>
+                <p>Best regards,<br>The AestheticRxNetwork Team</p>
               </div>
             </div>
           </body>
@@ -1664,7 +1664,7 @@ class GmailService {
               </div>
               
               <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-                <p>Best regards,<br>The BioAestheticAx Network Team</p>
+                <p>Best regards,<br>The AestheticRxNetwork Team</p>
               </div>
             </div>
           </body>
@@ -1820,7 +1820,7 @@ class GmailService {
             </div>
             
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-              <p>Best regards,<br>The BioAestheticAx Network Team</p>
+              <p>Best regards,<br>The AestheticRxNetwork Team</p>
             </div>
           </div>
         </body>
@@ -1973,7 +1973,7 @@ class GmailService {
 
             <!-- Footer -->
             <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; color: #666; font-size: 12px;">
-              <p style="margin: 0;">This is an automated message from BioAestheticAx Network system.</p>
+              <p style="margin: 0;">This is an automated message from AestheticRxNetwork system.</p>
             </div>
           </div>
         `;
@@ -2066,7 +2066,7 @@ class GmailService {
 
           <!-- Footer -->
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; color: #666; font-size: 12px;">
-            <p style="margin: 0;">This is an automated message from BioAestheticAx Network system.</p>
+            <p style="margin: 0;">This is an automated message from AestheticRxNetwork system.</p>
           </div>
         </div>
       `;
@@ -2182,7 +2182,7 @@ class GmailService {
 
             <!-- Footer -->
             <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; color: #666; font-size: 12px;">
-              <p style="margin: 0;">This is an automated message from BioAestheticAx Network system.</p>
+              <p style="margin: 0;">This is an automated message from AestheticRxNetwork system.</p>
             </div>
           </div>
         </body>
@@ -2309,7 +2309,7 @@ class GmailService {
 
             <!-- Footer -->
             <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; color: #666; font-size: 12px;">
-              <p style="margin: 0;">This is an automated message from BioAestheticAx Network system.</p>
+              <p style="margin: 0;">This is an automated message from AestheticRxNetwork system.</p>
             </div>
           </div>
         </body>
@@ -2407,7 +2407,7 @@ class GmailService {
 
             <!-- Footer -->
             <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; color: #666; font-size: 12px;">
-              <p style="margin: 0;">This is an automated message from BioAestheticAx Network system.</p>
+              <p style="margin: 0;">This is an automated message from AestheticRxNetwork system.</p>
             </div>
           </div>
         </body>

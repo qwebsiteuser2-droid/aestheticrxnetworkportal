@@ -3,7 +3,7 @@
 **Last Updated:** January 14, 2026  
 **Status:** ✅ Comprehensive Guide
 
-This document consolidates all troubleshooting and debugging information for the BioAestheticAx Network platform.
+This document consolidates all troubleshooting and debugging information for the AestheticRxNetwork platform.
 
 ---
 
@@ -171,7 +171,7 @@ JWT_SECRET must be set
 - OTP verification fails
 
 **Solutions:**
-1. Verify backend uses correct database (`railway` not `bioaestheticax1`)
+1. Verify backend uses correct database (`railway` not `aestheticrx1`)
 2. Check Gmail credentials are set in Railway
 3. Verify email exists in database
 4. Check Railway logs for errors
@@ -205,7 +205,7 @@ JWT_SECRET must be set
 - Password reset doesn't find users
 
 **Solution:**
-- Update `DATABASE_URL` to use `/railway` database (not `/bioaestheticax1`)
+- Update `DATABASE_URL` to use `/railway` database (not `/aestheticrx1`)
 - Verify data exists in `railway` database
 
 **See:** [Railway Deployment Guide](./RAILWAY_DEPLOYMENT.md#database-configuration)
@@ -250,7 +250,7 @@ JWT_SECRET must be set
 
 ### Check Backend Health
 ```bash
-curl https://bioaestheticaxdepolying-production.up.railway.app/api/health
+curl https://aestheticrxdepolying-production.up.railway.app/api/health
 ```
 
 ### Check Database Connection
@@ -260,14 +260,14 @@ psql "postgresql://postgres:PASSWORD@tramway.proxy.rlwy.net:22589/railway" -c "S
 
 ### Test Login
 ```bash
-curl -X POST https://bioaestheticaxdepolying-production.up.railway.app/api/auth/login \
+curl -X POST https://aestheticrxdepolying-production.up.railway.app/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","password":"password123"}'
 ```
 
 ### Check API Endpoint
 ```bash
-curl https://bioaestheticaxdepolying-production.up.railway.app/api/backgrounds/active
+curl https://aestheticrxdepolying-production.up.railway.app/api/backgrounds/active
 ```
 
 ---

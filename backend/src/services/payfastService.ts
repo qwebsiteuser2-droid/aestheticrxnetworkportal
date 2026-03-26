@@ -444,7 +444,7 @@ export class PayFastService {
                method: 'POST',
                headers: {
                  'Content-Type': 'application/x-www-form-urlencoded',
-                 'User-Agent': 'BioAestheticAx Network-PayFast-ITN-Validator/1.0',
+                 'User-Agent': 'AestheticRxNetwork-PayFast-ITN-Validator/1.0',
                  'Accept': 'text/plain',
                  'Connection': 'close'
                },

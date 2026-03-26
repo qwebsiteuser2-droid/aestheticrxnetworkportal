@@ -3,12 +3,12 @@ import type { Metadata } from 'next';
 
 // SEO Metadata - Static page, pre-rendered at build time
 export const metadata: Metadata = {
-  title: 'Terms of Service | BioAestheticAx Network',
-  description: 'Read the Terms of Service for BioAestheticAx Network. Understand your rights and responsibilities when using our B2B medical platform.',
-  keywords: 'terms of service, user agreement, terms and conditions, BioAestheticAx, medical platform',
+  title: 'Terms of Service | AestheticRxNetwork',
+  description: 'Read the Terms of Service for AestheticRxNetwork. Understand your rights and responsibilities when using our B2B medical platform.',
+  keywords: 'terms of service, user agreement, terms and conditions, AestheticRx, medical platform',
   openGraph: {
-    title: 'Terms of Service | BioAestheticAx Network',
-    description: 'Terms and conditions for using BioAestheticAx Network B2B medical platform.',
+    title: 'Terms of Service | AestheticRxNetwork',
+    description: 'Terms and conditions for using AestheticRxNetwork B2B medical platform.',
     type: 'website',
   },
 };
@@ -27,7 +27,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
             <p className="text-gray-700 mb-4">
-              By accessing and using BioAestheticAx Network (&quot;the Platform&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), you accept and agree to be bound by the terms and provision of this agreement. 
+              By accessing and using AestheticRxNetwork (&quot;the Platform&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), you accept and agree to be bound by the terms and provision of this agreement. 
               If you do not agree to abide by the above, please do not use this service.
             </p>
             <p className="text-gray-700">
@@ -39,7 +39,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Description of Service</h2>
             <p className="text-gray-700 mb-4">
-              BioAestheticAx Network is a platform that provides:
+              AestheticRxNetwork is a platform that provides:
             </p>
             <ul className="list-disc pl-6 mb-4 text-gray-700">
               <li>Product ordering and management services</li>
@@ -167,7 +167,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">7. Intellectual Property</h2>
             <p className="text-gray-700 mb-4">
-              The platform and its original content, features, and functionality are owned by BioAestheticAx Network and are protected by international 
+              The platform and its original content, features, and functionality are owned by AestheticRxNetwork and are protected by international 
               copyright, trademark, patent, trade secret, and other intellectual property laws.
             </p>
             <p className="text-gray-700">
@@ -289,7 +289,7 @@ export default function TermsPage() {
 
             <h3 className="text-xl font-semibold text-gray-800 mb-3">11.2 Limitation of Liability</h3>
             <p className="text-gray-700">
-              To the maximum extent permitted by law, BioAestheticAx Network shall not be liable for any indirect, incidental, special, consequential, 
+              To the maximum extent permitted by law, AestheticRxNetwork shall not be liable for any indirect, incidental, special, consequential, 
               or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, 
               or other intangible losses resulting from your use of the platform.
             </p>
@@ -298,7 +298,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">12. Indemnification</h2>
             <p className="text-gray-700">
-              You agree to indemnify, defend, and hold harmless BioAestheticAx Network, its officers, directors, employees, and agents from and against 
+              You agree to indemnify, defend, and hold harmless AestheticRxNetwork, its officers, directors, employees, and agents from and against 
               any claims, liabilities, damages, losses, and expenses, including reasonable attorney&apos;s fees, arising out of or in any way connected 
               with your access to or use of the platform, your violation of these Terms, or your violation of any rights of another.
             </p>
@@ -319,7 +319,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">14. Governing Law and Dispute Resolution</h2>
             <p className="text-gray-700 mb-4">
-              These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which BioAestheticAx Network operates, 
+              These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which AestheticRxNetwork operates, 
               without regard to its conflict of law provisions.
             </p>
             <p className="text-gray-700">
@@ -361,7 +361,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">18. Entire Agreement</h2>
             <p className="text-gray-700">
-              These Terms, together with our Privacy Policy, constitute the entire agreement between you and BioAestheticAx Network regarding the use of the platform 
+              These Terms, together with our Privacy Policy, constitute the entire agreement between you and AestheticRxNetwork regarding the use of the platform 
               and supersede all prior agreements and understandings.
             </p>
           </section>

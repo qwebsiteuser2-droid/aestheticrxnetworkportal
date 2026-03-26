@@ -1,4 +1,4 @@
-# GitHub Actions CI/CD Pipeline - BioAestheticAx Network
+# GitHub Actions CI/CD Pipeline - AestheticRxNetwork
 
 **Date:** December 17, 2025  
 **Status:** ✅ **CONFIGURED**

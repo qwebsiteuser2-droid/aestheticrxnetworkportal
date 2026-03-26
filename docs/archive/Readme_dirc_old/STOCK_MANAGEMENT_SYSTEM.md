@@ -9,7 +9,7 @@ Implemented a comprehensive stock management system with admin controls and visu
 ## 🔧 **Admin Panel Features**
 
 ### **Stock Management in Admin Products Page**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/admin/products/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/admin/products/page.tsx`
 
 **New Features:**
 - ✅ **Stock Quantity Field** - Required field for all products
@@ -34,7 +34,7 @@ Set to 0 to mark as out of stock
 ## 🎨 **Frontend Visual Indicators**
 
 ### **Out-of-Stock Product Display**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Visual Changes for Out-of-Stock Products:**
 

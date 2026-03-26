@@ -1,6 +1,6 @@
 # Production Deployment Files
 
-This directory contains all the production deployment files for BioAestheticAx Network.
+This directory contains all the production deployment files for AestheticRxNetwork.
 
 ## 📅 Deployment Timeline
 **Scheduled for December 2024**

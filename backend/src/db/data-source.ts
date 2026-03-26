@@ -49,7 +49,7 @@ config();
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  url: process.env.DATABASE_URL || 'postgres://postgres:password@localhost:5432/bioaestheticax1',
+  url: process.env.DATABASE_URL || 'postgres://postgres:password@localhost:5432/aestheticrx1',
   entities: [
     Doctor,
     Product,

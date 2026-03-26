@@ -233,4 +233,4 @@ ls -la /app/products_pics 2>/dev/null | wc -l | xargs echo '  Files:'
 " || echo "⚠️  Could not verify (this is okay - check manually)"
 
 echo ""
-echo "💡 Check image status at: https://bioaestheticaxdepolying-production.up.railway.app/api/public/image-diagnostics"
+echo "💡 Check image status at: https://aestheticrxdepolying-production.up.railway.app/api/public/image-diagnostics"

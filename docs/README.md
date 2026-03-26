@@ -1,6 +1,6 @@
 # Documentation Index
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 

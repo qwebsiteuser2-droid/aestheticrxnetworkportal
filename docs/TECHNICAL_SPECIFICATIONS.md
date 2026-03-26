@@ -1,6 +1,6 @@
 # Technical Specifications
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -11,7 +11,7 @@
 
 ---
 
-This document provides comprehensive technical details about the BioAestheticAx Network platform for developers and technical stakeholders.
+This document provides comprehensive technical details about the AestheticRxNetwork platform for developers and technical stakeholders.
 
 ## Table of Contents
 
@@ -174,7 +174,7 @@ All public-facing pages include:
 Example metadata structure:
 ```typescript
 export const metadata: Metadata = {
-  title: 'Page Title | BioAestheticAx Network',
+  title: 'Page Title | AestheticRxNetwork',
   description: 'Page description for SEO',
   keywords: 'relevant, keywords, here',
   openGraph: {

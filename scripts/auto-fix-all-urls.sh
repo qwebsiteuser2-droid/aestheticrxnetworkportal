@@ -6,7 +6,7 @@
 echo "🔍 Finding all hardcoded URLs..."
 
 # Find all files with hardcoded URLs (excluding config files and tests)
-FILES=$(grep -rl "http://localhost:3000\|http://localhost:4000\|railway\.app\|bioaestheticaxdepolying" \
+FILES=$(grep -rl "http://localhost:3000\|http://localhost:4000\|railway\.app\|aestheticrxdepolying" \
   backend/src frontend/src \
   --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" \
   2>/dev/null | \

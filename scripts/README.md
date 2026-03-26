@@ -2,7 +2,7 @@
 
 **Last Updated:** January 14, 2026
 
-This directory contains all shell scripts and utility scripts for the BioAestheticAx Network project.
+This directory contains all shell scripts and utility scripts for the AestheticRxNetwork project.
 
 ## 📋 Scripts Overview
 

@@ -10,7 +10,7 @@ export default function Loading() {
           <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-blue-600 opacity-20 animate-ping mx-auto"></div>
         </div>
         <p className="mt-4 text-gray-600 font-medium">Loading...</p>
-        <p className="mt-1 text-sm text-gray-400">BioAestheticAx Network</p>
+        <p className="mt-1 text-sm text-gray-400">AestheticRxNetwork</p>
       </div>
     </div>
   );

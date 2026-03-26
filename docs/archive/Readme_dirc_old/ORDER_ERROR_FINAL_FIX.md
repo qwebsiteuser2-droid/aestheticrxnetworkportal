@@ -43,7 +43,7 @@ const snapshot = leaderboardRepository.create({
 ## 🔧 **Fixes Applied**
 
 ### **Fix 1: Backend LeaderboardSnapshot Fields**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/controllers/orderController.ts`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/controllers/orderController.ts`
 
 **Changed field names to match the model:**
 - `sales_total` → `current_sales`
@@ -52,7 +52,7 @@ const snapshot = leaderboardRepository.create({
 - Added required fields: `rank` and `total_doctors`
 
 ### **Fix 2: Frontend Error Handling**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/app/order/page.tsx`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/app/order/page.tsx`
 
 **Improved error handling:**
 - Changed from `Promise.all()` to `Promise.allSettled()`

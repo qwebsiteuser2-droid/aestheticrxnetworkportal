@@ -65,7 +65,7 @@ The order system has been enhanced with comprehensive error handling and debuggi
 
 ### **Step 3: Check Backend Logs**
 ```bash
-cd /home/enigmatix/Q_project/BioAestheticAx Network
+cd /home/enigmatix/Q_project/AestheticRxNetwork
 docker compose logs backend --tail 50
 ```
 
@@ -147,7 +147,7 @@ The system now provides detailed logging:
 
 ### **Test Order System:**
 ```bash
-cd /home/enigmatix/Q_project/BioAestheticAx Network
+cd /home/enigmatix/Q_project/AestheticRxNetwork
 python3 tests/test-order-ranking-system.py
 ```
 
@@ -209,7 +209,7 @@ curl -I http://localhost:4000/health
 curl -I http://localhost:3000
 
 # Check database
-docker compose exec db psql -U postgres -d bioaestheticax1 -c "SELECT COUNT(*) FROM orders;"
+docker compose exec db psql -U postgres -d aestheticrx1 -c "SELECT COUNT(*) FROM orders;"
 ```
 
 ---

@@ -960,7 +960,7 @@ export const requestTeamSeparation = async (req: Request, res: Response): Promis
             <a href="${getFrontendUrlWithPath('/admin')}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Review in Admin Panel</a>
           </div>
           
-          <p style="color: #6b7280; font-size: 14px;">This is an automated notification from the BioAestheticAx Network team management system.</p>
+          <p style="color: #6b7280; font-size: 14px;">This is an automated notification from the AestheticRxNetwork team management system.</p>
         </div>
       `;
 

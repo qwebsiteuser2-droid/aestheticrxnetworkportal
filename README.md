@@ -1,4 +1,4 @@
-# BioAestheticAx Network - B2B Medical Platform
+# AestheticRxNetwork - B2B Medical Platform
 
 **Version:** 3.5.0  
 **Last Updated:** January 31, 2026  
@@ -197,8 +197,8 @@ Enhanced user experience with modern Next.js patterns:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/qasimjungle/BioAestheticAx Network_App.git
-   cd BioAestheticAx Network_App
+   git clone https://github.com/qasimjungle/AestheticRxNetwork_App.git
+   cd AestheticRxNetwork_App
    ```
 
 2. **Install dependencies**
@@ -251,7 +251,7 @@ Enhanced user experience with modern Next.js patterns:
 ## 📁 Project Structure
 
 ```
-bioaestheticax/
+aestheticrx/
 ├── frontend/                   # Next.js frontend application (Vercel deployment)
 │   ├── src/
 │   │   ├── app/               # Next.js app router pages
@@ -460,12 +460,12 @@ MIT License
 
 ## 👥 Contributors
 
-BioAestheticAx Network Team
+AestheticRxNetwork Team
 
 ## 🔗 Links
 
-- **Repository**: https://github.com/qasimjungle/BioAestheticAx Network_App
-- **Issues**: https://github.com/qasimjungle/BioAestheticAx Network_App/issues
+- **Repository**: https://github.com/qasimjungle/AestheticRxNetwork_App
+- **Issues**: https://github.com/qasimjungle/AestheticRxNetwork_App/issues
 
 ---
 
@@ -479,4 +479,4 @@ BioAestheticAx Network Team
 ---
 
 **Written by**: Muhammad Qasim Shabbir
-# bioaestheticax
+# aestheticrx

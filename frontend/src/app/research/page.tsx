@@ -4,11 +4,11 @@ import type { Metadata } from 'next';
 
 // SEO Metadata for research papers page
 export const metadata: Metadata = {
-  title: 'Research Papers | BioAestheticAx Network',
-  description: 'Browse and discover medical research papers from healthcare professionals. Upload, share, and collaborate on research in the BioAestheticAx Network.',
-  keywords: 'medical research, research papers, healthcare, doctors, medical publications, BioAestheticAx',
+  title: 'Research Papers | AestheticRxNetwork',
+  description: 'Browse and discover medical research papers from healthcare professionals. Upload, share, and collaborate on research in the AestheticRxNetwork.',
+  keywords: 'medical research, research papers, healthcare, doctors, medical publications, AestheticRx',
   openGraph: {
-    title: 'Research Papers | BioAestheticAx Network',
+    title: 'Research Papers | AestheticRxNetwork',
     description: 'Discover medical research papers from healthcare professionals worldwide.',
     type: 'website',
   },

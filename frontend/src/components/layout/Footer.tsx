@@ -42,10 +42,10 @@ export function Footer() {
             <Link href="/" className="flex items-center space-x-2 mb-4">
               <img 
                 src="/logo.png" 
-                alt="BioAestheticAx Network" 
+                alt="AestheticRxNetwork" 
                 className="w-12 h-12 object-contain shadow-md rounded-lg"
               />
-              <span className="text-xl font-bold">BioAestheticAx</span>
+              <span className="text-xl font-bold">AestheticRx</span>
             </Link>
             <p className="text-gray-400 text-sm mb-4">
               Professional B2B platform for aesthetic clinics. Connect, order, research, and grow together.
@@ -164,7 +164,7 @@ export function Footer() {
         <div className="mt-8 pt-8 border-t border-gray-800">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © {currentYear} BioAestheticAx Network. All rights reserved.
+              © {currentYear} AestheticRxNetwork. All rights reserved.
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
               <span className="text-gray-400 text-sm">Made with ❤️ for medical professionals</span>

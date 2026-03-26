@@ -1,7 +1,7 @@
 {
   "name": "q-website1-frontend",
   "version": "1.0.0",
-  "description": "Frontend for BioAestheticAx Network - Clinics B2B Platform",
+  "description": "Frontend for AestheticRxNetwork - Clinics B2B Platform",
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
@@ -85,6 +85,6 @@
     "b2b",
     "clinics"
   ],
-  "author": "BioAestheticAx Network Team",
+  "author": "AestheticRxNetwork Team",
   "license": "MIT"
 }

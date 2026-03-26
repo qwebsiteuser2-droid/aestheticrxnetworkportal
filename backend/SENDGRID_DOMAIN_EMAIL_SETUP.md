@@ -1,12 +1,12 @@
-# Setting Up Custom Domain Email (noreply@bioaestheticax.com)
+# Setting Up Custom Domain Email (noreply@aestheticrx.com)
 
 ## 🎯 Goal
 
-Change from Gmail address (`asadkhanbloch4949@gmail.com`) to custom domain email (`noreply@bioaestheticax.com`) to improve deliverability and reduce spam.
+Change from Gmail address (`asadkhanbloch4949@gmail.com`) to custom domain email (`noreply@aestheticrx.com`) to improve deliverability and reduce spam.
 
 ## 📋 Prerequisites
 
-1. **You need a domain** (e.g., `bioaestheticax.com`)
+1. **You need a domain** (e.g., `aestheticrx.com`)
 2. **Domain must be accessible** for DNS record changes
 3. **SendGrid account** (already have)
 
@@ -18,9 +18,9 @@ Change from Gmail address (`asadkhanbloch4949@gmail.com`) to custom domain email
 2. Navigate to **Settings → Sender Authentication**
 3. Click **"Verify a Single Sender"**
 4. Fill out the form:
-   - **From Name:** BioAestheticAx Network (or your business name)
-   - **From Email:** `noreply@bioaestheticax.com` ⚠️ **Important: Use your domain**
-   - **Reply To:** `noreply@bioaestheticax.com` (or `support@bioaestheticax.com`)
+   - **From Name:** AestheticRxNetwork (or your business name)
+   - **From Email:** `noreply@aestheticrx.com` ⚠️ **Important: Use your domain**
+   - **Reply To:** `noreply@aestheticrx.com` (or `support@aestheticrx.com`)
    - **Address:** Your physical business address (required)
    - **City, State, Zip, Country:** Your location
 5. Click **"Create"**
@@ -35,7 +35,7 @@ You have two options:
 #### Option A: Use Email Forwarding (Easiest)
 
 1. Set up email forwarding in your domain registrar
-2. Forward `noreply@bioaestheticax.com` to your Gmail (`asadkhanbloch4949@gmail.com`)
+2. Forward `noreply@aestheticrx.com` to your Gmail (`asadkhanbloch4949@gmail.com`)
 3. This allows you to receive verification emails
 
 #### Option B: Use Email Service (Recommended)
@@ -45,7 +45,7 @@ You have two options:
    - **Zoho Mail** (free tier available)
    - **ProtonMail** (privacy-focused)
    - **Your domain registrar's email** (often included)
-2. Create the email address `noreply@bioaestheticax.com`
+2. Create the email address `noreply@aestheticrx.com`
 3. Use it to receive SendGrid verification email
 
 ### Step 3: Update Environment Variables
@@ -55,21 +55,21 @@ You have two options:
 Add/Update these environment variables:
 
 ```bash
-SENDGRID_FROM_EMAIL=noreply@bioaestheticax.com
+SENDGRID_FROM_EMAIL=noreply@aestheticrx.com
 MAIN_ADMIN_EMAIL=asadkhanbloch4949@gmail.com  # Keep for admin notifications
 ```
 
 #### In Local .env file:
 
 ```bash
-SENDGRID_FROM_EMAIL=noreply@bioaestheticax.com
+SENDGRID_FROM_EMAIL=noreply@aestheticrx.com
 MAIN_ADMIN_EMAIL=asadkhanbloch4949@gmail.com
 ```
 
 ### Step 4: Update Code (Already Done!)
 
 The code already supports this! It uses this priority:
-1. `SENDGRID_FROM_EMAIL` (set this to `noreply@bioaestheticax.com`)
+1. `SENDGRID_FROM_EMAIL` (set this to `noreply@aestheticrx.com`)
 2. `MAIN_ADMIN_EMAIL` (fallback)
 3. `GMAIL_USER` (fallback)
 
@@ -77,7 +77,7 @@ The code already supports this! It uses this priority:
 
 ```bash
 cd backend
-npx ts-node src/scripts/test-sendgrid-standalone.ts YOUR_API_KEY noreply@bioaestheticax.com recipient@gmail.com
+npx ts-node src/scripts/test-sendgrid-standalone.ts YOUR_API_KEY noreply@aestheticrx.com recipient@gmail.com
 ```
 
 ## 🎯 Better Option: Domain Authentication (For Production)
@@ -86,7 +86,7 @@ Instead of Single Sender, you can authenticate your entire domain:
 
 ### Benefits:
 - ✅ **Much better deliverability** (less spam)
-- ✅ **Can send from any email@bioaestheticax.com**
+- ✅ **Can send from any email@aestheticrx.com**
 - ✅ **Professional appearance**
 - ✅ **Better sender reputation**
 
@@ -94,7 +94,7 @@ Instead of Single Sender, you can authenticate your entire domain:
 
 1. Go to SendGrid → Settings → Sender Authentication
 2. Click **"Authenticate Your Domain"**
-3. Enter your domain: `bioaestheticax.com`
+3. Enter your domain: `aestheticrx.com`
 4. Choose your DNS provider
 5. SendGrid will give you DNS records to add:
    - **CNAME records** for domain authentication
@@ -107,10 +107,10 @@ Instead of Single Sender, you can authenticate your entire domain:
 ### After Domain Authentication:
 
 You can send from:
-- `noreply@bioaestheticax.com`
-- `hello@bioaestheticax.com`
-- `support@bioaestheticax.com`
-- Any email@bioaestheticax.com
+- `noreply@aestheticrx.com`
+- `hello@aestheticrx.com`
+- `support@aestheticrx.com`
+- Any email@aestheticrx.com
 
 ## 📝 Current Code Configuration
 
@@ -119,16 +119,16 @@ The code in `gmailService.ts` already supports custom sender:
 ```typescript
 // Priority order:
 const fromEmail = options?.fromEmail 
-  || process.env.SENDGRID_FROM_EMAIL  // ← Set this to noreply@bioaestheticax.com
+  || process.env.SENDGRID_FROM_EMAIL  // ← Set this to noreply@aestheticrx.com
   || process.env.MAIN_ADMIN_EMAIL 
   || process.env.GMAIL_USER 
-  || 'noreply@bioaestheticax.com';
+  || 'noreply@aestheticrx.com';
 ```
 
 ## ✅ Quick Setup Summary
 
-1. **Verify `noreply@bioaestheticax.com`** in SendGrid (Single Sender)
-2. **Set `SENDGRID_FROM_EMAIL=noreply@bioaestheticax.com`** in Railway
+1. **Verify `noreply@aestheticrx.com`** in SendGrid (Single Sender)
+2. **Set `SENDGRID_FROM_EMAIL=noreply@aestheticrx.com`** in Railway
 3. **Test** with the test script
 4. **Check inbox** (should have better deliverability)
 
@@ -144,15 +144,15 @@ After Single Sender works, consider:
 ```bash
 # Test with custom domain email
 npm run test:sendgrid:standalone
-# (Set SENDGRID_FROM_EMAIL=noreply@bioaestheticax.com in .env first)
+# (Set SENDGRID_FROM_EMAIL=noreply@aestheticrx.com in .env first)
 
 # Or directly:
-npx ts-node src/scripts/test-sendgrid-standalone.ts YOUR_API_KEY noreply@bioaestheticax.com recipient@gmail.com
+npx ts-node src/scripts/test-sendgrid-standalone.ts YOUR_API_KEY noreply@aestheticrx.com recipient@gmail.com
 ```
 
 ## 🎉 Expected Results
 
-After switching to `noreply@bioaestheticax.com`:
+After switching to `noreply@aestheticrx.com`:
 - ✅ Better deliverability (less spam)
 - ✅ More professional appearance
 - ✅ Better sender reputation over time
@@ -160,4 +160,4 @@ After switching to `noreply@bioaestheticax.com`:
 
 ---
 
-**Note:** Make sure you can receive emails at `noreply@bioaestheticax.com` (or set up forwarding) to verify the sender in SendGrid.
+**Note:** Make sure you can receive emails at `noreply@aestheticrx.com` (or set up forwarding) to verify the sender in SendGrid.

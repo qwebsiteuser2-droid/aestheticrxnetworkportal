@@ -1,4 +1,4 @@
-# Spam Reduction Guide - BioAestheticAx Network
+# Spam Reduction Guide - AestheticRxNetwork
 
 **Version:** 2.0.0  
 **Last Updated:** December 28, 2025  
@@ -19,7 +19,7 @@
 
 ## 📊 Overview
 
-This document provides a comprehensive guide to all spam reduction features implemented in the BioAestheticAx Network platform. All features are production-ready and have been tested.
+This document provides a comprehensive guide to all spam reduction features implemented in the AestheticRxNetwork platform. All features are production-ready and have been tested.
 
 ### Status
 - **Total Features:** 10+

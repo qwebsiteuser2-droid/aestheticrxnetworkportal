@@ -7,10 +7,10 @@ import { Toaster } from 'react-hot-toast';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'BioAestheticAx Network - Connected Aesthetic Care',
+  title: 'AestheticRxNetwork - Connected Aesthetic Care',
   description: 'Professional B2B platform for aesthetic clinics and medical professionals, featuring product ordering, leaderboards, research papers, and comprehensive admin management.',
   keywords: ['aesthetic', 'clinics', 'B2B', 'medical', 'doctors', 'healthcare', 'platform', 'beauty', 'cosmetic'],
-  authors: [{ name: 'BioAestheticAx Network Team' }],
+  authors: [{ name: 'AestheticRxNetwork Team' }],
   robots: 'index, follow',
   icons: {
     icon: [
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   openGraph: {
-    title: 'BioAestheticAx Network - Connected Aesthetic Care',
+    title: 'AestheticRxNetwork - Connected Aesthetic Care',
     description: 'Professional B2B platform for aesthetic clinics and medical professionals',
     type: 'website',
     locale: 'en_US',
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'BioAestheticAx Network - Connected Aesthetic Care',
+    title: 'AestheticRxNetwork - Connected Aesthetic Care',
     description: 'Professional B2B platform for aesthetic clinics and medical professionals',
   },
 };

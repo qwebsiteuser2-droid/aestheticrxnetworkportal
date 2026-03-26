@@ -15,7 +15,7 @@ The "Order Management" item has been successfully removed from the admin sidebar
 - **Location**: Admin section of the sidebar navigation
 
 ### **File Modified:**
-`/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/components/layout/Sidebar.tsx`
+`/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/components/layout/Sidebar.tsx`
 
 ### **Change Made:**
 ```typescript

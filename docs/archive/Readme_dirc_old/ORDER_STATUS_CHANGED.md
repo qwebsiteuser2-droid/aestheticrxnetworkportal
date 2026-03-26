@@ -23,7 +23,7 @@ Orders are now created with **"completed"** status immediately when users click 
 ## 🔧 **Technical Changes Made**
 
 ### **File Modified:**
-`/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/controllers/orderController.ts`
+`/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/controllers/orderController.ts`
 
 ### **Change 1: Order Status**
 ```typescript

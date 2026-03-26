@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Generate Secure Secrets for BioAestheticAx Network Backend
+# Generate Secure Secrets for AestheticRxNetwork Backend
 # This script generates secure JWT secrets for production use
 
-echo "🔐 Generating Secure Secrets for BioAestheticAx Network Backend..."
+echo "🔐 Generating Secure Secrets for AestheticRxNetwork Backend..."
 echo ""
 
 # Generate JWT_SECRET (64 characters for extra security)

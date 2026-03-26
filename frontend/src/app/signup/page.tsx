@@ -238,7 +238,7 @@ function SignupContent() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <div className="mx-auto h-20 w-20 flex items-center justify-center">
-            <img src="/logo.png" alt="BioAestheticAx Network" className="h-20 w-20 object-contain shadow-lg rounded-xl" />
+            <img src="/logo.png" alt="AestheticRxNetwork" className="h-20 w-20 object-contain shadow-lg rounded-xl" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             {getTitle()}

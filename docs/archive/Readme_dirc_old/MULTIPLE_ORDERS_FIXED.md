@@ -23,7 +23,7 @@ Fixed the problem where some orders would fail when placing multiple orders simu
 ## 🔧 **Fixes Applied**
 
 ### **Fix 1: Database Numeric Calculation**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/controllers/orderController.ts`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/controllers/orderController.ts`
 
 **Before (String Concatenation):**
 ```typescript
@@ -38,7 +38,7 @@ const newSalesTotal = completedOrders.reduce((sum, order) => sum + Number(order.
 ```
 
 ### **Fix 2: Rate Limiting Adjustment**
-**File**: `/home/enigmatix/Q_project/BioAestheticAx Network/backend/src/controllers/orderController.ts`
+**File**: `/home/enigmatix/Q_project/AestheticRxNetwork/backend/src/controllers/orderController.ts`
 
 **Before (Too Restrictive):**
 ```typescript

@@ -15,7 +15,7 @@ const results = {
   localhost3000: [],
   localhost4000: [],
   railway: [],
-  qwebsitedepolying: [],
+  aestheticrxnetworkdepolying: [],
   processEnv: []
 };
 
@@ -67,9 +67,9 @@ function searchInFile(filePath) {
         });
       }
       
-      // Find qwebsitedepolying
-      if (/qwebsitedepolying/.test(line) && !/getApiUrl|getBackendUrl|urlConfig|apiConfig/.test(line)) {
-        results.qwebsitedepolying.push({
+      // Find aestheticrxnetworkdepolying
+      if (/aestheticrxnetworkdepolying/.test(line) && !/getApiUrl|getBackendUrl|urlConfig|apiConfig/.test(line)) {
+        results.aestheticrxnetworkdepolying.push({
           file: filePath,
           line: index + 1,
           content: line.trim()
@@ -151,10 +151,10 @@ function main() {
     });
   }
   
-  console.log(`\n🔴 qwebsitedepolying found: ${results.qwebsitedepolying.length}`);
-  if (results.qwebsitedepolying.length > 0) {
+  console.log(`\n🔴 aestheticrxnetworkdepolying found: ${results.aestheticrxnetworkdepolying.length}`);
+  if (results.aestheticrxnetworkdepolying.length > 0) {
     console.log('\nFirst 10 occurrences:');
-    results.qwebsitedepolying.slice(0, 10).forEach(({ file, line, content }) => {
+    results.aestheticrxnetworkdepolying.slice(0, 10).forEach(({ file, line, content }) => {
       console.log(`  ${file}:${line}`);
       console.log(`    ${content.substring(0, 100)}...`);
     });
@@ -170,7 +170,7 @@ function main() {
   }
   
   const total = results.localhost3000.length + results.localhost4000.length + 
-                results.railway.length + results.qwebsitedepolying.length + 
+                results.railway.length + results.aestheticrxnetworkdepolying.length + 
                 results.processEnv.length;
   
   console.log('\n' + '='.repeat(70));

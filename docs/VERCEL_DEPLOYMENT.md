@@ -1,6 +1,6 @@
 # Vercel Deployment Guide
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -119,7 +119,7 @@ See **[Environment Variables Reference](ENVIRONMENT_VARIABLES_REFERENCE.md)** fo
 
 **How it works:**
 - Frontend detects it's running on Vercel
-- Automatically uses: `https://bioaestheticaxdepolying-production.up.railway.app/api`
+- Automatically uses: `https://aestheticrxdepolying-production.up.railway.app/api`
 - No environment variable needed
 
 ### Option 2: Explicit Configuration
@@ -130,7 +130,7 @@ If you want to override auto-detection or use a different backend:
 
 **In Vercel:**
 1. Settings → Environment Variables
-2. Add: `NEXT_PUBLIC_API_URL = https://bioaestheticaxdepolying-production.up.railway.app/api`
+2. Add: `NEXT_PUBLIC_API_URL = https://aestheticrxdepolying-production.up.railway.app/api`
 3. Select all environments
 4. Save
 
@@ -150,25 +150,25 @@ If you want to override auto-detection or use a different backend:
 3. Go to Console tab
 4. Look for:
    ```
-   ✅ Vercel domain detected: bioaestheticaxdepolying.vercel.app
-   ✅ Using Railway backend URL: https://bioaestheticaxdepolying-production.up.railway.app/api
+   ✅ Vercel domain detected: aestheticrxdepolying.vercel.app
+   ✅ Using Railway backend URL: https://aestheticrxdepolying-production.up.railway.app/api
    ```
 
 **Check Network Requests:**
 1. Open Network tab in Developer Tools
 2. Try to login or access any API feature
 3. Look for requests going to:
-   - ✅ `https://bioaestheticaxdepolying-production.up.railway.app/api/...`
+   - ✅ `https://aestheticrxdepolying-production.up.railway.app/api/...`
    - ❌ NOT `http://localhost:4000/api/...`
 
 **Test API Endpoint:**
 ```bash
-curl https://bioaestheticaxdepolying-production.up.railway.app/api/health
+curl https://aestheticrxdepolying-production.up.railway.app/api/health
 ```
 
 Should return:
 ```json
-{"success":true,"message":"BioAestheticAx Network API is running"}
+{"success":true,"message":"AestheticRxNetwork API is running"}
 ```
 
 ---
@@ -351,7 +351,7 @@ const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`);
 
 **Solution:**
 1. Check Railway backend → Variables → `FRONTEND_URL`
-2. Should include: `https://bioaestheticaxdepolying.vercel.app`
+2. Should include: `https://aestheticrxdepolying.vercel.app`
 3. Verify CORS is configured in `backend/src/app.ts`
 4. Check Railway logs for CORS errors
 
@@ -380,12 +380,12 @@ const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`);
 
 ### Vercel Environment Variable
 ```
-NEXT_PUBLIC_API_URL = https://bioaestheticaxdepolying-production.up.railway.app/api
+NEXT_PUBLIC_API_URL = https://aestheticrxdepolying-production.up.railway.app/api
 ```
 
 ### Railway Backend URL
 ```
-https://bioaestheticaxdepolying-production.up.railway.app/api
+https://aestheticrxdepolying-production.up.railway.app/api
 ```
 
 ### Vercel Project Settings
@@ -396,7 +396,7 @@ https://bioaestheticaxdepolying-production.up.railway.app/api
 
 ### Verify Deployment
 1. Check Vercel dashboard for successful deployment
-2. Test site: `https://bioaestheticaxdepolying.vercel.app`
+2. Test site: `https://aestheticrxdepolying.vercel.app`
 3. Check browser console for API connection
 4. Test login/API features
 

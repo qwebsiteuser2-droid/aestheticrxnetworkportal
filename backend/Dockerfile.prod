@@ -1,4 +1,4 @@
-# Production Backend Dockerfile for BioAestheticAx Network
+# Production Backend Dockerfile for AestheticRxNetwork
 # Cache bust: 2026-01-27-v1 - Force clean rebuild
 FROM node:18-alpine AS builder
 

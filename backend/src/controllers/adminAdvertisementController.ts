@@ -323,7 +323,7 @@ export class AdminAdvertisementController {
               <p>Your advertisement is now live and will be displayed to users on our platform. Thank you for choosing our advertising service!</p>
               
               <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-                <p>This is an automated message from BioAestheticAx Network system.</p>
+                <p>This is an automated message from AestheticRxNetwork system.</p>
               </div>
             </div>
           `;
@@ -395,7 +395,7 @@ export class AdminAdvertisementController {
           const userName = advertisement.doctor.doctor_name || advertisement.doctor.clinic_name || 'User';
           
           // Get contact information from database or use defaults
-          let contactEmail = process.env.MAIN_ADMIN_EMAIL || 'support@bioaestheticax.com';
+          let contactEmail = process.env.MAIN_ADMIN_EMAIL || 'support@aestheticrx.com';
           let contactWhatsApp = '';
           
           try {
@@ -450,7 +450,7 @@ export class AdminAdvertisementController {
               <p style="margin-top: 20px;">You are welcome to submit a new application in the future.</p>
               
               <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-                <p>This is an automated message from BioAestheticAx Network system.</p>
+                <p>This is an automated message from AestheticRxNetwork system.</p>
               </div>
             </div>
           `;

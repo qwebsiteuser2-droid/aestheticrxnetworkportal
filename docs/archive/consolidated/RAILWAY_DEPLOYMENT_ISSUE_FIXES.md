@@ -165,10 +165,10 @@ app.listen(4000, 'localhost', () => {
 #### Fix 1: Set FRONTEND_URL Correctly
 1. Go to Railway Dashboard → Backend Service → Variables
 2. Add/Update: `FRONTEND_URL`
-3. Value should be your Vercel domain: `https://bioaestheticaxdepolying.vercel.app`
+3. Value should be your Vercel domain: `https://aestheticrxdepolying.vercel.app`
 4. For multiple domains, use comma-separated:
    ```
-   https://bioaestheticaxdepolying.vercel.app,https://bioaestheticaxdepolying-git-main-qasim3.vercel.app
+   https://aestheticrxdepolying.vercel.app,https://aestheticrxdepolying-git-main-qasim3.vercel.app
    ```
 5. Save and redeploy
 
@@ -187,8 +187,8 @@ app.use(cors({
 
 **CORS Configuration Details:**
 - Backend allows **all** `.vercel.app` domains automatically
-- Includes production: `https://bioaestheticaxdepolying.vercel.app`
-- Includes preview deployments: `https://bioaestheticaxdepolying-*-*.vercel.app`
+- Includes production: `https://aestheticrxdepolying.vercel.app`
+- Includes preview deployments: `https://aestheticrxdepolying-*-*.vercel.app`
 - Uses string matching: `origin.includes('.vercel.app')`
 
 #### Fix 3: Check Request Headers
@@ -199,16 +199,16 @@ Verify frontend sends correct headers:
 #### Fix 4: Test CORS Directly
 ```bash
 # Test CORS from command line
-curl -H "Origin: https://bioaestheticaxdepolying.vercel.app" \
+curl -H "Origin: https://aestheticrxdepolying.vercel.app" \
      -H "Access-Control-Request-Method: POST" \
      -H "Access-Control-Request-Headers: Content-Type" \
      -X OPTIONS \
-     https://bioaestheticaxdepolying-production.up.railway.app/api/auth/login
+     https://aestheticrxdepolying-production.up.railway.app/api/auth/login
 ```
 
 Should return CORS headers:
 ```
-Access-Control-Allow-Origin: https://bioaestheticaxdepolying.vercel.app
+Access-Control-Allow-Origin: https://aestheticrxdepolying.vercel.app
 Access-Control-Allow-Methods: POST, GET, OPTIONS
 Access-Control-Allow-Headers: Content-Type, Authorization
 ```
@@ -216,7 +216,7 @@ Access-Control-Allow-Headers: Content-Type, Authorization
 #### Fix 5: Check Railway Logs for CORS
 After deployment, check Railway logs for:
 ```
-✅ CORS: Allowing Vercel domain: https://bioaestheticaxdepolying.vercel.app
+✅ CORS: Allowing Vercel domain: https://aestheticrxdepolying.vercel.app
 🔍 OPTIONS Preflight Request: { origin: '...', ... }
 ✅ OPTIONS: Allowing preflight for origin: ...
 ```
@@ -321,7 +321,7 @@ psql "$DATABASE_URL"
 
 **Debugging Steps:**
 1. Check Railway logs for specific error message
-2. Verify `DATABASE_URL` points to correct database (`railway` not `bioaestheticax1`)
+2. Verify `DATABASE_URL` points to correct database (`railway` not `aestheticrx1`)
 3. Check if `doctors` table exists: `\dt doctors`
 4. Verify user exists: `SELECT email FROM doctors WHERE email = 'user@example.com';`
 
@@ -363,7 +363,7 @@ SELECT COUNT(*) FROM doctors;
 1. Railway Dashboard → Backend Service → Variables
 2. Check `DATABASE_URL` value
 3. Format should be: `postgresql://user:password@host:port/database`
-4. **Important:** Use `/railway` database (not `/bioaestheticax1`)
+4. **Important:** Use `/railway` database (not `/aestheticrx1`)
 
 **Correct Format:**
 ```
@@ -397,7 +397,7 @@ ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : fal
 
 #### Fix 5: Database Name Mismatch
 **Problem:** Backend connects to wrong database
-- Backend uses: `bioaestheticax1` (has only new signups)
+- Backend uses: `aestheticrx1` (has only new signups)
 - Actual data is in: `railway` (has all users)
 
 **Symptoms:**
@@ -410,13 +410,13 @@ ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : fal
 2. Find `DATABASE_URL` variable
 3. **Current value (wrong):**
    ```
-   postgresql://postgres:password@host:port/bioaestheticax1
+   postgresql://postgres:password@host:port/aestheticrx1
    ```
 4. **Change to (correct):**
    ```
    postgresql://postgres:password@host:port/railway
    ```
-5. **Important:** Change `/bioaestheticax1` to `/railway` at the end!
+5. **Important:** Change `/aestheticrx1` to `/railway` at the end!
 6. Save and redeploy
 7. Verify connection works
 
@@ -679,7 +679,7 @@ When Railway backend is not working:
 
 4. ✅ **Test Backend Directly**
    ```bash
-   curl https://bioaestheticaxdepolying-production.up.railway.app/api/health
+   curl https://aestheticrxdepolying-production.up.railway.app/api/health
    ```
 
 5. ✅ **Check Database Connection**

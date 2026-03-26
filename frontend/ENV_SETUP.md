@@ -29,7 +29,7 @@ http://localhost:4000/api
 **Option 2: Explicit Configuration**
 Set in Vercel Dashboard → Settings → Environment Variables:
 ```
-NEXT_PUBLIC_API_URL = https://bioaestheticaxdepolying-production-e86e.up.railway.app/api
+NEXT_PUBLIC_API_URL = https://aestheticrxdepolying-production-e86e.up.railway.app/api
 ```
 
 ### Usage in Code

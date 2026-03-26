@@ -17,7 +17,7 @@ Your application now has Google Places search integration for easy location sele
 
 ### 1.2 Create or Select Project
 - Click "Select a project" → "New Project"
-- Name: `BioAestheticAx Network_Maps` (or any name)
+- Name: `AestheticRxNetwork_Maps` (or any name)
 - Click "Create"
 
 ### 1.3 Enable APIs

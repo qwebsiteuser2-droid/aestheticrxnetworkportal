@@ -24,7 +24,7 @@ The issue was in the **frontend API configuration**:
 ## 🔧 **Fix Applied**
 
 ### **File Modified:**
-`/home/enigmatix/Q_project/BioAestheticAx Network/frontend/src/lib/api.ts`
+`/home/enigmatix/Q_project/AestheticRxNetwork/frontend/src/lib/api.ts`
 
 ### **Change Made:**
 ```typescript

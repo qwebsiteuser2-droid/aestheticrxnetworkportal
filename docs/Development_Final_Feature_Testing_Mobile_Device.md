@@ -1,6 +1,6 @@
 # Development Feature Testing - Mobile Device
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 
@@ -58,7 +58,7 @@
 
 **Frontend `.env` file:**
 ```bash
-cd /home/enigmatix/Q_project/BioAestheticAx Network/frontend
+cd /home/enigmatix/Q_project/AestheticRxNetwork/frontend
 nano .env
 ```
 
@@ -69,7 +69,7 @@ NEXT_PUBLIC_API_URL=http://192.168.1.60:4000
 
 **Backend `.env` file:**
 ```bash
-cd /home/enigmatix/Q_project/BioAestheticAx Network/backend
+cd /home/enigmatix/Q_project/AestheticRxNetwork/backend
 nano .env
 ```
 
@@ -110,7 +110,7 @@ sudo ufw allow 4000/tcp
 After updating environment variables, restart your services:
 
 ```bash
-cd /home/enigmatix/Q_project/BioAestheticAx Network
+cd /home/enigmatix/Q_project/AestheticRxNetwork
 ./dev-restart.sh
 ```
 
@@ -130,7 +130,7 @@ cd backend && npm run dev
 Run this command to get your current local IP address:
 
 ```bash
-cd /home/enigmatix/Q_project/BioAestheticAx Network && hostname -I | awk '{print $1}' || ip addr show | grep -oP 'inet \K[\d.]+' | grep -v '127.0.0.1' | head -1
+cd /home/enigmatix/Q_project/AestheticRxNetwork && hostname -I | awk '{print $1}' || ip addr show | grep -oP 'inet \K[\d.]+' | grep -v '127.0.0.1' | head -1
 ```
 
 Or use this alternative:
@@ -164,7 +164,7 @@ ip route get 8.8.8.8 | awk '{print $7}' | head -1
 
 ```bash
 # Get your current IP
-cd /home/enigmatix/Q_project/BioAestheticAx Network
+cd /home/enigmatix/Q_project/AestheticRxNetwork
 CURRENT_IP=$(hostname -I | awk '{print $1}' || ip addr show | grep -oP 'inet \K[\d.]+' | grep -v '127.0.0.1' | head -1)
 
 echo "📱 Mobile Access Information:"
@@ -185,9 +185,9 @@ echo ""
 
 ```bash
 # Create mobile-access.sh script
-cat > /home/enigmatix/Q_project/BioAestheticAx Network/mobile-access.sh << 'EOF'
+cat > /home/enigmatix/Q_project/AestheticRxNetwork/mobile-access.sh << 'EOF'
 #!/bin/bash
-cd /home/enigmatix/Q_project/BioAestheticAx Network
+cd /home/enigmatix/Q_project/AestheticRxNetwork
 CURRENT_IP=$(hostname -I | awk '{print $1}' || ip addr show | grep -oP 'inet \K[\d.]+' | grep -v '127.0.0.1' | head -1)
 
 echo "📱 Mobile Access Information:"
@@ -204,13 +204,13 @@ echo "3. If firewall blocks, run: sudo ufw allow 3000/tcp && sudo ufw allow 4000
 echo ""
 EOF
 
-chmod +x /home/enigmatix/Q_project/BioAestheticAx Network/mobile-access.sh
+chmod +x /home/enigmatix/Q_project/AestheticRxNetwork/mobile-access.sh
 echo "✅ Script created! Run with: ./mobile-access.sh"
 ```
 
 **Usage:**
 ```bash
-cd /home/enigmatix/Q_project/BioAestheticAx Network
+cd /home/enigmatix/Q_project/AestheticRxNetwork
 ./mobile-access.sh
 ```
 
@@ -257,7 +257,7 @@ cd /home/enigmatix/Q_project/BioAestheticAx Network
 
 **Run mobile test setup script:**
 ```bash
-cd /home/enigmatix/Q_project/BioAestheticAx Network
+cd /home/enigmatix/Q_project/AestheticRxNetwork
 ./mobile-test-setup.sh
 ```
 

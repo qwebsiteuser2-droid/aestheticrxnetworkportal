@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copy data from bioaestheticax1 to railway database tables
+# Copy data from aestheticrx1 to railway database tables
 # ⚠️ SECURITY: Uses environment variables for credentials
 
 set -e
@@ -10,7 +10,7 @@ RAILWAY_HOST="${RAILWAY_HOST:-${DATABASE_HOST}}"
 RAILWAY_PORT="${RAILWAY_PORT:-${DATABASE_PORT:-5432}}"
 RAILWAY_USER="${RAILWAY_USER:-${DATABASE_USER:-postgres}}"
 RAILWAY_PASSWORD="${RAILWAY_PASSWORD:-${DATABASE_PASSWORD}}"
-SOURCE_DB="${SOURCE_DB:-bioaestheticax1}"
+SOURCE_DB="${SOURCE_DB:-aestheticrx1}"
 TARGET_DB="${TARGET_DB:-railway}"
 
 # Validate required variables

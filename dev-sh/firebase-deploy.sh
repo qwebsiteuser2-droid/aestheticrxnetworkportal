@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Firebase Deployment Script for BioAestheticAx Network
+# Firebase Deployment Script for AestheticRxNetwork
 set -e
 
-echo "🚀 Deploying BioAestheticAx Network to Firebase Hosting..."
+echo "🚀 Deploying AestheticRxNetwork to Firebase Hosting..."
 
 # Colors for output
 RED='\033[0;31m'

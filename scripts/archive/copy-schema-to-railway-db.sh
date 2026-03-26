@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Script to copy schema from bioaestheticax1 to railway database
+# Script to copy schema from aestheticrx1 to railway database
 # This allows Railway's database viewer to display the tables
 # Usage: ./copy-schema-to-railway-db.sh
 
 set -e
 
-echo "🔧 Copying schema from bioaestheticax1 to railway database..."
+echo "🔧 Copying schema from aestheticrx1 to railway database..."
 echo "   (This allows Railway's database viewer to display tables)"
 echo ""
 
@@ -18,11 +18,11 @@ RAILWAY_PASSWORD="icbMyRDBMxDvNBKxTBleHZCbvekroZmS"
 
 export PGPASSWORD="$RAILWAY_PASSWORD"
 
-# Export schema from bioaestheticax1
-echo "📤 Exporting schema from bioaestheticax1 database..."
+# Export schema from aestheticrx1
+echo "📤 Exporting schema from aestheticrx1 database..."
 TEMP_FILE=$(mktemp)
 pg_dump -h "$RAILWAY_HOST" -U "$RAILWAY_USER" -p "$RAILWAY_PORT" \
-    -d bioaestheticax1 \
+    -d aestheticrx1 \
     --schema-only \
     --no-owner \
     --no-privileges \
@@ -59,5 +59,5 @@ echo "   Found $TABLE_COUNT tables in railway database"
 echo ""
 echo "✅ Done! Railway's database viewer should now show your tables."
 echo ""
-echo "💡 Note: Your backend still uses bioaestheticax1 database (this is correct)."
+echo "💡 Note: Your backend still uses aestheticrx1 database (this is correct)."
 echo "   The railway database is just for viewing in Railway's UI."

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the BioAestheticAx Network project will be documented in this file.
+All notable changes to the AestheticRxNetwork project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Sign in with Google account using OAuth 2.0
   - One-click registration for new users via Google account
   - Authorized JavaScript origins for multiple Vercel domains
-  - Support for `bioaestheticaxnetwork.vercel.app` and legacy domains
+  - Support for `aestheticrxnetwork.vercel.app` and legacy domains
 
 - **Gmail API Integration**
   - Replaced Nodemailer SMTP with Google Gmail API for email delivery
@@ -52,8 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Limited error logging to max 2 messages
 
 - **CORS Configuration**
-  - Added `bioaestheticaxnetwork.vercel.app` to allowed origins
-  - Added `qwebsitedepolying.vercel.app` for backward compatibility
+  - Added `aestheticrxnetwork.vercel.app` to allowed origins
+  - Added `aestheticrxnetworkdepolying.vercel.app` for backward compatibility
   - Added wildcard patterns for Vercel preview deployments
   - Updated default production URLs
 

@@ -1,6 +1,6 @@
 # Development Feature Testing - Desktop Device
 
-**BioAestheticAx Network B2B Medical Platform**
+**AestheticRxNetwork B2B Medical Platform**
 
 ---
 

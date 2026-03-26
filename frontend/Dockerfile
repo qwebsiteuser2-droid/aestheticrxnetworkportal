@@ -1,4 +1,4 @@
-# Frontend Dockerfile for BioAestheticAx Network
+# Frontend Dockerfile for AestheticRxNetwork
 FROM node:18-alpine
 
 # Install dependencies

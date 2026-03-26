@@ -1,4 +1,4 @@
-# Production Backend Dockerfile for BioAestheticAx Network
+# Production Backend Dockerfile for AestheticRxNetwork
 FROM node:18-alpine AS builder
 
 # Set working directory
