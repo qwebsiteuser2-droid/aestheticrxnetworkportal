@@ -250,7 +250,7 @@ export default function PrivacyPage() {
               If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
             </p>
             <ul className="list-none pl-0 mb-4 text-gray-700">
-              <li><strong>Email:</strong> asadkhanbloch4949@gmail.com</li>
+              <li><strong>Email:</strong> muhammadqasimshabbir3@gmail.com</li>
               <li><strong>WhatsApp:</strong> +92 326 795 1056</li>
             </ul>
             <p className="text-gray-700">

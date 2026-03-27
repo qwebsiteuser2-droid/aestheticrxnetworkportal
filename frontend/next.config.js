@@ -19,6 +19,11 @@ const nextConfig = {
         destination: '/privacy',
         permanent: true,
       },
+      {
+        source: '/terms-of-service',
+        destination: '/terms',
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
