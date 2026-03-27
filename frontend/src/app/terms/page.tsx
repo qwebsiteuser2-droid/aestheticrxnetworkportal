@@ -345,7 +345,7 @@ export default function TermsPage() {
               If you have any questions about these Terms of Service, please contact us:
             </p>
             <ul className="list-none pl-0 mb-4 text-gray-700">
-              <li><strong>Email:</strong> asadkhanbloch4949@gmail.com</li>
+              <li><strong>Email:</strong> muhammadqasimshabbir3@gmail.com</li>
               <li><strong>WhatsApp:</strong> +92 326 795 1056</li>
             </ul>
           </section>
