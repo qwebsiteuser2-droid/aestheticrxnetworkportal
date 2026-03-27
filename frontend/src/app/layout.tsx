@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   keywords: ['aesthetic', 'clinics', 'B2B', 'medical', 'doctors', 'healthcare', 'platform', 'beauty', 'cosmetic'],
   authors: [{ name: 'AestheticRxNetwork Team' }],
   robots: 'index, follow',
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '16x16 32x32 48x48 64x64' },
