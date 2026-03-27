@@ -165,7 +165,7 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
               <img 
                 src="/logo.png" 
                 alt="AestheticRx Network" 
-                className="w-10 h-10 object-contain"
+                className="w-20 h-20 object-contain"
               />
               <span className="text-lg font-black"><span style={{ color: '#1E66FF' }}>A</span><span style={{ color: '#F5C24C' }}>RX</span></span>
             </Link>
@@ -260,7 +260,7 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
               <img 
                 src="/logo.png" 
                 alt="AestheticRx Network" 
-                className="w-16 h-16 lg:w-20 lg:h-20 object-contain"
+                className="w-32 h-32 lg:w-40 lg:h-40 object-contain"
               />
               <span className="text-2xl lg:text-3xl font-black hidden lg:block"><span style={{ color: '#1E66FF' }}>Aesthetic</span><span style={{ color: '#F5C24C' }}>RX</span><span style={{ color: '#7AAC52' }}> Network</span></span>
               <span className="text-2xl font-black lg:hidden"><span style={{ color: '#1E66FF' }}>A</span><span style={{ color: '#F5C24C' }}>RX</span></span>

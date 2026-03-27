@@ -1739,8 +1739,13 @@ export default function Home() {
             <p className="text-gray-400 text-sm mb-4">
               Professional B2B platform for clinics. Connect, order, research, and grow together.
             </p>
+            <div className="flex items-center justify-center space-x-4 mb-4">
+              <a href="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors underline">Privacy Policy</a>
+              <span className="text-gray-600">|</span>
+              <a href="/terms" className="text-gray-400 hover:text-white text-sm transition-colors underline">Terms of Service</a>
+            </div>
             <p className="text-gray-400 text-sm">
-              © 2025 AestheticRxNetwork. All rights reserved.
+              © 2025 AestheticRx Network. All rights reserved.
             </p>
           </div>
         </div>
