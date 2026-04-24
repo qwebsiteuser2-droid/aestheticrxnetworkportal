@@ -97,6 +97,8 @@ app.use(helmet({
       upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
     },
   },
+  // OAuth popup flows (Google Sign-In) require opener relationship for postMessage.
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   crossOriginEmbedderPolicy: false, // Required for some external resources
   crossOriginResourcePolicy: { policy: "cross-origin" },
 }));

@@ -355,7 +355,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Regular users are auto-approved, so they won't see this page
 
     const userRole = doctor.is_admin ? 'admin' : 'user';
-    const otpEnabled = process.env.ENABLE_LOGIN_OTP !== 'false';
+    // Backward-compatible flags:
+    // - ENABLE_LOGIN_OTP=false disables login OTP
+    // - DISABLE_OTP=true also disables login OTP (legacy env used in some deployments)
+    const otpEnabled = process.env.ENABLE_LOGIN_OTP !== 'false' && process.env.DISABLE_OTP !== 'true';
 
     if (otpEnabled && !normalizedOtpCode) {
       // No OTP provided - check if OTP is required

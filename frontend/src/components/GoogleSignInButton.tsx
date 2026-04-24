@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { authApi } from '@/lib/api';
 import { setAuthData } from '@/lib/auth';
 import { useAuth } from '@/app/providers';
@@ -37,6 +37,8 @@ export default function GoogleSignInButton({
   const [isLoading, setIsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isGoogleReady, setIsGoogleReady] = useState(false);
+  const [buttonWidth, setButtonWidth] = useState(320);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const { login } = useAuth();
   const router = useRouter();
 
@@ -59,6 +61,18 @@ export default function GoogleSignInButton({
     };
     
     checkGoogleReady();
+  }, []);
+
+  useEffect(() => {
+    const updateButtonWidth = () => {
+      const containerWidth = containerRef.current?.offsetWidth || 320;
+      // Google Identity Services expects width in pixels, not percentages.
+      setButtonWidth(Math.max(220, Math.min(400, Math.floor(containerWidth))));
+    };
+
+    updateButtonWidth();
+    window.addEventListener('resize', updateButtonWidth);
+    return () => window.removeEventListener('resize', updateButtonWidth);
   }, []);
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
@@ -160,7 +174,7 @@ export default function GoogleSignInButton({
   }
 
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`w-full ${className}`} ref={containerRef}>
       <div className="relative">
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-lg z-10">
@@ -175,7 +189,7 @@ export default function GoogleSignInButton({
           useOneTap={false}
           theme="outline"
           size="large"
-          width="100%"
+          width={buttonWidth}
           text={mode === 'signup' ? 'signup_with' : 'signin_with'}
           shape="rectangular"
           logo_alignment="left"
