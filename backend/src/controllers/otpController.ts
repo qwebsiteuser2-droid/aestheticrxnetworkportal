@@ -2,9 +2,23 @@ import { Request, Response } from 'express';
 import { OTPRateLimitError, OTPService } from '../services/otpService';
 import { AppDataSource } from '../db/data-source';
 import { Doctor } from '../models/Doctor';
+import { AuthenticatedRequest } from '../types/auth';
+
+const UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const isEmailTransportError = (message: string): boolean => {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes('gmail') ||
+    lower.includes('smtp') ||
+    lower.includes('access token') ||
+    lower.includes('email transport') ||
+    lower.includes('send otp email')
+  );
+};
 
 export class OTPController {
-  static async generateOTP(req: Request, res: Response): Promise<void> {
+  static async generateOTP(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { userId } = req.body;
 
@@ -12,6 +26,30 @@ export class OTPController {
         res.status(400).json({ 
           success: false, 
           message: 'User ID is required' 
+        });
+        return;
+      }
+
+      if (typeof userId !== 'string' || !UUID_V4_REGEX.test(userId)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid user ID format',
+        });
+        return;
+      }
+
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: 'Authentication required',
+        });
+        return;
+      }
+
+      if (req.user.id !== userId && !req.user.is_admin) {
+        res.status(403).json({
+          success: false,
+          message: 'Access denied. You can only request OTP for your own account.',
         });
         return;
       }
@@ -59,15 +97,19 @@ export class OTPController {
       const isOTPRateLimitError = error instanceof OTPRateLimitError;
       const isRateLimitError = /wait|too many/i.test(errorMessage);
       const statusCode = isOTPRateLimitError || isRateLimitError ? 429 : 500;
+      const isTransportFailure = statusCode === 500 && isEmailTransportError(errorMessage);
+
       res.status(statusCode).json({
         success: false,
-        message: errorMessage,
+        message: isTransportFailure ? 'Failed to send OTP email. Please try again shortly.' : (statusCode === 500 ? 'Failed to generate OTP' : errorMessage),
         ...(statusCode === 429
           ? {
               code: isOTPRateLimitError ? error.code : 'OTP_RATE_LIMITED',
               retryAfterSeconds: isOTPRateLimitError ? error.retryAfterSeconds : undefined,
             }
-          : {}),
+          : statusCode === 500
+            ? { code: isTransportFailure ? 'OTP_EMAIL_DELIVERY_FAILED' : 'OTP_GENERATION_FAILED' }
+            : {}),
       });
     }
   }
@@ -129,15 +171,19 @@ export class OTPController {
       const isOTPRateLimitError = error instanceof OTPRateLimitError;
       const isRateLimitError = /wait|too many/i.test(errorMessage);
       const statusCode = isOTPRateLimitError || isRateLimitError ? 429 : 500;
+      const isTransportFailure = statusCode === 500 && isEmailTransportError(errorMessage);
+
       res.status(statusCode).json({
         success: false,
-        message: errorMessage,
+        message: isTransportFailure ? 'Failed to send OTP email. Please try again shortly.' : (statusCode === 500 ? 'Failed to resend OTP' : errorMessage),
         ...(statusCode === 429
           ? {
               code: isOTPRateLimitError ? error.code : 'OTP_RATE_LIMITED',
               retryAfterSeconds: isOTPRateLimitError ? error.retryAfterSeconds : undefined,
             }
-          : {}),
+          : statusCode === 500
+            ? { code: isTransportFailure ? 'OTP_EMAIL_DELIVERY_FAILED' : 'OTP_RESEND_FAILED' }
+            : {}),
       });
     }
   }

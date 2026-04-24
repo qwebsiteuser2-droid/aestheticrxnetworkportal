@@ -28,6 +28,9 @@ const getTierBenefits = (tierName: string): string => {
 const orderCreationAttempts = new Map<string, { count: number; lastAttempt: number }>();
 const ORDER_RATE_LIMIT_WINDOW = 500; // 0.5 seconds
 const MAX_ORDERS_PER_WINDOW = 20; // Allow 20 orders per window for large orders
+// Temporary ops toggle: debt gate is disabled by default for now.
+// Set DISABLE_DEBT_LIMIT_ENFORCEMENT=false to re-enable normal debt blocking.
+const DISABLE_DEBT_LIMIT_ENFORCEMENT = process.env.DISABLE_DEBT_LIMIT_ENFORCEMENT !== 'false';
 
 // Cleanup old entries every 5 minutes to prevent memory leaks
 setInterval(() => {
@@ -75,20 +78,22 @@ export const createOrder = async (req: AuthenticatedRequest, res: Response): Pro
       orderCreationAttempts.set(userKey, { count: 1, lastAttempt: now });
     }
 
-    // Check debt limit before allowing new orders
-    const debtStatus = await DebtService.canUserPlaceOrder(user.id);
-    if (!debtStatus.canPlaceOrder) {
-      res.status(403).json({
-        success: false,
-        message: `You have reached your debt limit of PKR ${debtStatus.debtLimit.toLocaleString()} for your ${debtStatus.tierName} tier. Your current debt is PKR ${debtStatus.currentDebt.toLocaleString()}. Please pay your outstanding debts before placing new orders, or contact admin for support.`,
-        debtStatus: {
-          currentDebt: debtStatus.currentDebt,
-          debtLimit: debtStatus.debtLimit,
-          tierName: debtStatus.tierName,
-          remainingLimit: debtStatus.remainingLimit
-        }
-      });
-      return;
+    // Temporarily bypass debt-limit blocking while keeping debt logic available for reporting/admin screens.
+    if (!DISABLE_DEBT_LIMIT_ENFORCEMENT) {
+      const debtStatus = await DebtService.canUserPlaceOrder(user.id);
+      if (!debtStatus.canPlaceOrder) {
+        res.status(403).json({
+          success: false,
+          message: `You have reached your debt limit of PKR ${debtStatus.debtLimit.toLocaleString()} for your ${debtStatus.tierName} tier. Your current debt is PKR ${debtStatus.currentDebt.toLocaleString()}. Please pay your outstanding debts before placing new orders, or contact admin for support.`,
+          debtStatus: {
+            currentDebt: debtStatus.currentDebt,
+            debtLimit: debtStatus.debtLimit,
+            tierName: debtStatus.tierName,
+            remainingLimit: debtStatus.remainingLimit
+          }
+        });
+        return;
+      }
     }
 
     // Validate required fields

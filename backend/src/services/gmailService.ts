@@ -9,6 +9,7 @@ import { isValidEmail, filterValidEmails } from '../utils/emailValidator';
 import { createEmailDeliveryRecord, updateEmailDeliveryStatus } from './emailTrackingService';
 import { getFrontendUrl, getFrontendUrlWithPath } from '../config/urlConfig';
 import gmailApiService from './gmailApiService';
+import nodemailer, { Transporter } from 'nodemailer';
 
 /**
  * Retry configuration for email sending
@@ -130,17 +131,71 @@ async function withRetry<T>(
 }
 
 class GmailService {
+  private smtpTransporter: Transporter | null = null;
+
   constructor() {
-    // Gmail API is initialized in gmailApiService
-    if (gmailApiService.isConfigured()) {
-      console.log('✅ GmailService using Gmail API (no SMTP)');
+    const smtpUser = process.env.GMAIL_USER;
+    const smtpPassword = process.env.GMAIL_APP_PASSWORD;
+    if (smtpUser && smtpPassword) {
+      this.smtpTransporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: smtpUser,
+          pass: smtpPassword,
+        },
+        connectionTimeout: EMAIL_SEND_TIMEOUT_MS,
+        greetingTimeout: EMAIL_SEND_TIMEOUT_MS,
+        socketTimeout: EMAIL_SEND_TIMEOUT_MS,
+      });
+      console.log('✅ Gmail SMTP fallback initialized');
     } else {
-      console.log('⚠️ Gmail API not configured. Check GMAIL_API_* environment variables.');
+      console.log('⚠️ Gmail SMTP fallback not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.');
+    }
+
+    if (gmailApiService.isConfigured()) {
+      console.log('✅ GmailService using Gmail API as primary transport');
+    } else {
+      console.log('⚠️ Gmail API not configured. SMTP fallback will be used when available.');
     }
   }
 
   private isConfigured(): boolean {
-    return gmailApiService.isConfigured();
+    return gmailApiService.isConfigured() || !!this.smtpTransporter;
+  }
+
+  private isSmtpConfigured(): boolean {
+    return !!this.smtpTransporter;
+  }
+
+  private async sendEmailViaSmtp(
+    to: string[],
+    subject: string,
+    htmlContent: string,
+    fromEmail: string,
+    options?: { isOTP?: boolean }
+  ): Promise<void> {
+    if (!this.smtpTransporter) {
+      throw new Error('SMTP transport not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.');
+    }
+
+    await withRetry(
+      async () => {
+        await this.smtpTransporter!.sendMail({
+          from: fromEmail,
+          to: to.join(', '),
+          subject,
+          html: htmlContent,
+          text: htmlContent.replace(/<[^>]*>/g, ''),
+        });
+      },
+      `SMTP send to ${to.join(', ')}`,
+      EMAIL_RETRY_CONFIG
+    );
+
+    console.log('✅ Email sent successfully via SMTP', {
+      to: to.join(', '),
+      isOTP: options?.isOTP,
+    });
   }
 
   /**
@@ -279,26 +334,39 @@ class GmailService {
       const recipientList = Array.isArray(recipients) ? recipients : [recipients];
       const fromEmail = options?.fromEmail || process.env.GMAIL_API_USER_EMAIL || process.env.GMAIL_USER;
 
-      console.log('📧 Attempting to send email via Gmail API...', {
+      const canUseGmailApi = gmailApiService.isConfigured();
+      const canUseSmtp = this.isSmtpConfigured();
+      const selectedTransport = canUseGmailApi ? 'gmail_api' : 'smtp';
+
+      if (!canUseGmailApi && !canUseSmtp) {
+        throw new Error('No email transport configured. Configure Gmail API or SMTP credentials.');
+      }
+
+      console.log('📧 Attempting to send email...', {
+        transport: selectedTransport,
         from: fromEmail,
         to: recipientList.join(', '),
         subject: subject.substring(0, 50),
         isOTP: options?.isOTP
       });
-      
-      // Send email using Gmail API (with built-in retry logic)
-      await gmailApiService.sendEmail(
-        recipientList,
-        subject,
-        finalHtmlContent,
-        fromEmail,
-        undefined, // no attachments for regular emails
-        Object.keys(emailHeaders).length > 0 ? emailHeaders : undefined
-      );
-      
-      console.log('✅ Email sent successfully via Gmail API', {
-        to: recipientList.join(', ')
-      });
+
+      if (canUseGmailApi) {
+        await gmailApiService.sendEmail(
+          recipientList,
+          subject,
+          finalHtmlContent,
+          fromEmail,
+          undefined,
+          Object.keys(emailHeaders).length > 0 ? emailHeaders : undefined
+        );
+        console.log('✅ Email sent successfully via Gmail API', {
+          to: recipientList.join(', ')
+        });
+      } else {
+        await this.sendEmailViaSmtp(recipientList, subject, finalHtmlContent, fromEmail, {
+          isOTP: options?.isOTP,
+        });
+      }
       
       // Update email delivery status to 'sent' (then mark as 'delivered' after a short delay)
       if (emailDeliveryId) {
@@ -426,28 +494,55 @@ class GmailService {
       const recipientList = Array.isArray(recipients) ? recipients : [recipients];
       const fromEmail = options?.fromEmail || process.env.GMAIL_API_USER_EMAIL || process.env.GMAIL_USER;
 
-      console.log('📧 Attempting to send email with attachments via Gmail API...', {
+      const canUseGmailApi = gmailApiService.isConfigured();
+      const canUseSmtp = this.isSmtpConfigured();
+
+      if (!canUseGmailApi && !canUseSmtp) {
+        throw new Error('No email transport configured. Configure Gmail API or SMTP credentials.');
+      }
+
+      console.log('📧 Attempting to send email with attachments...', {
+        transport: canUseGmailApi ? 'gmail_api' : 'smtp',
         from: fromEmail,
         to: recipientList.join(', '),
         subject: subject.substring(0, 50),
         attachments: attachments.length
       });
 
-      // Convert attachments to Gmail API format
-      const gmailAttachments = attachments.map(attachment => ({
-        filename: attachment.filename,
-        content: attachment.content,
-        contentType: attachment.contentType
-      }));
+      if (canUseGmailApi) {
+        const gmailAttachments = attachments.map(attachment => ({
+          filename: attachment.filename,
+          content: attachment.content,
+          contentType: attachment.contentType
+        }));
 
-      // Send email using Gmail API (with built-in retry logic)
-      await gmailApiService.sendEmail(
-        recipientList,
-        subject,
-        htmlContent,
-        fromEmail,
-        gmailAttachments
-      );
+        await gmailApiService.sendEmail(
+          recipientList,
+          subject,
+          htmlContent,
+          fromEmail,
+          gmailAttachments
+        );
+      } else {
+        await withRetry(
+          async () => {
+            await this.smtpTransporter!.sendMail({
+              from: fromEmail,
+              to: recipientList.join(', '),
+              subject,
+              html: htmlContent,
+              text: htmlContent.replace(/<[^>]*>/g, ''),
+              attachments: attachments.map(attachment => ({
+                filename: attachment.filename,
+                content: attachment.content,
+                contentType: attachment.contentType
+              }))
+            });
+          },
+          `SMTP attachment send to ${recipientList.join(', ')}`,
+          EMAIL_RETRY_CONFIG
+        );
+      }
       
       // Update email delivery status to 'sent' and then 'delivered'
       if (emailDeliveryId) {
