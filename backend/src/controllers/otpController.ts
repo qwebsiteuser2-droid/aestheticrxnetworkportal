@@ -55,9 +55,11 @@ export class OTPController {
       });
     } catch (error: unknown) {
       console.error('Error generating OTP:', error);
-      res.status(500).json({
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate OTP';
+      const isRateLimitError = /wait|too many/i.test(errorMessage);
+      res.status(isRateLimitError ? 429 : 500).json({
         success: false,
-        message: 'Failed to generate OTP'
+        message: errorMessage
       });
     }
   }
@@ -92,6 +94,14 @@ export class OTPController {
 
       // Get purpose from request body or default to 'login' for resend during login flow
       const purpose = req.body.purpose || 'login';
+      const allowedPurposes = ['password_reset', 'login', 'admin_access'];
+      if (!allowedPurposes.includes(purpose)) {
+        res.status(400).json({
+          success: false,
+          message: `Invalid purpose. Allowed purposes: ${allowedPurposes.join(', ')}`
+        });
+        return;
+      }
       
       // Generate and send OTP (for login or password reset)
       await OTPService.generateAndSendOTP(user.id, purpose);
@@ -107,9 +117,11 @@ export class OTPController {
       });
     } catch (error: unknown) {
       console.error('Error resending OTP:', error);
-      res.status(500).json({
+      const errorMessage = error instanceof Error ? error.message : 'Failed to resend OTP';
+      const isRateLimitError = /wait|too many/i.test(errorMessage);
+      res.status(isRateLimitError ? 429 : 500).json({
         success: false,
-        message: 'Failed to resend OTP'
+        message: errorMessage
       });
     }
   }
@@ -117,8 +129,9 @@ export class OTPController {
   static async verifyOTP(req: Request, res: Response): Promise<void> {
     try {
       const { userId, otpCode, purpose } = req.body;
+      const normalizedOtpCode = typeof otpCode === 'string' ? otpCode.trim() : '';
 
-      if (!userId || !otpCode) {
+      if (!userId || !normalizedOtpCode) {
         res.status(400).json({ 
           success: false, 
           message: 'User ID and OTP code are required' 
@@ -130,7 +143,7 @@ export class OTPController {
       const otpPurpose = purpose || 'login';
 
       // Verify OTP
-      const isValid = await OTPService.verifyOTP(userId, otpCode, otpPurpose);
+      const isValid = await OTPService.verifyOTP(userId, normalizedOtpCode, otpPurpose);
 
       if (!isValid) {
         res.status(400).json({

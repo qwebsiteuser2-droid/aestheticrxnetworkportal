@@ -309,6 +309,8 @@ Authorization: Bearer <access_token>
 | POST | `/otp/verify` | Verify OTP | Yes |
 | POST | `/otp/check-requirement` | Check if OTP required | Yes |
 
+OTP generation applies cooldown and request window limits, and enforces one active OTP per user-purpose combination.
+
 ---
 
 ## AI Features
@@ -399,6 +401,8 @@ Authorization: Bearer <access_token>
 | DELETE | `/debt/user/:doctorId/custom-limit` | Remove custom debt limit | Admin |
 | GET | `/debt/users-with-debt` | Get users with debt | Admin |
 | POST | `/debt/sync-with-tiers` | Sync with tier configs | Admin |
+
+Runtime debt enforcement for orders/payments uses active `tier_configs.debt_limit`, unless a user has an admin custom debt override.
 
 ### Research Management
 

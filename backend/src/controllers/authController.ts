@@ -7,10 +7,9 @@ import { OTP } from '../entities/OTP';
 import { OTPService } from '../services/otpService';
 import { RegisterRequest, LoginRequest, AuthResponse } from '../types/auth';
 import { hashPassword, comparePassword, validatePasswordStrength } from '../utils/password';
-import { generateTokenPair, verifyRefreshToken, generatePasswordResetToken, verifyPasswordResetToken } from '../utils/jwt';
+import { generateTokenPair, verifyRefreshToken } from '../utils/jwt';
 import gmailService from '../services/gmailService';
 import { whatsappService } from '../services/whatsappService';
-import { OTPService } from '../services/otpService';
 
 /**
  * Register a new doctor
@@ -293,6 +292,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, otpCode }: LoginRequest = req.body;
+    const normalizedOtpCode = typeof otpCode === 'string' ? otpCode.trim() : undefined;
 
     // Validate required fields
     if (!email || !password) {
@@ -354,65 +354,18 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Allow login even if not approved - they will be redirected to waiting-approval page
     // Regular users are auto-approved, so they won't see this page
 
-    // OTP DISABLED TEMPORARILY - Email service not working (Gmail SMTP blocked on Railway Free/Hobby)
-    // TODO: Re-enable OTP after reliable email delivery is configured
-    // Check if OTP is required (for admin users)
-    // IMPORTANT: Only check OTP requirement if OTP code is NOT provided
-    // If OTP is provided, we should verify it directly without checking requirement again
     const userRole = doctor.is_admin ? 'admin' : 'user';
-    
-    // TEMPORARILY DISABLED: Skip OTP check for all users (including admin)
-    const OTP_ENABLED = false; // Set to true to re-enable OTP
-    
-    if (!OTP_ENABLED) {
-      console.log('🔐 Login - OTP disabled temporarily, skipping OTP verification');
-      // Skip OTP check and proceed with login
-    } else if (!otpCode) {
+    const otpEnabled = process.env.ENABLE_LOGIN_OTP !== 'false';
+
+    if (otpEnabled && !normalizedOtpCode) {
       // No OTP provided - check if OTP is required
       const isOTPRequired = await OTPService.isOTPRequired(doctor.id, userRole);
       
       if (isOTPRequired) {
         try {
           console.log('🔐 Login - OTP required for user:', doctor.email, 'Role:', userRole);
+          await OTPService.generateAndSendOTP(doctor.id, 'login');
           
-          // Generate OTP and save to database first (synchronous)
-          // This ensures OTP is available even if email sending fails
-          const otpRepository = AppDataSource.getRepository(OTP);
-          
-          // Invalidate any existing unused OTPs for this user
-          await otpRepository.update(
-            { user_id: doctor.id, is_used: false },
-            { is_used: true }
-          );
-          
-          // Generate new OTP
-          const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-          const expiresAt = new Date();
-          expiresAt.setMinutes(expiresAt.getMinutes() + 2);
-          
-          // Save OTP to database
-          const otp = otpRepository.create({
-            user_id: doctor.id,
-            otp_code: otpCode,
-            expires_at: expiresAt,
-            purpose: 'login',
-          });
-          await otpRepository.save(otp);
-          
-          console.log('✅ Login - OTP saved to database');
-          
-          // Send email in background (non-blocking) to prevent timeout
-          // OTP is already saved, so user can verify even if email is delayed
-          OTPService.sendOTPEmailOnly(doctor.email, doctor.doctor_name || doctor.email, otpCode, 'login', doctor.id)
-            .then(() => {
-              console.log('✅ Login - OTP email sent successfully (background)');
-            })
-            .catch((emailError: unknown) => {
-              console.error('⚠️ Login - OTP email sending failed (non-blocking):', emailError);
-              // Don't throw - OTP is already saved, user can still verify
-            });
-          
-          // Return response immediately without waiting for email
           res.status(200).json({
             success: false,
             message: 'OTP verification required',
@@ -428,31 +381,28 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           return;
         } catch (error: unknown) {
           console.error('❌ Error generating OTP:', error);
-          res.status(500).json({
+          const errorMessage = error instanceof Error ? error.message : 'Failed to generate OTP. Please try again.';
+          const isRateLimitError = /wait|too many/i.test(errorMessage);
+          res.status(isRateLimitError ? 429 : 500).json({
             success: false,
-            message: 'Failed to generate OTP. Please try again.'
+            message: errorMessage
           });
           return;
         }
       }
-    } else {
+    } else if (otpEnabled && normalizedOtpCode) {
       // OTP code is provided - verify it directly without checking requirement again
-      // TEMPORARILY DISABLED: Skip OTP verification
-      if (OTP_ENABLED) {
-        console.log('🔐 Login - OTP code provided, verifying...');
-        const isOTPValid = await OTPService.verifyOTP(doctor.id, otpCode, 'login');
-        if (!isOTPValid) {
-          console.log('❌ Login - Invalid or expired OTP');
-          res.status(400).json({
-            success: false,
-            message: 'Invalid or expired OTP'
-          });
-          return;
-        }
-        console.log('✅ Login - OTP verified successfully');
-      } else {
-        console.log('🔐 Login - OTP verification skipped (OTP disabled)');
+      console.log('🔐 Login - OTP code provided, verifying...');
+      const isOTPValid = await OTPService.verifyOTP(doctor.id, normalizedOtpCode, 'login');
+      if (!isOTPValid) {
+        console.log('❌ Login - Invalid or expired OTP');
+        res.status(400).json({
+          success: false,
+          message: 'Invalid or expired OTP'
+        });
+        return;
       }
+      console.log('✅ Login - OTP verified successfully');
     }
 
     // Generate tokens
@@ -836,157 +786,31 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
         return;
       }
 
-      // Generate and save OTP first (must be in DB before response)
-      console.log('🔐 Password Reset - Generating OTP for user:', user.id);
-      
-      // Generate OTP and save to database (synchronous, fast)
-      const otpRepository = AppDataSource.getRepository(OTP);
-      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + 2);
-      
-      // Invalidate existing OTPs
-      await otpRepository.update(
-        { user_id: user.id, is_used: false },
-        { is_used: true }
-      );
-      
-      // Save new OTP
-      const otp = otpRepository.create({
-        user_id: user.id,
-        otp_code: otpCode,
-        expires_at: expiresAt,
-        purpose: 'password_reset',
-      });
-      await otpRepository.save(otp);
-      console.log('🔐 Password Reset - OTP saved to database');
-      
-      // Send response immediately (don't wait for email to avoid timeout)
+      try {
+        await OTPService.generateAndSendOTP(user.id, 'password_reset');
+      } catch (otpError: unknown) {
+        // Keep generic response to avoid account enumeration patterns.
+        console.warn('Password reset OTP generation skipped:', otpError);
+      }
       res.status(200).json({
         success: true,
         message: 'If an account with this email exists, a password reset OTP has been sent.'
       });
-      
-      // Send email in background (non-blocking to avoid timeout)
-      const emailSubject = '🔐 Password Reset OTP - AestheticRxNetwork';
-      const emailMessage = 'You have requested to reset your password. Use the OTP below to complete the process:';
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>OTP Verification</title>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }
-            .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -20px -20px 20px -20px; }
-            .otp-code { background-color: #f8f9fa; border: 2px dashed #007bff; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }
-            .otp-number { font-size: 32px; font-weight: bold; color: #007bff; letter-spacing: 5px; }
-            .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 5px; margin: 20px 0; }
-            .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>🔐 OTP Verification</h1>
-              <p>Secure Access to AestheticRxNetwork</p>
-            </div>
-            
-            <h2>Hello ${user.doctor_name || user.email}!</h2>
-            <p>${emailMessage}</p>
-            
-            <div class="otp-code">
-              <p style="margin: 0 0 10px 0; font-weight: bold;">Your One-Time Password (OTP) is:</p>
-              <div class="otp-number">${otpCode}</div>
-            </div>
-            
-            <div class="warning">
-              <strong>⚠️ Important Security Information:</strong>
-              <ul style="margin: 10px 0; padding-left: 20px;">
-                <li>This OTP is valid for <strong>2 minutes only</strong></li>
-                <li>Do not share this code with anyone</li>
-                <li>Our team will never ask for your OTP</li>
-                <li>If you didn't request this, please ignore this email</li>
-              </ul>
-            </div>
-            
-            <div class="footer">
-              <p>This is an automated message from AestheticRxNetwork Security System</p>
-              <p>If you have any concerns, please contact our support team</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
-      
-      // Verify Gmail is configured before attempting to send
-      const gmailUser = process.env.GMAIL_USER;
-      const gmailPassword = process.env.GMAIL_APP_PASSWORD;
-      
-      if (!gmailUser || !gmailPassword) {
-        console.error('🔐 Password Reset - Gmail not configured!', {
-          gmailUser: gmailUser ? '✅ Set' : '❌ Not Set',
-          gmailPassword: gmailPassword ? '✅ Set' : '❌ Not Set',
-          recipientEmail: user.email
-        });
-        // Don't throw error - OTP is already saved, user can request again
-        return;
-      }
-      
-      console.log('🔐 Password Reset - Sending OTP email to:', user.email);
-      console.log('🔐 Password Reset - From Gmail account:', gmailUser);
-      
-      // Send email in background with detailed error logging
-      gmailService.sendEmail(user.email, emailSubject, htmlContent, {
-        isOTP: true,
-        bypassQuota: true,
-        userId: user.id
-      })
-        .then(() => {
-          console.log('🔐 Password Reset - OTP email sent successfully to:', user.email);
-        })
-        .catch((error: any) => {
-          console.error('🔐 Password Reset - Failed to send OTP email:', error);
-          console.error('🔐 Password Reset - Error details:', {
-            message: error?.message,
-            code: error?.code,
-            response: error?.response,
-            responseCode: error?.responseCode,
-            command: error?.command,
-            stack: error?.stack
-          });
-          // Log Gmail configuration status
-          console.error('🔐 Password Reset - Gmail Config Check:', {
-            gmailUser: gmailUser ? '✅ Set' : '❌ Not Set',
-            gmailPassword: gmailPassword ? '✅ Set' : '❌ Not Set',
-            recipientEmail: user.email,
-            fromEmail: gmailUser
-          });
-        });
     } else {
-      // User doesn't exist - redirect to signup
+      // User doesn't exist: keep a generic success response to avoid account enumeration
       console.log('🔐 Password Reset - User not found for email:', normalizedEmail);
-      console.log('🔐 Password Reset - Returning redirectToSignup response');
-      
-      // Removed expensive debug queries that were causing timeouts:
-      // - Fetching all users from database
-      // - Redundant SQL queries
-      // - Similar email searches
-      // These operations were taking >10 seconds with large user bases
-      
       res.status(200).json({
-        success: false,
-        message: 'No account found with this email. Please create a new account.',
-        redirectToSignup: true
+        success: true,
+        message: 'If an account with this email exists, a password reset OTP has been sent.'
       });
     }
   } catch (error: any) {
     console.error('Password reset request error:', error);
-    res.status(500).json({
+    const errorMessage = error instanceof Error ? error.message : 'Failed to process password reset request. Please try again.';
+    const isRateLimitError = /wait|too many/i.test(errorMessage);
+    res.status(isRateLimitError ? 429 : 500).json({
       success: false,
-      message: 'Failed to process password reset request. Please try again.'
+      message: isRateLimitError ? errorMessage : 'Failed to process password reset request. Please try again.'
     });
   }
 };
@@ -997,8 +821,10 @@ export const requestPasswordReset = async (req: Request, res: Response): Promise
 export const confirmPasswordReset = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, otpCode, newPassword } = req.body;
+    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+    const normalizedOtpCode = typeof otpCode === 'string' ? otpCode.trim() : '';
 
-    if (!email || !otpCode || !newPassword) {
+    if (!normalizedEmail || !normalizedOtpCode || !newPassword) {
       res.status(400).json({
         success: false,
         message: 'Email, OTP code, and new password are required'
@@ -1020,7 +846,7 @@ export const confirmPasswordReset = async (req: Request, res: Response): Promise
     // Use query builder for case-insensitive lookup (same as login)
     const user = await doctorRepository
       .createQueryBuilder('doctor')
-      .where('LOWER(TRIM(doctor.email)) = LOWER(TRIM(:email))', { email: email.trim() })
+      .where('LOWER(TRIM(doctor.email)) = LOWER(TRIM(:email))', { email: normalizedEmail })
       .getOne();
 
     if (!user) {
@@ -1045,7 +871,7 @@ export const confirmPasswordReset = async (req: Request, res: Response): Promise
     const otp = await otpRepository.findOne({
       where: {
         user_id: user.id,
-        otp_code: otpCode,
+        otp_code: normalizedOtpCode,
         purpose: 'password_reset',
         is_used: false
       }
@@ -1077,6 +903,7 @@ export const confirmPasswordReset = async (req: Request, res: Response): Promise
 
     // Mark OTP as used
     otp.is_used = true;
+    otp.used_at = new Date();
     await otpRepository.save(otp);
 
     res.status(200).json({

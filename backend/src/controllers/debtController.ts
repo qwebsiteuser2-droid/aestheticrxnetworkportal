@@ -1,22 +1,25 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../db/data-source';
-import { DebtThreshold } from '../models/DebtThreshold';
 import { TierConfig } from '../models/TierConfig';
 import { Doctor } from '../models/Doctor';
-import { DebtService, DebtStatus } from '../services/debtService';
+import { DebtService } from '../services/debtService';
 
 export const getDebtThresholds = async (req: Request, res: Response) => {
   try {
-    const debtThresholdRepository = AppDataSource.getRepository(DebtThreshold);
-    
-    const thresholds = await debtThresholdRepository.find({
+    const tierRepository = AppDataSource.getRepository(TierConfig);
+    const thresholds = await tierRepository.find({
       where: { is_active: true },
-      order: { debt_limit: 'ASC' }
+      order: { display_order: 'ASC' }
     });
 
     res.json({
       success: true,
-      data: thresholds
+      data: thresholds.map((tier) => ({
+        tier_name: tier.name,
+        debt_limit: Number(tier.debt_limit) || 0,
+        description: tier.description,
+        is_active: tier.is_active
+      }))
     });
   } catch (error: unknown) {
     console.error('Error fetching debt thresholds:', error);
@@ -128,18 +131,22 @@ export const getUsersWithDebt = async (req: Request, res: Response) => {
     const doctorRepository = AppDataSource.getRepository(Doctor);
     
     const doctors = await doctorRepository.find({
-      where: { debt_limit_exceeded: true },
+      where: { is_approved: true, is_admin: false },
       select: ['id', 'doctor_name', 'email', 'tier', 'total_owed_amount', 'custom_debt_limit', 'admin_debt_override']
     });
 
     // Calculate current debt for each user
-    const usersWithDebt = await Promise.all(doctors.map(async (doctor) => {
+    const usersWithDebtDetailed = await Promise.all(doctors.map(async (doctor) => {
       const currentDebt = await DebtService.calculateUserDebt(doctor.id);
+      const debtStatus = await DebtService.canUserPlaceOrder(doctor.id);
       return {
         ...doctor,
-        currentDebt
+        currentDebt,
+        debtLimit: debtStatus.debtLimit,
+        isOverLimit: currentDebt >= debtStatus.debtLimit
       };
     }));
+    const usersWithDebt = usersWithDebtDetailed.filter(user => user.isOverLimit);
 
     res.json({
       success: true,
@@ -158,7 +165,6 @@ export const getUsersWithDebt = async (req: Request, res: Response) => {
 export const syncDebtThresholdsWithTiers = async (req: Request, res: Response): Promise<void> => {
   try {
     const tierRepository = AppDataSource.getRepository(TierConfig);
-    const debtThresholdRepository = AppDataSource.getRepository(DebtThreshold);
     
     // Get all active tier configurations
     const tiers = await tierRepository.find({
@@ -177,28 +183,16 @@ export const syncDebtThresholdsWithTiers = async (req: Request, res: Response): 
     const syncedThresholds = [];
 
     for (const tier of tiers) {
-      // Check if debt threshold already exists for this tier
-      let debtThreshold = await debtThresholdRepository.findOne({
-        where: { tier_name: tier.name }
-      });
-
-      if (!debtThreshold) {
-        // Create new debt threshold based on tier
-        const defaultDebtLimit = Math.max(50000, tier.threshold * 0.1); // 10% of tier threshold, minimum 50k
-        
-        debtThreshold = debtThresholdRepository.create({
-          tier_name: tier.name,
-          debt_limit: defaultDebtLimit,
-          description: `Debt limit for ${tier.name} tier (${tier.description})`,
-          is_active: true
-        });
-      } else {
-        // Update existing threshold with tier info
-        debtThreshold.description = `Debt limit for ${tier.name} tier (${tier.description})`;
+      if (tier.debt_limit === null || tier.debt_limit === undefined) {
+        const threshold = Number(tier.threshold) || 0;
+        tier.debt_limit = Math.max(50000, threshold * 0.1);
+        await tierRepository.save(tier);
       }
-
-      await debtThresholdRepository.save(debtThreshold);
-      syncedThresholds.push(debtThreshold);
+      syncedThresholds.push({
+        tier_name: tier.name,
+        debt_limit: Number(tier.debt_limit) || 0,
+        description: tier.description
+      });
     }
 
     res.json({

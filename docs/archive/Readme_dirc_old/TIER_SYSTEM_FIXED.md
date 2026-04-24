@@ -1,3 +1,9 @@
+# Historical Note: Legacy Tier Snapshot
+
+This document reflects an old, fixed-name tier implementation and is kept for historical reference only.
+
+Current production behavior supports dynamic tier names, tier CRUD operations, and debt enforcement through active tier configuration.
+
 # ✅ Tier System Fixed - Database Integration Complete!
 
 ## 🎯 **Issues Resolved**

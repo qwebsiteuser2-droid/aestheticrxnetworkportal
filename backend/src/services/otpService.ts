@@ -6,6 +6,10 @@ import gmailApiService from './gmailApiService';
 import { getOTPConfigForUserType, isOTPRequiredForUserType, getOTPDurationForUserType } from '../controllers/otpConfigController';
 
 export class OTPService {
+  private static readonly RESEND_COOLDOWN_SECONDS = Number(process.env.OTP_RESEND_COOLDOWN_SECONDS || 60);
+  private static readonly MAX_SENDS_PER_WINDOW = Number(process.env.OTP_MAX_SENDS_PER_WINDOW || 3);
+  private static readonly SEND_WINDOW_MINUTES = Number(process.env.OTP_SEND_WINDOW_MINUTES || 5);
+
   private static generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
@@ -16,47 +20,76 @@ export class OTPService {
     return now;
   }
 
-  static async generateAndSendOTP(userId: string, purpose: string = 'login'): Promise<string> {
-    try {
-      // Get user details
-      const userRepository = AppDataSource.getRepository(Doctor);
-      const user = await userRepository.findOne({ where: { id: userId } });
+  private static async enforceSendPolicy(userId: string, purpose: string): Promise<void> {
+    const otpRepository = AppDataSource.getRepository(OTP);
+    const now = new Date();
+    const cooldownStart = new Date(now.getTime() - this.RESEND_COOLDOWN_SECONDS * 1000);
+    const windowStart = new Date(now.getTime() - this.SEND_WINDOW_MINUTES * 60 * 1000);
 
-      if (!user) {
-        throw new Error('User not found');
-      }
+    const existingActiveOTP = await otpRepository
+      .createQueryBuilder('otp')
+      .where('otp.user_id = :userId', { userId })
+      .andWhere('otp.purpose = :purpose', { purpose })
+      .andWhere('otp.is_used = :isUsed', { isUsed: false })
+      .andWhere('otp.expires_at > :now', { now })
+      .orderBy('otp.created_at', 'DESC')
+      .getOne();
 
-      // Invalidate any existing unused OTPs for this user
-      const otpRepository = AppDataSource.getRepository(OTP);
-      await otpRepository.update(
-        { user_id: userId, is_used: false },
-        { is_used: true }
+    if (existingActiveOTP && existingActiveOTP.created_at > cooldownStart) {
+      const waitSeconds = Math.max(
+        1,
+        Math.ceil((existingActiveOTP.created_at.getTime() + this.RESEND_COOLDOWN_SECONDS * 1000 - now.getTime()) / 1000)
       );
-
-      // Generate new OTP
-      const otpCode = this.generateOTP();
-      const expiresAt = this.getExpirationTime();
-
-      // Save OTP to database
-      const otp = otpRepository.create({
-        user_id: userId,
-        otp_code: otpCode,
-        expires_at: expiresAt,
-        purpose: purpose,
-      });
-
-      await otpRepository.save(otp);
-
-      // Send OTP via email (pass userId for tracking)
-      // Note: This is now called in background for login to prevent timeout
-      // OTP is already saved, so verification can proceed even if email is delayed
-      await this.sendOTPEmail(user.email, user.doctor_name || user.email, otpCode, purpose, userId);
-
-      return otpCode;
-    } catch (error: unknown) {
-      console.error('Error generating OTP:', error);
-      throw new Error('Failed to generate OTP');
+      throw new Error(`Please wait ${waitSeconds} seconds before requesting another OTP.`);
     }
+
+    const sendsInWindow = await otpRepository
+      .createQueryBuilder('otp')
+      .where('otp.user_id = :userId', { userId })
+      .andWhere('otp.purpose = :purpose', { purpose })
+      .andWhere('otp.created_at >= :windowStart', { windowStart })
+      .getCount();
+
+    if (sendsInWindow >= this.MAX_SENDS_PER_WINDOW) {
+      throw new Error(`Too many OTP requests. Please try again in ${this.SEND_WINDOW_MINUTES} minutes.`);
+    }
+  }
+
+  static async generateAndSendOTP(userId: string, purpose: string = 'login'): Promise<string> {
+    // Get user details
+    const userRepository = AppDataSource.getRepository(Doctor);
+    const user = await userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    await this.enforceSendPolicy(userId, purpose);
+
+    // Invalidate any existing unused OTPs for this user and purpose
+    const otpRepository = AppDataSource.getRepository(OTP);
+    await otpRepository.update(
+      { user_id: userId, purpose, is_used: false },
+      { is_used: true, used_at: new Date() }
+    );
+
+    // Generate new OTP
+    const otpCode = this.generateOTP();
+    const expiresAt = this.getExpirationTime();
+
+    // Save OTP to database
+    const otp = otpRepository.create({
+      user_id: userId,
+      otp_code: otpCode,
+      expires_at: expiresAt,
+      purpose: purpose,
+    });
+
+    await otpRepository.save(otp);
+
+    // Send OTP via configured channel(s)
+    await this.sendOTPEmail(user.email, user.doctor_name || user.email, otpCode, purpose, userId);
+    return otpCode;
   }
 
   static async verifyOTP(userId: string, otpCode: string, purpose: string = 'login'): Promise<boolean> {

@@ -1,7 +1,6 @@
 import { AppDataSource } from '../db/data-source';
 import { Order } from '../models/Order';
 import { Doctor } from '../models/Doctor';
-import { DebtThreshold } from '../models/DebtThreshold';
 import { TierConfig } from '../models/TierConfig';
 
 export interface DebtStatus {
@@ -131,7 +130,7 @@ export class DebtService {
 
       // Use tier-based debt limit
       const currentDebt = await this.calculateUserDebt(doctorId);
-      const debtLimit = await this.getDebtLimitForTier(doctor.tier || 'Bronze');
+      const debtLimit = await this.getDebtLimitForTier(doctor.tier || '');
       
       return {
         currentDebt,
@@ -159,25 +158,16 @@ export class DebtService {
    */
   static async initializeDefaultDebtThresholds(): Promise<void> {
     try {
-      const debtThresholdRepository = AppDataSource.getRepository(DebtThreshold);
-      
-      // Default debt limits for each tier (based on existing tier system)
-      const defaultThresholds = [
-        { tier_name: 'Lead Starter', debt_limit: 50000, description: 'Lead Starter tier debt limit' },
-        { tier_name: 'Lead Contributor', debt_limit: 100000, description: 'Lead Contributor tier debt limit' },
-        { tier_name: 'Lead Expert', debt_limit: 200000, description: 'Lead Expert tier debt limit' },
-        { tier_name: 'Grand Lead', debt_limit: 400000, description: 'Grand Lead tier debt limit' },
-        { tier_name: 'Elite Lead', debt_limit: 800000, description: 'Elite Lead tier debt limit' }
-      ];
+      const tierConfigRepository = AppDataSource.getRepository(TierConfig);
+      const tiers = await tierConfigRepository.find({
+        where: { is_active: true }
+      });
 
-      for (const threshold of defaultThresholds) {
-        const existing = await debtThresholdRepository.findOne({
-          where: { tier_name: threshold.tier_name }
-        });
-
-        if (!existing) {
-          const newThreshold = debtThresholdRepository.create(threshold);
-          await debtThresholdRepository.save(newThreshold);
+      for (const tier of tiers) {
+        if (tier.debt_limit === null || tier.debt_limit === undefined) {
+          const threshold = Number(tier.threshold) || 0;
+          tier.debt_limit = Math.max(50000, threshold * 0.1);
+          await tierConfigRepository.save(tier);
         }
       }
     } catch (error: unknown) {
@@ -190,22 +180,14 @@ export class DebtService {
    */
   static async updateDebtLimit(tierName: string, newLimit: number): Promise<void> {
     try {
-      const debtThresholdRepository = AppDataSource.getRepository(DebtThreshold);
-      
-      const threshold = await debtThresholdRepository.findOne({
-        where: { tier_name: tierName }
+      const tierConfigRepository = AppDataSource.getRepository(TierConfig);
+      const tier = await tierConfigRepository.findOne({
+        where: { name: tierName }
       });
 
-      if (threshold) {
-        threshold.debt_limit = newLimit;
-        await debtThresholdRepository.save(threshold);
-      } else {
-        const newThreshold = debtThresholdRepository.create({
-          tier_name: tierName,
-          debt_limit: newLimit,
-          description: `${tierName} tier debt limit`
-        });
-        await debtThresholdRepository.save(newThreshold);
+      if (tier) {
+        tier.debt_limit = newLimit;
+        await tierConfigRepository.save(tier);
       }
     } catch (error: unknown) {
       console.error('Error updating debt limit:', error);

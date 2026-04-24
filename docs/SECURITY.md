@@ -85,6 +85,13 @@ This document describes the security architecture, implemented measures, and bes
 | OTP Expiry | 2 minutes |
 | Single Use | Each OTP can only be used once |
 
+### OTP Abuse Protection
+
+- Single active OTP per `user + purpose`
+- Resend cooldown enforced between requests
+- Send-rate limits enforced per rolling time window
+- Expired OTPs are invalidated and treated as non-usable
+
 ### Google OAuth 2.0 Authentication (v3.4.0)
 
 | Feature | Implementation |

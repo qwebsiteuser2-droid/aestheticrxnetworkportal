@@ -310,6 +310,13 @@ Tier threshold checked → Tier updated →
 Certificate generated → Email with PDF sent
 ```
 
+### Dynamic Tier Configuration
+
+- Tier names are not hardcoded in business logic.
+- Active tiers are resolved from `tier_configs`, ordered by `display_order`.
+- User tier assignment is threshold-driven and supports admin tier add/edit/delete operations.
+- Debt limits are enforced from `tier_configs.debt_limit` (with admin per-user override support).
+
 ---
 
 ## Performance Considerations

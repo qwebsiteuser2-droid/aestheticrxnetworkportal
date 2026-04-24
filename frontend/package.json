@@ -1,7 +1,7 @@
 {
-  "name": "q-website1-frontend",
+  "name": "aestheticrxnetwork-frontend",
   "version": "1.0.0",
-  "description": "Frontend for AestheticRxNetwork - Clinics B2B Platform",
+  "description": "Frontend for AestheticRxNetwork - Professional B2B Platform for Aesthetic Clinics",
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0",

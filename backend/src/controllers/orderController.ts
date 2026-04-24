@@ -15,69 +15,9 @@ import { In } from 'typeorm';
 
 // Tier benefits information
 const getTierBenefits = (tierName: string): string => {
-  const benefits: { [key: string]: string } = {
-    'Lead Starter': `
-      <ul style="margin: 0; padding-left: 20px;">
-        <li>✅ Listed in system only</li>
-        <li>✅ Basic platform access</li>
-        <li>✅ Order placement capability</li>
-      </ul>
-    `,
-    'Lead Contributor': `
-      <ul style="margin: 0; padding-left: 20px;">
-        <li>✅ Name on leaderboard</li>
-        <li>✅ Basic badge display</li>
-        <li>✅ Active community member status</li>
-        <li>✅ Order placement capability</li>
-      </ul>
-    `,
-    'Lead Expert': `
-      <ul style="margin: 0; padding-left: 20px;">
-        <li>✅ 5% discount on all orders</li>
-        <li>✅ Small gift pack with orders</li>
-        <li>✅ Expert level contributor badge</li>
-        <li>✅ Priority customer support</li>
-        <li>✅ Name on leaderboard</li>
-      </ul>
-    `,
-    'Grand Lead': `
-      <ul style="margin: 0; padding-left: 20px;">
-        <li>✅ 10% discount on all orders</li>
-        <li>✅ Priority support access</li>
-        <li>✅ VIP badge display</li>
-        <li>✅ Master level contributor status</li>
-        <li>✅ Exclusive product access</li>
-        <li>✅ Name on leaderboard</li>
-      </ul>
-    `,
-    'Elite Lead': `
-      <ul style="margin: 0; padding-left: 20px;">
-        <li>✅ 15% discount on all orders</li>
-        <li>✅ Free marketing ads (admin chooses)</li>
-        <li>✅ Premium badge display</li>
-        <li>✅ Homepage feature placement</li>
-        <li>✅ Highest tier contributor status</li>
-        <li>✅ Exclusive VIP support</li>
-        <li>✅ Name on leaderboard</li>
-      </ul>
-    `,
-    'Grandmaster': `
-      <ul style="margin: 0; padding-left: 20px;">
-        <li>✅ 20% discount on all orders</li>
-        <li>✅ Free marketing ads (admin chooses)</li>
-        <li>✅ Premium badge display</li>
-        <li>✅ Homepage feature placement</li>
-        <li>✅ Grandmaster status</li>
-        <li>✅ Exclusive VIP support</li>
-        <li>✅ Name on leaderboard</li>
-        <li>✅ Special recognition</li>
-      </ul>
-    `
-  };
-  
-  return benefits[tierName] || `
+  return `
     <ul style="margin: 0; padding-left: 20px;">
-      <li>✅ Platform access</li>
+      <li>✅ ${tierName} access enabled</li>
       <li>✅ Order placement capability</li>
       <li>✅ Community member benefits</li>
     </ul>
@@ -1047,7 +987,7 @@ export const updateUserProfileAndRanking = async (doctorId: string, orderTotal: 
     await leaderboardRepository.save(snapshot);
 
     // Create notification for tier progression
-    if (currentTier.name !== doctor.tier) {
+    if (oldTier !== doctor.tier) {
       const notificationRepository = AppDataSource.getRepository(Notification);
       const tierNotification = notificationRepository.create({
         recipient_id: doctor.id,

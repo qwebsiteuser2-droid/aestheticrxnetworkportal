@@ -293,12 +293,26 @@ export const deleteTierConfig = async (req: AuthenticatedRequest, res: Response)
     const { id } = req.params;
 
     const tierRepository = AppDataSource.getRepository(TierConfig);
+    const doctorRepository = AppDataSource.getRepository(Doctor);
     const tierConfig = await tierRepository.findOne({ where: { id } });
 
     if (!tierConfig) {
       res.status(404).json({
         success: false,
         message: 'Tier configuration not found'
+      });
+      return;
+    }
+
+    // Prevent deleting tiers that are currently assigned to users.
+    const assignedUsersCount = await doctorRepository.count({
+      where: { tier: tierConfig.name }
+    });
+
+    if (assignedUsersCount > 0) {
+      res.status(409).json({
+        success: false,
+        message: `Cannot delete tier "${tierConfig.name}" because it is assigned to ${assignedUsersCount} user(s). Reassign users first.`
       });
       return;
     }
@@ -344,26 +358,20 @@ export const updateAllUserTiers = async (req: AuthenticatedRequest, res: Respons
       return;
     }
 
-    // Get all approved doctors with their total sales
-    const doctorsWithSales = await doctorRepository
-      .createQueryBuilder('doctor')
-      .leftJoin('doctor.orders', 'order')
-      .select([
-        'doctor.id',
-        'doctor.doctor_id',
-        'doctor.doctor_name',
-        'doctor.clinic_name'
-      ])
-      .addSelect('COALESCE(SUM(order.order_total), 0)', 'total_sales')
-      .where('doctor.is_approved = :approved', { approved: true })
-      .groupBy('doctor.id')
-      .getRawMany();
+    // Get all approved doctors (excluding admins) and recalculate from current order data.
+    const doctors = await doctorRepository.find({
+      where: { is_approved: true, is_admin: false },
+      relations: ['orders']
+    });
 
     let updatedCount = 0;
 
     // Update each doctor's tier based on their sales
-    for (const doctor of doctorsWithSales) {
-      const totalSales = parseFloat(doctor.total_sales) || 0;
+    for (const doctor of doctors) {
+      // Keep tier progression aligned with payment-confirmed sales.
+      const totalSales = (doctor.orders || [])
+        .filter(order => order.payment_status === 'paid' && Number(order.payment_amount) > 0)
+        .reduce((sum, order) => sum + (Number(order.payment_amount) || 0), 0);
       
       // Find appropriate tier based on sales
       let currentTier = tiers[0]; // Default to first tier
@@ -378,10 +386,23 @@ export const updateAllUserTiers = async (req: AuthenticatedRequest, res: Respons
         }
       }
 
-      // Update doctor's tier (we'll store this in a custom field or use it for display)
-      // For now, we'll just log the update
-      console.log(`Doctor ${doctor.doctor_name} (${doctor.doctor_id}): ${totalSales.toLocaleString()} PKR -> ${currentTier?.name || 'Unknown'}`);
-      updatedCount++;
+      const targetTierName = currentTier?.name || 'Lead Starter';
+      const targetTierColor = currentTier?.color || 'gray';
+
+      // Persist tier recalculation so admin action actually fixes inconsistent data.
+      const updateResult = await doctorRepository.update(
+        { id: doctor.id },
+        {
+          tier: targetTierName,
+          tier_color: targetTierColor,
+          current_sales: totalSales
+        }
+      );
+
+      if ((updateResult.affected || 0) > 0) {
+        updatedCount++;
+      }
+      console.log(`Doctor ${doctor.doctor_name} (${doctor.doctor_id || doctor.id}): ${totalSales.toLocaleString()} PKR -> ${targetTierName}`);
     }
 
     res.json({ 
