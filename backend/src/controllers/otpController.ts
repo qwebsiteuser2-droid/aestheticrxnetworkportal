@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { OTPService } from '../services/otpService';
+import { OTPRateLimitError, OTPService } from '../services/otpService';
 import { AppDataSource } from '../db/data-source';
 import { Doctor } from '../models/Doctor';
 
@@ -56,10 +56,18 @@ export class OTPController {
     } catch (error: unknown) {
       console.error('Error generating OTP:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate OTP';
+      const isOTPRateLimitError = error instanceof OTPRateLimitError;
       const isRateLimitError = /wait|too many/i.test(errorMessage);
-      res.status(isRateLimitError ? 429 : 500).json({
+      const statusCode = isOTPRateLimitError || isRateLimitError ? 429 : 500;
+      res.status(statusCode).json({
         success: false,
-        message: errorMessage
+        message: errorMessage,
+        ...(statusCode === 429
+          ? {
+              code: isOTPRateLimitError ? error.code : 'OTP_RATE_LIMITED',
+              retryAfterSeconds: isOTPRateLimitError ? error.retryAfterSeconds : undefined,
+            }
+          : {}),
       });
     }
   }
@@ -118,10 +126,18 @@ export class OTPController {
     } catch (error: unknown) {
       console.error('Error resending OTP:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to resend OTP';
+      const isOTPRateLimitError = error instanceof OTPRateLimitError;
       const isRateLimitError = /wait|too many/i.test(errorMessage);
-      res.status(isRateLimitError ? 429 : 500).json({
+      const statusCode = isOTPRateLimitError || isRateLimitError ? 429 : 500;
+      res.status(statusCode).json({
         success: false,
-        message: errorMessage
+        message: errorMessage,
+        ...(statusCode === 429
+          ? {
+              code: isOTPRateLimitError ? error.code : 'OTP_RATE_LIMITED',
+              retryAfterSeconds: isOTPRateLimitError ? error.retryAfterSeconds : undefined,
+            }
+          : {}),
       });
     }
   }

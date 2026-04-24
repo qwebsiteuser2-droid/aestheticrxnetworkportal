@@ -5,6 +5,18 @@ import gmailService from './gmailService';
 import gmailApiService from './gmailApiService';
 import { getOTPConfigForUserType, isOTPRequiredForUserType, getOTPDurationForUserType } from '../controllers/otpConfigController';
 
+export class OTPRateLimitError extends Error {
+  code: string;
+  retryAfterSeconds: number;
+
+  constructor(message: string, code: string, retryAfterSeconds: number) {
+    super(message);
+    this.name = 'OTPRateLimitError';
+    this.code = code;
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
 export class OTPService {
   private static readonly RESEND_COOLDOWN_SECONDS = Number(process.env.OTP_RESEND_COOLDOWN_SECONDS || 60);
   private static readonly MAX_SENDS_PER_WINDOW = Number(process.env.OTP_MAX_SENDS_PER_WINDOW || 3);
@@ -40,7 +52,11 @@ export class OTPService {
         1,
         Math.ceil((existingActiveOTP.created_at.getTime() + this.RESEND_COOLDOWN_SECONDS * 1000 - now.getTime()) / 1000)
       );
-      throw new Error(`Please wait ${waitSeconds} seconds before requesting another OTP.`);
+      throw new OTPRateLimitError(
+        `Please wait ${waitSeconds} seconds before requesting another OTP.`,
+        'OTP_RESEND_COOLDOWN',
+        waitSeconds
+      );
     }
 
     const sendsInWindow = await otpRepository
@@ -51,7 +67,12 @@ export class OTPService {
       .getCount();
 
     if (sendsInWindow >= this.MAX_SENDS_PER_WINDOW) {
-      throw new Error(`Too many OTP requests. Please try again in ${this.SEND_WINDOW_MINUTES} minutes.`);
+      const retryAfterSeconds = this.SEND_WINDOW_MINUTES * 60;
+      throw new OTPRateLimitError(
+        `Too many OTP requests. Please try again in ${this.SEND_WINDOW_MINUTES} minutes.`,
+        'OTP_WINDOW_LIMIT_EXCEEDED',
+        retryAfterSeconds
+      );
     }
   }
 

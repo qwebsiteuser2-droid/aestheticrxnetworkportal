@@ -10,6 +10,16 @@ import { toast } from 'react-hot-toast';
 import OTPModal from '@/components/OTPModal';
 import { getApiUrl } from '@/lib/getApiUrl';
 
+type OTPResendResult = {
+  retryAfterSeconds?: number;
+};
+
+type OTPResendError = Error & {
+  retryAfterSeconds?: number;
+  status?: number;
+  code?: string;
+};
+
 interface AdminFeature {
   id: string;
   name: string;
@@ -148,13 +158,14 @@ export default function AdminPage() {
     }
   };
 
-  const handleResendOTP = async () => {
+  const handleResendOTP = async (): Promise<OTPResendResult> => {
     try {
       const token = getAccessToken();
       if (!token) {
-        toast.error('No authentication token. Please login again.');
         router.push('/login');
-        return;
+        const authError = new Error('No authentication token. Please login again.') as OTPResendError;
+        authError.status = 401;
+        throw authError;
       }
 
       // Use centralized API instance
@@ -172,15 +183,23 @@ export default function AdminPage() {
 
       if (response.data.success) {
         console.log('✅ OTP resent successfully', response.data);
-        toast.success('OTP resent to your email');
+        return {};
       } else {
         const result = response.data;
         console.error('❌ Failed to resend OTP', { status: response.status, error: result });
-        toast.error(result.message || 'Failed to resend OTP');
+        const resendError = new Error(result.message || 'Failed to resend OTP') as OTPResendError;
+        resendError.status = response.status;
+        resendError.retryAfterSeconds = result.retryAfterSeconds;
+        resendError.code = result.code;
+        throw resendError;
       }
     } catch (error: any) {
       console.error('❌ Error resending OTP:', error);
-      toast.error('Failed to resend OTP. Please try again.');
+      const resendError = new Error(error?.response?.data?.message || error?.message || 'Failed to resend OTP. Please try again.') as OTPResendError;
+      resendError.status = error?.response?.status;
+      resendError.retryAfterSeconds = error?.response?.data?.retryAfterSeconds;
+      resendError.code = error?.response?.data?.code;
+      throw resendError;
     }
   };
 
