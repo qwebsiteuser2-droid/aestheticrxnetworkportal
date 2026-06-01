@@ -5,18 +5,6 @@ import gmailService from './gmailService';
 import gmailApiService from './gmailApiService';
 import { getOTPConfigForUserType, isOTPRequiredForUserType, getOTPDurationForUserType } from '../controllers/otpConfigController';
 
-export class OTPRateLimitError extends Error {
-  code: string;
-  retryAfterSeconds: number;
-
-  constructor(message: string, code: string, retryAfterSeconds: number) {
-    super(message);
-    this.name = 'OTPRateLimitError';
-    this.code = code;
-    this.retryAfterSeconds = retryAfterSeconds;
-  }
-}
-
 export class OTPService {
   private static readonly RESEND_COOLDOWN_SECONDS = Number(process.env.OTP_RESEND_COOLDOWN_SECONDS || 60);
   private static readonly MAX_SENDS_PER_WINDOW = Number(process.env.OTP_MAX_SENDS_PER_WINDOW || 3);
@@ -32,31 +20,34 @@ export class OTPService {
     return now;
   }
 
-  private static async enforceSendPolicy(userId: string, purpose: string): Promise<void> {
+  /**
+   * Find a valid unused OTP that can be re-sent (within cooldown) instead of generating a new code.
+   */
+  private static async findResendableOTP(userId: string, purpose: string): Promise<OTP | null> {
     const otpRepository = AppDataSource.getRepository(OTP);
     const now = new Date();
     const cooldownStart = new Date(now.getTime() - this.RESEND_COOLDOWN_SECONDS * 1000);
-    const windowStart = new Date(now.getTime() - this.SEND_WINDOW_MINUTES * 60 * 1000);
 
-    const existingActiveOTP = await otpRepository
+    return otpRepository
       .createQueryBuilder('otp')
       .where('otp.user_id = :userId', { userId })
       .andWhere('otp.purpose = :purpose', { purpose })
       .andWhere('otp.is_used = :isUsed', { isUsed: false })
       .andWhere('otp.expires_at > :now', { now })
+      .andWhere('otp.created_at > :cooldownStart', { cooldownStart })
       .orderBy('otp.created_at', 'DESC')
       .getOne();
+  }
 
-    if (existingActiveOTP && existingActiveOTP.created_at > cooldownStart) {
-      const waitSeconds = Math.max(
-        1,
-        Math.ceil((existingActiveOTP.created_at.getTime() + this.RESEND_COOLDOWN_SECONDS * 1000 - now.getTime()) / 1000)
-      );
-      throw new OTPRateLimitError(
-        `Please wait ${waitSeconds} seconds before requesting another OTP.`,
-        'OTP_RESEND_COOLDOWN',
-        waitSeconds
-      );
+  private static async enforceSendPolicy(userId: string, purpose: string): Promise<void> {
+    const otpRepository = AppDataSource.getRepository(OTP);
+    const now = new Date();
+    const windowStart = new Date(now.getTime() - this.SEND_WINDOW_MINUTES * 60 * 1000);
+
+    // Cooldown: allow re-sending the same active code (handled in generateAndSendOTP)
+    const resendable = await this.findResendableOTP(userId, purpose);
+    if (resendable) {
+      return;
     }
 
     const sendsInWindow = await otpRepository
@@ -67,12 +58,7 @@ export class OTPService {
       .getCount();
 
     if (sendsInWindow >= this.MAX_SENDS_PER_WINDOW) {
-      const retryAfterSeconds = this.SEND_WINDOW_MINUTES * 60;
-      throw new OTPRateLimitError(
-        `Too many OTP requests. Please try again in ${this.SEND_WINDOW_MINUTES} minutes.`,
-        'OTP_WINDOW_LIMIT_EXCEEDED',
-        retryAfterSeconds
-      );
+      throw new Error(`Too many OTP requests. Please try again in ${this.SEND_WINDOW_MINUTES} minutes.`);
     }
   }
 
@@ -83,6 +69,18 @@ export class OTPService {
 
     if (!user) {
       throw new Error('User not found');
+    }
+
+    const existingResendable = await this.findResendableOTP(userId, purpose);
+    if (existingResendable) {
+      await this.sendOTPEmail(
+        user.email,
+        user.doctor_name || user.email,
+        existingResendable.otp_code,
+        purpose,
+        userId
+      );
+      return existingResendable.otp_code;
     }
 
     await this.enforceSendPolicy(userId, purpose);
@@ -168,9 +166,9 @@ export class OTPService {
       } catch (error) {
         console.error(`❌ Error calling isOTPRequiredForUserType for ${userType}:`, error);
         console.error('Error details:', error instanceof Error ? error.message : String(error));
-        // Default to requiring OTP for security if query fails
-        isRequired = true;
-        console.log(`⚠️ Defaulting isRequired to true (secure default) due to error`);
+        // Default to not requiring OTP if config lookup fails (avoids blocking logins)
+        isRequired = false;
+        console.log(`⚠️ Defaulting isRequired to false due to error`);
       }
       
       if (!isRequired) {
@@ -187,9 +185,8 @@ export class OTPService {
       } catch (error) {
         console.error(`❌ Error calling getOTPDurationForUserType for ${userType}:`, error);
         console.error('Error details:', error instanceof Error ? error.message : String(error));
-        // Default to requiring OTP (Every Time) if query fails
-        durationHours = 1;
-        console.log(`⚠️ Defaulting durationHours to 1 (Every Time) due to error`);
+        durationHours = 0;
+        console.log(`⚠️ Defaulting durationHours to 0 due to error`);
       }
       
       if (durationHours === 0) {
@@ -226,7 +223,7 @@ export class OTPService {
       console.error('❌ Error checking OTP requirement:', error);
       console.error('Error details:', error instanceof Error ? error.message : String(error));
       console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-      return true; // Default to requiring OTP for security
+      return false;
     }
   }
 

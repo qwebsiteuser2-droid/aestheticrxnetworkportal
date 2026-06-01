@@ -23,7 +23,8 @@
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/db/data-source.ts",
     "seed": "ts-node --transpile-only src/db/seed.ts",
     "fix:missing-images": "ts-node --transpile-only src/scripts/fix-missing-upload-images.ts",
-    "migrate:uploads-to-products-pics": "ts-node --transpile-only src/scripts/migrate-uploads-to-products-pics.ts"
+    "migrate:uploads-to-products-pics": "ts-node --transpile-only src/scripts/migrate-uploads-to-products-pics.ts",
+    "test:gmail:send": "ts-node --transpile-only src/scripts/test-gmail-send.ts"
   },
   "dependencies": {
     "archiver": "^6.0.2",

@@ -24,6 +24,15 @@ export class Product {
   @Column({ type: 'text', nullable: true })
   image_data!: string | null; // Base64 encoded image data stored in database
 
+  @Column({ type: 'text', nullable: true })
+  image_front_data!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  image_back_data!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  image_side_data!: string | null;
+
   @Column({ type: 'varchar', length: 255 })
   name!: string;
 

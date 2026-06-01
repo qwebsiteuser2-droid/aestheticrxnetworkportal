@@ -9,9 +9,12 @@ import DOMPurify from 'dompurify';
 import Image from 'next/image';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import DebtRestrictionModal from '@/components/DebtRestrictionModal';
+import { UserMessageModal } from '@/components/modals/UserMessageModal';
+import { ProductDetailsModal } from '@/components/ProductDetailsModal';
 import { getApiBaseUrl as getApiBaseUrlFromLib } from '@/lib/getApiUrl';
 import api, { productsApi, ordersApi, authApi } from '@/lib/api';
 import { MainLayout } from '@/components/layout/MainLayout';
+import HeroCards from '@/components/HeroCards';
 
 interface Product {
   id: string;
@@ -74,25 +77,30 @@ export default function OrderPage() {
   const [locationInput, setLocationInput] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductDetailsModal, setShowProductDetailsModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const requireAuthForCheckout = (): boolean => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return false;
+    }
+    const userType = user?.user_type || (user as { user_type?: string })?.user_type || '';
+    const isRegularUser = userType === 'regular' || userType === 'regular_user';
+    if (!user?.is_approved && !user?.is_admin && !isRegularUser) {
+      router.push('/waiting-approval');
+      return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
-    // Check authentication
     if (!authLoading) {
-      if (!isAuthenticated) {
-        router.push('/login');
-        return;
-      }
-      // Regular users are auto-approved, so they bypass this check
-      if (!user?.is_approved && user?.user_type !== 'regular' && (user as any)?.user_type !== 'regular_user') {
-        router.push('/waiting-approval');
-        return;
-      }
       fetchProducts();
-      
-      // Load saved location from database
-      loadSavedLocation();
+      if (isAuthenticated) {
+        loadSavedLocation();
+      }
     }
-  }, [authLoading, isAuthenticated, user, router]);
+  }, [authLoading, isAuthenticated]);
 
   // Handle payment status from URL parameters
   useEffect(() => {
@@ -403,9 +411,10 @@ export default function OrderPage() {
 
   // Helper for image URLs - use full URL from backend if available, otherwise construct
   // Get product image URL using the new database-backed endpoint (more reliable on Railway)
-  const getProductImageById = (productId: string): string => {
+  const getProductImageById = (productId: string, view?: string): string => {
     const baseUrl = getApiBaseUrlFromLib();
-    return `${baseUrl}/api/product-images/${productId}`;
+    const q = view && view !== 'main' ? `?view=${view}` : '';
+    return `${baseUrl}/api/product-images/${productId}${q}`;
   };
 
   const getImageUrl = (imageUrl: string | null | undefined): string => {
@@ -424,47 +433,62 @@ export default function OrderPage() {
     return `${baseUrl}/api/images${normalizedUrl}`;
   };
 
-  const fetchProducts = async () => {
-    try {
-      // Use centralized API instance (same as leaderboard page)
-      const response = await productsApi.getAll();
-      
-      if (response.success) {
-        console.log('Products loaded:', response.data.products);
-        const productsData = response.data.products || [];
-        setProducts(productsData);
-        setFilteredProducts(productsData);
-        
-        // Create 100-slot array (1-100)
-        const slots: (Product | null)[] = new Array(100).fill(null);
-        productsData.forEach((product: Product) => {
-          if (product.slot_index >= 1 && product.slot_index <= 100) {
-            slots[product.slot_index - 1] = product; // Convert to 0-based index
+  const applyLoadedProducts = (productsData: Product[]) => {
+    setProducts(productsData);
+    setFilteredProducts(productsData);
+
+    const slots: (Product | null)[] = new Array(100).fill(null);
+    productsData.forEach((product: Product) => {
+      if (product.slot_index >= 1 && product.slot_index <= 100) {
+        slots[product.slot_index - 1] = product;
+      }
+    });
+    setAllSlots(slots);
+
+    const outOfStockProducts = productsData.filter((p: Product) => p.stock_quantity === 0);
+    if (outOfStockProducts.length > 0) {
+      const outOfStockIds = outOfStockProducts.map((p: Product) => p.id);
+      setCart((prev: Record<string, number>) => {
+        const newCart = { ...prev };
+        let removedItems = 0;
+        outOfStockIds.forEach((id: string) => {
+          if (newCart[id]) {
+            removedItems += newCart[id];
+            delete newCart[id];
           }
         });
-        setAllSlots(slots);
-        
-        // Remove out-of-stock items from cart
-        const outOfStockProducts = productsData.filter((p: Product) => p.stock_quantity === 0);
-        if (outOfStockProducts.length > 0) {
-          const outOfStockIds = outOfStockProducts.map((p: Product) => p.id);
-          setCart((prev: Record<string, number>) => {
-            const newCart = { ...prev };
-            let removedItems = 0;
-            outOfStockIds.forEach((id: string) => {
-              if (newCart[id]) {
-                removedItems += newCart[id];
-                delete newCart[id];
-              }
-            });
-            if (removedItems > 0) {
-              toast.error(`${removedItems} out-of-stock item(s) removed from cart`);
-            }
-            return newCart;
-          });
+        if (removedItems > 0) {
+          toast.error(`${removedItems} out-of-stock item(s) removed from cart`);
         }
+        return newCart;
+      });
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      let productsData: Product[] = [];
+
+      try {
+        const response = await productsApi.getAll({ limit: 100 });
+        if (response.success) {
+          productsData = response.data.products || [];
+        }
+      } catch (primaryError) {
+        console.warn('Primary products API failed, trying public catalog:', primaryError);
+      }
+
+      if (productsData.length === 0) {
+        const fallback = await api.get('/public/products', { params: { limit: 100 } });
+        if (fallback.data?.success) {
+          productsData = (fallback.data.data || []) as Product[];
+        }
+      }
+
+      if (productsData.length > 0) {
+        applyLoadedProducts(productsData);
       } else {
-        toast.error('Failed to fetch products');
+        toast.error('No products available right now. Please try again later.');
       }
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -510,6 +534,40 @@ export default function OrderPage() {
     toast.success('Added to cart!');
   };
 
+  const addToCartWithQuantity = (productId: string, qty: number) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+    const originalStock = product.stock_quantity || 0;
+    const current = cart[productId] || 0;
+    const add = Math.min(qty, Math.max(0, originalStock - current));
+    if (add < 1) {
+      toast.error('Cannot add more — stock limit reached');
+      return;
+    }
+    setCart((prev) => ({
+      ...prev,
+      [productId]: (prev[productId] || 0) + add,
+    }));
+    toast.success(`Added ${add} to cart`);
+  };
+
+  const buyNow = (productId: string, qty = 1) => {
+    if (!requireAuthForCheckout()) return;
+    const product = products.find((p) => p.id === productId);
+    if (!product || !product.stock_quantity || product.stock_quantity < 1) {
+      toast.error('This product is out of stock');
+      return;
+    }
+    setCart({ [productId]: Math.min(qty, product.stock_quantity) });
+    setShowCart(true);
+    if (!selectedLocation) {
+      setShowLocationModal(true);
+      toast('Select your delivery location to complete checkout', { icon: '📍' });
+    } else {
+      setShowPaymentOptions(true);
+    }
+  };
+
   const removeFromCart = (productId: string) => {
     setCart(prev => {
       const newCart = { ...prev };
@@ -539,6 +597,8 @@ export default function OrderPage() {
   };
 
   const handleOrder = async () => {
+    if (!requireAuthForCheckout()) return;
+
     if (Object.keys(cart).length === 0) {
       toast.error('Your cart is empty');
       return;
@@ -986,15 +1046,24 @@ export default function OrderPage() {
                 payment_method: 'cash_on_delivery'
               });
               
-              if (batchResponse.data.success) {
-                console.log('✅ Batch notification sent successfully');
+              if (batchResponse.data.success && batchResponse.data.data?.emailSent !== false) {
+                console.log('✅ Batch notification email sent successfully', batchResponse.data.data);
               } else {
                 console.error('❌ Failed to send batch notification:', batchResponse.data);
+                const emailErr =
+                  batchResponse.data?.data?.emailError ||
+                  batchResponse.data?.message ||
+                  'Admin email could not be sent';
+                toast.error(emailErr, { duration: 8000 });
               }
             }
-          } catch (error) {
+          } catch (error: any) {
             console.error('❌ Error sending batch notification:', error);
-            // Don't show error to user, just log it
+            const emailErr =
+              error.response?.data?.data?.emailError ||
+              error.response?.data?.message ||
+              'Admin notification email failed. Check Gmail API settings on the server.';
+            toast.error(emailErr, { duration: 8000 });
           }
         }
       }
@@ -1015,8 +1084,8 @@ export default function OrderPage() {
       try {
         // Use centralized API instance
         const refreshResponse = await productsApi.getAll({ limit: 100 });
-        if (refreshResponse.success) {
-          setProducts(refreshResponse.data.products);
+        if (refreshResponse.success && refreshResponse.data.products?.length) {
+          applyLoadedProducts(refreshResponse.data.products);
         }
       } catch (error) {
         console.error('Failed to refresh products:', error);
@@ -1043,13 +1112,17 @@ export default function OrderPage() {
   };
 
 
-  if (authLoading || loading) {
+  const catalogProducts = products.filter(
+    (p) => p.is_visible !== false && String(p.name || '').trim().length > 0
+  );
+
+  if (loading) {
     return (
       <MainLayout>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">{authLoading ? 'Checking authentication...' : 'Loading products...'}</p>
+            <p className="text-gray-600">Loading products...</p>
           </div>
         </div>
       </MainLayout>
@@ -1097,11 +1170,15 @@ export default function OrderPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <HeroCards />
+        </div>
+
         <div className="mb-4 sm:mb-6">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
             <h3 className="text-base sm:text-lg font-medium text-blue-900 mb-2">Product Catalog</h3>
             <p className="text-blue-700 text-xs sm:text-sm">
-              Browse and order from our product catalog. Click "Add to Cart" to select products for your order.
+              Browse and order from our product catalog. No sign-in required to browse — sign in when you checkout.
             </p>
           </div>
         </div>
@@ -1194,33 +1271,44 @@ export default function OrderPage() {
                       </span>
                     </div>
 
-                    {/* Add to Cart Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent triggering card click
-                        addToCart(product.id);
-                      }}
-                      disabled={(() => {
-                        const originalStock = product.stock_quantity || 0;
-                        const cartQuantity = cart[product.id] || 0;
-                        return originalStock === 0 || cartQuantity >= originalStock;
-                      })()}
-                      className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                        (() => {
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(product.id);
+                        }}
+                        disabled={(() => {
                           const originalStock = product.stock_quantity || 0;
                           const cartQuantity = cart[product.id] || 0;
-                          return originalStock > 0 && cartQuantity < originalStock;
-                        })()
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
-                      {(() => {
-                        const originalStock = product.stock_quantity || 0;
-                        const cartQuantity = cart[product.id] || 0;
-                        return originalStock > 0 && cartQuantity < originalStock ? 'Add to Cart' : 'Out of Stock';
-                      })()}
-                    </button>
+                          return originalStock === 0 || cartQuantity >= originalStock;
+                        })()}
+                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                          (() => {
+                            const originalStock = product.stock_quantity || 0;
+                            const cartQuantity = cart[product.id] || 0;
+                            return originalStock > 0 && cartQuantity < originalStock;
+                          })()
+                            ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                      >
+                        Add to Cart
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          buyNow(product.id);
+                        }}
+                        disabled={!product.stock_quantity || product.stock_quantity < 1}
+                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                          product.stock_quantity && product.stock_quantity > 0
+                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                      >
+                        Buy Now
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1240,24 +1328,17 @@ export default function OrderPage() {
               </button>
             </div>
           )
-        ) : (
-          // Show all 100 slots when not searching
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 sm:gap-4">
-            {allSlots.map((product, index) => {
-              const slotNumber = index + 1;
-              return (
+        ) : catalogProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+            {catalogProducts.map((product) => (
                 <div 
-                  key={slotNumber} 
+                  key={product.id} 
                   className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                   onClick={() => {
-                    if (product) {
                       setSelectedProduct(product);
                       setShowProductDetailsModal(true);
-                    }
                   }}
                 >
-                  {product ? (
-                    // Product exists in this slot
                     <>
                       {/* Product Image */}
                       <div className="aspect-square mb-3 bg-gray-100 rounded-lg overflow-hidden">
@@ -1326,48 +1407,54 @@ export default function OrderPage() {
                           </span>
                         </div>
 
-                        {/* Add to Cart Button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation(); // Prevent triggering card click
-                            addToCart(product.id);
-                          }}
-                          disabled={(() => {
-                            const originalStock = product.stock_quantity || 0;
-                            const cartQuantity = cart[product.id] || 0;
-                            return originalStock === 0 || cartQuantity >= originalStock;
-                          })()}
-                          className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                            (() => {
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              addToCart(product.id);
+                            }}
+                            disabled={(() => {
                               const originalStock = product.stock_quantity || 0;
                               const cartQuantity = cart[product.id] || 0;
-                              return originalStock > 0 && cartQuantity < originalStock;
-                            })()
-                              ? 'bg-blue-600 text-white hover:bg-blue-700'
-                              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          }`}
-                        >
-                          {(() => {
-                            const originalStock = product.stock_quantity || 0;
-                            const cartQuantity = cart[product.id] || 0;
-                            return originalStock > 0 && cartQuantity < originalStock ? 'Add to Cart' : 'Out of Stock';
-                          })()}
-                        </button>
+                              return originalStock === 0 || cartQuantity >= originalStock;
+                            })()}
+                            className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-colors ${
+                              (() => {
+                                const originalStock = product.stock_quantity || 0;
+                                const cartQuantity = cart[product.id] || 0;
+                                return originalStock > 0 && cartQuantity < originalStock;
+                              })()
+                                ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            }`}
+                          >
+                            Add
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              buyNow(product.id);
+                            }}
+                            disabled={!product.stock_quantity || product.stock_quantity < 1}
+                            className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-colors ${
+                              product.stock_quantity && product.stock_quantity > 0
+                                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            }`}
+                          >
+                            Buy Now
+                          </button>
+                        </div>
                       </div>
                     </>
-                  ) : (
-                    // Empty slot
-                    <div className="aspect-square mb-3 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400">
-                      <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                      <span className="text-xs font-medium">Slot {slotNumber}</span>
-                      <span className="text-xs">Empty</span>
-                    </div>
-                  )}
                 </div>
-              );
-            })}
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="text-gray-400 text-6xl mb-4">📦</div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No products available</h3>
+            <p className="text-gray-600 text-sm">Check back soon or contact support if this persists.</p>
           </div>
         )}
       </div>
@@ -1763,6 +1850,16 @@ export default function OrderPage() {
       )}
 
       {/* Debt Restriction Modal */}
+      <UserMessageModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onConfirm={() => router.push(`/login?redirect=${encodeURIComponent('/order')}`)}
+        title="Sign in required"
+        message="Please sign in to place an order, save your delivery location, and complete checkout."
+        confirmLabel="Go to Sign In"
+        variant="info"
+      />
+
       {showDebtModal && debtStatus && (
         <DebtRestrictionModal
           isOpen={showDebtModal}
@@ -1771,135 +1868,19 @@ export default function OrderPage() {
         />
       )}
 
-      {/* Product Details Modal */}
-      {showProductDetailsModal && selectedProduct && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={() => {
+      {selectedProduct && (
+        <ProductDetailsModal
+          product={selectedProduct}
+          isOpen={showProductDetailsModal}
+          onClose={() => {
             setShowProductDetailsModal(false);
             setSelectedProduct(null);
           }}
-        >
-          <div 
-            className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all"
-            onClick={(e) => e.stopPropagation()}
-            style={{ marginTop: '-10vh' }}
-          >
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
-              <h2 className="text-2xl font-bold text-gray-900">Product Details</h2>
-              <button
-                onClick={() => {
-                  setShowProductDetailsModal(false);
-                  setSelectedProduct(null);
-                }}
-                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Product Image - uses database-backed endpoint */}
-                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                  {selectedProduct.id ? (
-                    <img
-                      src={getProductImageById(selectedProduct.id)}
-                      alt={selectedProduct.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        const nextSibling = e.currentTarget.nextElementSibling;
-                        if (nextSibling) {
-                          (nextSibling as HTMLElement).style.display = 'flex';
-                        }
-                      }}
-                    />
-                  ) : null}
-                  <div className="w-full h-full flex items-center justify-center text-gray-400" style={{ display: selectedProduct.image_url ? 'none' : 'flex' }}>
-                    <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Product Information */}
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded">
-                        Slot {selectedProduct.slot_index}
-                      </span>
-                      {selectedProduct.is_featured && (
-                        <span className="text-sm font-medium text-yellow-600 bg-yellow-100 px-3 py-1 rounded">
-                          ⭐ Featured
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{selectedProduct.name}</h3>
-                    {selectedProduct.category && (
-                      <p className="text-sm text-gray-500 mb-3">Category: {selectedProduct.category}</p>
-                    )}
-                  </div>
-
-                  <div className="border-t border-gray-200 pt-4">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Description</h4>
-                    <p className="text-gray-600 text-sm leading-relaxed">{selectedProduct.description || 'No description available.'}</p>
-                  </div>
-
-                  <div className="border-t border-gray-200 pt-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Price:</span>
-                      <span className="text-2xl font-bold text-blue-600">
-                        ₨{formatPrice(selectedProduct.price)}
-                      </span>
-                    </div>
-                    {selectedProduct.unit && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">Unit:</span>
-                        <span className="text-sm text-gray-600">per {selectedProduct.unit}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Stock Status:</span>
-                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${
-                        selectedProduct.stock_quantity && selectedProduct.stock_quantity > 0
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {selectedProduct.stock_quantity && selectedProduct.stock_quantity > 0 
-                          ? `In Stock (${selectedProduct.stock_quantity} available)` 
-                          : 'Out of Stock'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-200 pt-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToCart(selectedProduct.id);
-                        toast.success(`${selectedProduct.name} added to cart!`);
-                        setShowProductDetailsModal(false);
-                        setSelectedProduct(null);
-                      }}
-                      disabled={!selectedProduct.stock_quantity || selectedProduct.stock_quantity === 0}
-                      className={`w-full py-3 px-4 rounded-lg text-base font-medium transition-colors ${
-                        selectedProduct.stock_quantity && selectedProduct.stock_quantity > 0
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
-                      {selectedProduct.stock_quantity && selectedProduct.stock_quantity > 0 
-                        ? 'Add to Cart' 
-                        : 'Out of Stock'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          formatPrice={formatPrice}
+          cartQuantity={cart[selectedProduct.id] || 0}
+          onAddToCart={(productId, quantity) => addToCartWithQuantity(productId, quantity)}
+          onBuyNow={(productId, quantity) => buyNow(productId, quantity)}
+        />
       )}
     </div>
     </MainLayout>

@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
 import { Doctor } from '../models/Doctor';
 import { Product } from '../models/Product';
+import { ProductReview } from '../models/ProductReview';
 import { Order } from '../models/Order';
 import { ResearchPaper } from '../models/ResearchPaper';
 import { ResearchPaperView } from '../models/ResearchPaperView';
@@ -53,6 +54,7 @@ export const AppDataSource = new DataSource({
   entities: [
     Doctor,
     Product,
+    ProductReview,
     Order,
     ResearchPaper,
     ResearchPaperView,
@@ -95,9 +97,10 @@ export const AppDataSource = new DataSource({
     FeaturedItem,
     // Advertisement,
   ],
-  migrations: process.env.NODE_ENV === 'production' || process.env.CI 
-    ? ['dist/db/migrations/*.js'] 
-    : ['src/db/migrations/*.ts'],
+  migrations:
+    process.env.NODE_ENV === 'production' || process.env.CI
+      ? ['dist/migrations/*.js', 'dist/db/migrations/*.js']
+      : ['src/migrations/*.ts', 'src/db/migrations/*.ts'],
   synchronize: false, // Disabled to prevent constraint issues
   logging: process.env.NODE_ENV === 'development',
   ssl: process.env.NODE_ENV === 'production' && process.env.DATABASE_SSL !== 'false' ? { rejectUnauthorized: false } : false,
@@ -121,6 +124,15 @@ export const initializeDatabase = async (): Promise<void> => {
       
       await AppDataSource.initialize();
       console.log('✅ Database connection established successfully');
+
+      try {
+        const pending = await AppDataSource.runMigrations();
+        if (pending.length > 0) {
+          console.log(`✅ Applied ${pending.length} database migration(s)`);
+        }
+      } catch (migrationError) {
+        console.error('⚠️ Database migrations failed (some features may be limited):', migrationError);
+      }
     }
   } catch (error: unknown) {
     console.error('❌ Error during database initialization:', error);

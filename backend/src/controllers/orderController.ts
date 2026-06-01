@@ -28,9 +28,6 @@ const getTierBenefits = (tierName: string): string => {
 const orderCreationAttempts = new Map<string, { count: number; lastAttempt: number }>();
 const ORDER_RATE_LIMIT_WINDOW = 500; // 0.5 seconds
 const MAX_ORDERS_PER_WINDOW = 20; // Allow 20 orders per window for large orders
-// Temporary ops toggle: debt gate is disabled by default for now.
-// Set DISABLE_DEBT_LIMIT_ENFORCEMENT=false to re-enable normal debt blocking.
-const DISABLE_DEBT_LIMIT_ENFORCEMENT = process.env.DISABLE_DEBT_LIMIT_ENFORCEMENT !== 'false';
 
 // Cleanup old entries every 5 minutes to prevent memory leaks
 setInterval(() => {
@@ -78,22 +75,20 @@ export const createOrder = async (req: AuthenticatedRequest, res: Response): Pro
       orderCreationAttempts.set(userKey, { count: 1, lastAttempt: now });
     }
 
-    // Temporarily bypass debt-limit blocking while keeping debt logic available for reporting/admin screens.
-    if (!DISABLE_DEBT_LIMIT_ENFORCEMENT) {
-      const debtStatus = await DebtService.canUserPlaceOrder(user.id);
-      if (!debtStatus.canPlaceOrder) {
-        res.status(403).json({
-          success: false,
-          message: `You have reached your debt limit of PKR ${debtStatus.debtLimit.toLocaleString()} for your ${debtStatus.tierName} tier. Your current debt is PKR ${debtStatus.currentDebt.toLocaleString()}. Please pay your outstanding debts before placing new orders, or contact admin for support.`,
-          debtStatus: {
-            currentDebt: debtStatus.currentDebt,
-            debtLimit: debtStatus.debtLimit,
-            tierName: debtStatus.tierName,
-            remainingLimit: debtStatus.remainingLimit
-          }
-        });
-        return;
-      }
+    // Check debt limit before allowing new orders
+    const debtStatus = await DebtService.canUserPlaceOrder(user.id);
+    if (!debtStatus.canPlaceOrder) {
+      res.status(403).json({
+        success: false,
+        message: `You have reached your debt limit of PKR ${debtStatus.debtLimit.toLocaleString()} for your ${debtStatus.tierName} tier. Your current debt is PKR ${debtStatus.currentDebt.toLocaleString()}. Please pay your outstanding debts before placing new orders, or contact admin for support.`,
+        debtStatus: {
+          currentDebt: debtStatus.currentDebt,
+          debtLimit: debtStatus.debtLimit,
+          tierName: debtStatus.tierName,
+          remainingLimit: debtStatus.remainingLimit
+        }
+      });
+      return;
     }
 
     // Validate required fields
@@ -415,72 +410,56 @@ export const sendBatchOrderNotification = async (req: AuthenticatedRequest, res:
       console.warn(`⚠️ Only found ${orders.length} out of ${order_ids.length} requested orders`);
     }
 
-    // Get all admin emails (same logic as createOrder)
-    const adminEmails: string[] = [];
-    
-    if (process.env.MAIN_ADMIN_EMAIL) {
-      adminEmails.push(process.env.MAIN_ADMIN_EMAIL);
-    }
-    if (process.env.SECONDARY_ADMIN_EMAIL) {
-      adminEmails.push(process.env.SECONDARY_ADMIN_EMAIL);
-    }
-    
-    const doctorRepository = AppDataSource.getRepository(Doctor);
-    const { AdminPermission } = await import('../models/AdminPermission');
-    const permissionRepository = AppDataSource.getRepository(AdminPermission);
-    
-    const parentAdmins = await doctorRepository.find({
-      where: { is_admin: true, is_deactivated: false }
-    });
-    
-    const fullAdminPermissions = await permissionRepository.find({
-      where: { 
-        is_active: true,
-        permission_type: 'full'
-      },
-      relations: ['doctor']
-    });
-    
-    // Add parent admin emails (filter out test emails)
-    for (const admin of parentAdmins) {
-      const hasPermission = fullAdminPermissions.some(p => p.doctor_id === admin.id);
-      if (!hasPermission && admin.email && !adminEmails.includes(admin.email)) {
-        adminEmails.push(admin.email);
-      }
-    }
-    
-    // Add child Full Admin emails
-    for (const permission of fullAdminPermissions) {
-      if (permission.doctor && permission.doctor.email && 
-          permission.doctor.is_approved && !permission.doctor.is_deactivated &&
-          !adminEmails.includes(permission.doctor.email)) {
-        adminEmails.push(permission.doctor.email);
-      }
-    }
+    const { collectOrderNotificationAdminEmails } = await import('../utils/orderAdminEmails');
+    const adminEmails = await collectOrderNotificationAdminEmails();
+    console.log(`📬 Batch notify — ${adminEmails.length} recipient(s):`, adminEmails.join(', '));
 
     const paymentMethod = payment_method || 'cash_on_delivery';
 
-    // Send batch notification (non-blocking - return immediately, send email in background)
-    // This prevents timeout errors if email sending takes too long
-    gmailService.sendBatchOrderPlacedAlert(orders, paymentMethod, adminEmails)
-      .then(() => {
-        console.log(`✅ Batch notification sent for ${orders.length} order(s)`);
-      })
-      .catch((error: unknown) => {
-        console.error('❌ Failed to send batch notification:', error);
-        console.error('Error details:', error instanceof Error ? error.message : String(error));
-        // Email failure doesn't affect the response
+    if (adminEmails.length === 0) {
+      res.status(502).json({
+        success: false,
+        message:
+          'No admin email recipients configured. Set MAIN_ADMIN_EMAIL on Railway and redeploy.',
+        data: {
+          orders_count: orders.length,
+          order_numbers: orders.map((o) => o.order_number),
+          emailSent: false,
+        },
       });
-    
-    // Return immediately - don't wait for email to be sent
-    res.status(200).json({
-      success: true,
-      message: `Batch notification queued for ${orders.length} order(s)`,
-      data: {
-        orders_count: orders.length,
-        order_numbers: orders.map(o => o.order_number)
-      }
-    });
+      return;
+    }
+
+    try {
+      await gmailService.sendBatchOrderPlacedAlert(orders, paymentMethod, adminEmails);
+      console.log(`✅ Batch notification email sent for ${orders.length} order(s) to: ${adminEmails.join(', ')}`);
+
+      res.status(200).json({
+        success: true,
+        message: `Admin notification email sent for ${orders.length} order(s)`,
+        data: {
+          orders_count: orders.length,
+          order_numbers: orders.map((o) => o.order_number),
+          emailSent: true,
+          recipients: adminEmails,
+        },
+      });
+    } catch (emailError: unknown) {
+      const emailMessage = emailError instanceof Error ? emailError.message : String(emailError);
+      console.error('❌ Failed to send batch order notification email:', emailError);
+
+      res.status(502).json({
+        success: false,
+        message: `Order(s) saved but admin email failed: ${emailMessage}`,
+        data: {
+          orders_count: orders.length,
+          order_numbers: orders.map((o) => o.order_number),
+          emailSent: false,
+          recipients: adminEmails,
+          emailError: emailMessage,
+        },
+      });
+    }
   } catch (error: unknown) {
     console.error('Send batch order notification error:', error);
     res.status(500).json({

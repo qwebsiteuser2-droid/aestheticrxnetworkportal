@@ -28,8 +28,8 @@ async function ensureTableExists(): Promise<void> {
       await queryRunner.query(`
         INSERT INTO otp_configs ("userType", duration, "durationType", "isRequired", description, created_at, updated_at)
         VALUES 
-          ('regular', 24, 'hours', true, 'OTP required for regular users', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-          ('admin', 1, 'hours', true, 'OTP required for every admin login', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          ('regular', 24, 'hours', false, 'OTP optional for regular users', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+          ('admin', 1, 'hours', false, 'OTP optional for admin login', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         ON CONFLICT ("userType") DO NOTHING;
       `);
       console.log('✅ Inserted default OTP configs');
@@ -63,8 +63,8 @@ async function ensureDefaultConfigs(): Promise<void> {
           userType: 'regular',
           duration: 24,
           durationType: 'hours',
-          isRequired: true,
-          description: 'OTP required for regular users'
+          isRequired: false,
+          description: 'OTP optional for regular users'
         });
         await configRepository.save(defaultRegular);
         console.log('✅ Created default OTP config for regular users');
@@ -84,8 +84,8 @@ async function ensureDefaultConfigs(): Promise<void> {
           userType: 'admin',
           duration: 1,
           durationType: 'hours',
-          isRequired: true,
-          description: 'OTP required for every admin login'
+          isRequired: false,
+          description: 'OTP optional for admin login'
         });
         await configRepository.save(defaultAdmin);
         console.log('✅ Created default OTP config for admin users');

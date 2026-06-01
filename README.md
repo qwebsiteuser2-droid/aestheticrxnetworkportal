@@ -121,6 +121,15 @@ A comprehensive B2B platform designed for medical clinics and doctors to manage 
 - Tier-based rewards and benefits
 - Certificate generation
 
+### Progressive Web App (PWA) (v3.5.1) 🆕
+- **Installable App**: Add to home screen on mobile and desktop
+- **Consistent App Name**: Installed app displays as **AestheticRXNetwork** (no longer the truncated "AestheticRX")
+- **Manifest**: `name` and `short_name` are both set to `AestheticRXNetwork` in `frontend/public/manifest.json`
+- **iOS Title**: `appleWebApp.title` and `applicationName` set to `AestheticRXNetwork` in `frontend/src/app/layout.tsx`
+- **Standalone Display**: Launches in standalone mode with brand theme color `#1E66FF`
+
+> **Note:** After deploying a manifest change, the installed app must be **uninstalled and reinstalled** (or the icon removed and re-added) for the new name to take effect, since the OS caches the manifest at install time.
+
 ## 🛠️ Tech Stack
 
 ### Frontend
@@ -132,6 +141,7 @@ A comprehensive B2B platform designed for medical clinics and doctors to manage 
 - **Icons**: Heroicons, Lucide React
 - **Notifications**: React Hot Toast
 - **Charts**: Recharts
+- **PWA**: Installable Progressive Web App via `frontend/public/manifest.json` (app name **AestheticRXNetwork**)
 
 ### Backend
 - **Runtime**: Node.js 20.x
@@ -470,8 +480,8 @@ AestheticRxNetwork Team
 ---
 
 **Status**: Production Ready ✅  
-**Version**: 3.4.0  
-**Last Updated**: January 31, 2026  
+**Version**: 3.5.1  
+**Last Updated**: June 1, 2026  
 **CI/CD**: GitHub Actions  
 **Test Coverage**: Comprehensive  
 **Security Score**: 10/10 ⭐⭐⭐⭐⭐
@@ -479,4 +489,4 @@ AestheticRxNetwork Team
 ---
 
 **Written by**: Muhammad Qasim Shabbir
-# aestheticrx
+# aestheticrxnetwork

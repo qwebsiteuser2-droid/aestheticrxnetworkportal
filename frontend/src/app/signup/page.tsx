@@ -6,6 +6,12 @@ import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 import api from '@/lib/api';
 import GoogleSignInButton from '@/components/GoogleSignInButton';
+import {
+  PasswordRequirementsList,
+  PasswordRequirementsModal,
+  getPasswordValidation,
+} from '@/components/PasswordRequirements';
+import { UserMessageModal } from '@/components/modals/UserMessageModal';
 
 type UserType = 'doctor' | 'regular_user' | 'employee';
 
@@ -29,6 +35,9 @@ function SignupContent() {
   
   const [userType, setUserType] = useState<UserType>(userTypeParam || 'doctor');
   const [loading, setLoading] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
   const [formData, setFormData] = useState<SignupFormData>({
     email: '',
     password: '',
@@ -68,8 +77,15 @@ function SignupContent() {
       return;
     }
 
+    const passwordValidation = getPasswordValidation(formData.password);
+    if (!passwordValidation.isValid) {
+      setShowPasswordModal(true);
+      toast.error('Please fix your password to meet all requirements');
+      return;
+    }
+
     if (!formData.consent) {
-      toast.error('Please accept the privacy policy and terms');
+      setShowConsentModal(true);
       return;
     }
 
@@ -175,6 +191,7 @@ function SignupContent() {
             });
           }, 2000);
         } else if (errorMessage.includes('Password does not meet requirements')) {
+          setShowPasswordModal(true);
           setTimeout(() => {
             toast('Please check password requirements', {
               icon: '⚠️',
@@ -373,9 +390,24 @@ function SignupContent() {
                 required
                 value={formData.password}
                 onChange={handleInputChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onBlur={() => setPasswordTouched(true)}
+                aria-describedby="password-requirements-hint"
+                className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                  passwordTouched && formData.password && !getPasswordValidation(formData.password).isValid
+                    ? 'border-amber-400'
+                    : 'border-gray-300'
+                }`}
                 placeholder="Create a strong password"
               />
+              {(passwordTouched || formData.password.length > 0) && (
+                <div
+                  id="password-requirements-hint"
+                  className="mt-2 p-3 rounded-md bg-gray-50 border border-gray-200"
+                >
+                  <p className="text-xs font-medium text-gray-700 mb-2">Password must include:</p>
+                  <PasswordRequirementsList password={formData.password} />
+                </div>
+              )}
             </div>
 
             <div>
@@ -467,6 +499,22 @@ function SignupContent() {
             </p>
           </div>
         </form>
+
+        <PasswordRequirementsModal
+          isOpen={showPasswordModal}
+          onClose={() => setShowPasswordModal(false)}
+          password={formData.password}
+        />
+
+        <UserMessageModal
+          isOpen={showConsentModal}
+          onClose={() => setShowConsentModal(false)}
+          title="Privacy policy & terms"
+          message="Please read and accept our Privacy Policy and Terms of Service before creating your account."
+          confirmLabel="View policies"
+          variant="warning"
+          onConfirm={() => router.push('/privacy')}
+        />
       </div>
     </div>
   );

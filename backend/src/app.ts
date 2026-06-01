@@ -55,7 +55,7 @@ import unsubscribeRoutes from './routes/unsubscribe';
 import badgeRoutes from './routes/badges';
 import conversationRoutes from './routes/conversations';
 import notificationRoutes from './routes/notifications';
-import { testGmailConnection, testOrderNotification, testPaymentConfirmation } from './controllers/testGmailController';
+import { diagnoseGmailSetup, testGmailConnection, testOrderNotification, testPaymentConfirmation } from './controllers/testGmailController';
 import { sendManualOrderNotification, sendManualPaymentConfirmation } from './controllers/manualNotificationController';
 import { Doctor } from './models/Doctor';
 import { Product } from './models/Product';
@@ -97,8 +97,6 @@ app.use(helmet({
       upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
     },
   },
-  // OAuth popup flows (Google Sign-In) require opener relationship for postMessage.
-  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   crossOriginEmbedderPolicy: false, // Required for some external resources
   crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
@@ -716,6 +714,7 @@ app.get('/api/images/:path(*)', async (req, res): Promise<void> => {
 app.get('/api/product-images/:productId', async (req, res): Promise<void> => {
   try {
     const { productId } = req.params;
+    const view = String(req.query.view || 'main').toLowerCase();
     
     if (!productId) {
       res.status(400).json({ error: 'Product ID is required' });
@@ -725,18 +724,39 @@ app.get('/api/product-images/:productId', async (req, res): Promise<void> => {
     const productRepository = AppDataSource.getRepository(Product);
     const product = await productRepository.findOne({
       where: { id: productId },
-      select: ['id', 'image_data', 'image_url']
+      select: [
+        'id',
+        'image_data',
+        'image_url',
+        'image_front_data',
+        'image_back_data',
+        'image_side_data',
+      ],
     });
     
     if (!product) {
       res.status(404).json({ error: 'Product not found' });
       return;
     }
+
+    const viewToField: Record<string, keyof Product> = {
+      main: 'image_data',
+      front: 'image_front_data',
+      back: 'image_back_data',
+      side: 'image_side_data',
+    };
+    const field = viewToField[view] || 'image_data';
+    let imageData =
+      (product[field] as string | null | undefined) || product.image_data;
     
-    if (!product.image_data) {
+    if (!imageData) {
       // If no image_data in database, redirect to the file-based URL if exists
       if (product.image_url) {
-        res.redirect(product.image_url);
+        const backendUrl = getBackendUrl();
+        const imagePath = product.image_url.startsWith('/')
+          ? product.image_url.substring(1)
+          : product.image_url;
+        res.redirect(`${backendUrl}/api/images/${imagePath}`);
         return;
       }
       res.status(404).json({ error: 'Product image not found' });
@@ -744,7 +764,7 @@ app.get('/api/product-images/:productId', async (req, res): Promise<void> => {
     }
     
     // Parse base64 data URL
-    const matches = product.image_data.match(/^data:([^;]+);base64,(.+)$/);
+    const matches = imageData.match(/^data:([^;]+);base64,(.+)$/);
     if (!matches) {
       console.error('Invalid image_data format for product:', productId);
       res.status(500).json({ error: 'Invalid image data format' });
@@ -913,38 +933,51 @@ app.use('/api/debt', debtRoutes);
 app.use('/api/admin', dataExportRoutes);
 app.use('/api/employee', employeeRoutes);
 
-// Gmail status check - SECURITY: Don't expose email in production
-app.get('/api/gmail-status', (req, res) => {
+// Gmail status check (reports Gmail API — the method used for order emails)
+app.get('/api/gmail-status', async (_req, res) => {
   try {
-    const hasGmailCredentials = !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
-    
-    // SECURITY: Don't log or expose email address
-    // SECURITY: Only return minimal information
+    const gmailApiService = (await import('./services/gmailApiService')).default;
+    const hasGmailApi = gmailApiService.isConfigured();
+    const hasSmtp = !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
+    const hasAdminRecipient = !!(process.env.MAIN_ADMIN_EMAIL || process.env.SECONDARY_ADMIN_EMAIL);
+
+    let tokenOk = false;
+    let tokenError: string | undefined;
+    if (hasGmailApi) {
+      const verification = await gmailApiService.verifyConnection();
+      tokenOk = verification.ok;
+      tokenError = verification.error;
+    }
+
     res.json({
       success: true,
       data: {
-        connected: hasGmailCredentials,
-        configured: hasGmailCredentials,
-        method: 'gmail'
-        // SECURITY: Don't expose email address
-      }
+        connected: hasGmailApi && tokenOk,
+        configured: hasGmailApi,
+        gmailApiReady: hasGmailApi,
+        gmailApiTokenValid: tokenOk,
+        gmailApiTokenError: tokenError,
+        smtpConfigured: hasSmtp,
+        hasAdminRecipient,
+        method: hasGmailApi ? 'gmail_api' : hasSmtp ? 'smtp_legacy' : 'none',
+      },
     });
   } catch (error: unknown) {
     console.error('Error checking Gmail status:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to check Gmail status',
-      error: error instanceof Error ? (error instanceof Error ? error.message : String(error)) : 'Unknown error'
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
 
-// SECURITY: Test endpoints should be disabled in production or protected
-// Gmail test routes - PROTECTED: Admin only in production
-if (process.env.NODE_ENV === 'development' || process.env.ALLOW_TEST_ENDPOINTS === 'true') {
+// Gmail test routes — admin only (available in production)
+{
   const { authenticate } = require('./middleware/auth');
   const { adminOnly } = require('./middleware/admin');
-  
+
+  app.get('/api/test/gmail/diagnose', authenticate, adminOnly, diagnoseGmailSetup);
   app.post('/api/test/gmail', authenticate, adminOnly, testGmailConnection);
   app.post('/api/test/gmail/order', authenticate, adminOnly, testOrderNotification);
   app.post('/api/test/gmail/payment-confirmation', authenticate, adminOnly, testPaymentConfirmation);
@@ -1132,20 +1165,6 @@ if (process.env.NODE_ENV === 'development' || process.env.ALLOW_TEST_ENDPOINTS =
       message: 'Failed to update profile'
     });
   }
-  });
-} else {
-  // SECURITY: In production, return 404 for test endpoints
-  app.post('/api/test/*', (req, res) => {
-    res.status(404).json({ success: false, message: 'Not found' });
-  });
-  app.get('/api/test/*', (req, res) => {
-    res.status(404).json({ success: false, message: 'Not found' });
-  });
-  app.put('/api/test/*', (req, res) => {
-    res.status(404).json({ success: false, message: 'Not found' });
-  });
-  app.post('/api/manual/*', (req, res) => {
-    res.status(404).json({ success: false, message: 'Not found' });
   });
 }
 

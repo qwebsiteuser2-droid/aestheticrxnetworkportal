@@ -11,6 +11,7 @@ import { getApiUrl } from '@/lib/getApiUrl';
 import { Bars3Icon, DocumentTextIcon, PlusIcon, EyeIcon, XMarkIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import TierRestrictionModal from '@/components/modals/TierRestrictionModal';
 import MonthlyLimitModal from '@/components/modals/MonthlyLimitModal';
+import { UserMessageModal } from '@/components/modals/UserMessageModal';
 
 export function ResearchPage() {
   const { user, isAuthenticated } = useAuth();
@@ -28,6 +29,7 @@ export function ResearchPage() {
   const [tierRestrictionData, setTierRestrictionData] = useState<{ requiredTier: string; currentTier: string } | null>(null);
   const [showMonthlyLimitModal, setShowMonthlyLimitModal] = useState(false);
   const [monthlyLimitMessage, setMonthlyLimitMessage] = useState('');
+  const [showDoctorOnlyModal, setShowDoctorOnlyModal] = useState(false);
 
   // Allow public access to research benefits, but redirect for other features
   useEffect(() => {
@@ -292,6 +294,8 @@ export function ResearchPage() {
         if (result.message && (result.message.includes('monthly limit') || result.message.includes('monthly submission limit'))) {
           setMonthlyLimitMessage(result.message);
           setShowMonthlyLimitModal(true);
+        } else if (result.message?.toLowerCase().includes('only doctors')) {
+          setShowDoctorOnlyModal(true);
         } else {
           toast.error(result.message || 'Failed to submit research paper');
         }
@@ -314,6 +318,8 @@ export function ResearchPage() {
         setTimeout(() => {
           window.location.href = '/';
         }, 2000);
+      } else if (errorMessage.toLowerCase().includes('only doctors')) {
+        setShowDoctorOnlyModal(true);
       } else {
         toast.error('Failed to submit research paper');
       }
@@ -980,6 +986,14 @@ export function ResearchPage() {
           setMonthlyLimitMessage('');
         }}
         message={monthlyLimitMessage}
+      />
+
+      <UserMessageModal
+        isOpen={showDoctorOnlyModal}
+        onClose={() => setShowDoctorOnlyModal(false)}
+        title="Research submission"
+        message="Only registered doctors can submit research papers. If you are a doctor, please sign in with your doctor account or complete registration as a clinic."
+        variant="warning"
       />
     </div>
   );

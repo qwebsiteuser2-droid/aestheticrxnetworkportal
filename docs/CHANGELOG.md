@@ -5,6 +5,15 @@ All notable changes to the AestheticRxNetwork project will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.1] - 2026-06-01
+
+### Fixed
+- **PWA Installed App Name**
+  - Installed Progressive Web App now displays as **AestheticRXNetwork** instead of the truncated **AestheticRX**
+  - Set both `name` and `short_name` to `AestheticRXNetwork` in `frontend/public/manifest.json` for consistency
+  - Added `applicationName` and `appleWebApp.title` (`AestheticRXNetwork`) in `frontend/src/app/layout.tsx` so iOS home-screen and desktop install titles match the manifest
+  - **Action required after deploy:** uninstall/reinstall the app (or remove and re-add the home-screen icon) so the OS picks up the cached manifest changes
+
 ## [3.4.0] - 2026-01-31
 
 ### Added

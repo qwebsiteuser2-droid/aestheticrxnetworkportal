@@ -11,13 +11,8 @@ interface OTPModalProps {
   userId: string;
   userRole: string;
   userEmail: string;
-  onResendOTP: () => Promise<{ retryAfterSeconds?: number }>;
+  onResendOTP: () => void;
 }
-
-type OTPResendError = Error & {
-  retryAfterSeconds?: number;
-  status?: number;
-};
 
 export default function OTPModal({ 
   isOpen, 
@@ -76,21 +71,15 @@ export default function OTPModal({
     
     setIsLoading(true);
     try {
-      const resendResult = await onResendOTP();
-      const cooldownSeconds = resendResult.retryAfterSeconds ?? 120;
-      setTimeLeft(cooldownSeconds);
+      await onResendOTP();
+      setTimeLeft(120);
       setCanResend(false);
       toast.success('OTP sent successfully!');
     } catch (error: unknown) {
-      const resendError = error as OTPResendError;
-      const retryAfterSeconds = resendError?.retryAfterSeconds;
-
-      if (resendError?.status === 429 && retryAfterSeconds && retryAfterSeconds > 0) {
-        setTimeLeft(retryAfterSeconds);
-        setCanResend(false);
-      }
-
-      toast.error(resendError?.message || 'Failed to resend OTP');
+      const message =
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Failed to resend OTP';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

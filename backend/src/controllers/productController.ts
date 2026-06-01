@@ -3,6 +3,43 @@ import { AppDataSource } from '../db/data-source';
 import { Product } from '../models/Product';
 import { getBackendUrl } from '../config/urlConfig';
 
+/** Columns safe to query before optional gallery migrations are applied on production DB */
+const PRODUCT_CATALOG_COLUMNS = [
+  'product.id',
+  'product.slot_index',
+  'product.image_url',
+  'product.name',
+  'product.description',
+  'product.price',
+  'product.is_visible',
+  'product.category',
+  'product.unit',
+  'product.stock_quantity',
+  'product.is_featured',
+  'product.created_at',
+  'product.updated_at',
+];
+
+function buildProductCatalogQuery(
+  productRepository: ReturnType<typeof AppDataSource.getRepository<Product>>,
+  filters: { category?: string; featured?: boolean; visibleOnly?: boolean }
+) {
+  const qb = productRepository
+    .createQueryBuilder('product')
+    .select(PRODUCT_CATALOG_COLUMNS);
+
+  if (filters.category) {
+    qb.andWhere('product.category = :category', { category: filters.category });
+  }
+  if (filters.featured) {
+    qb.andWhere('product.is_featured = :featured', { featured: true });
+  }
+  if (filters.visibleOnly) {
+    qb.andWhere('product.is_visible = :visible', { visible: true });
+  }
+  return qb.orderBy('product.slot_index', 'ASC');
+}
+
 /**
  * Get all products (public)
  */
@@ -12,23 +49,11 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     
     const { page = 1, limit = 100, category, featured, visible } = req.query;
     
-    const queryBuilder = productRepository.createQueryBuilder('product');
-    
-    // Apply filters
-    if (category) {
-      queryBuilder.andWhere('product.category = :category', { category });
-    }
-    
-    if (featured === 'true') {
-      queryBuilder.andWhere('product.is_featured = :featured', { featured: true });
-    }
-    
-    if (visible === 'true') {
-      queryBuilder.andWhere('product.is_visible = :visible', { visible: true });
-    }
-    
-    // Order by slot index
-    queryBuilder.orderBy('product.slot_index', 'ASC');
+    const queryBuilder = buildProductCatalogQuery(productRepository, {
+      category: category as string | undefined,
+      featured: featured === 'true',
+      visibleOnly: visible === 'true',
+    });
     
     // Pagination
     const skip = (Number(page) - 1) * Number(limit);
@@ -82,7 +107,9 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
     const { id } = req.params;
     
     const productRepository = AppDataSource.getRepository(Product);
-    const product = await productRepository.findOne({ where: { id } });
+    const product = await buildProductCatalogQuery(productRepository, {})
+      .andWhere('product.id = :id', { id })
+      .getOne();
     
     if (!product) {
       res.status(404).json({

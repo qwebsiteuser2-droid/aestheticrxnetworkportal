@@ -11,6 +11,7 @@ import { toast } from 'react-hot-toast';
 import { useAdminPermission } from '@/hooks/useAdminPermission';
 import { getApiUrl } from '@/lib/getApiUrl';
 import api from '@/lib/api';
+import { BRAND } from '@/lib/brandColors';
 
 // Dynamic imports for heavy components - reduces initial bundle size by ~30%
 const VideoAdvertisementModal = dynamic(
@@ -92,9 +93,8 @@ function TopClinicsSection() {
       try {
         // Use centralized API instance
         const response = await api.get('/public/top-clinics');
-        if (response.ok) {
-          const data = await response.json();
-          setTopClinics(data.data);
+        if (response.data?.success) {
+          setTopClinics(response.data.data);
         } else {
           setError('Failed to load top clinics');
         }
@@ -1024,7 +1024,7 @@ function Top3Sidebar() {
               </div>
               
               <div className="flex items-center justify-center">
-                <span className="text-xs font-medium text-green-600">Top Performer</span>
+                <span className="text-xs font-medium text-green-600">Top Clinic</span>
               </div>
             </div>
           </div>
@@ -1204,18 +1204,18 @@ function ProtectedNavigation() {
   const router = useRouter();
 
   const handleNavigation = (path: string) => {
+    if (path === '/order') {
+      router.push(path);
+      return;
+    }
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
-    
-    // If user is not approved, redirect to waiting-approval page
-    // Regular users are auto-approved, so they bypass this
     if (!user?.is_approved && !user?.is_admin && user?.user_type !== 'regular' && (user as any)?.user_type !== 'regular_user') {
       router.push('/waiting-approval');
       return;
     }
-    
     router.push(path);
   };
 
@@ -1231,8 +1231,8 @@ function ProtectedNavigation() {
         // Regular users, approved users, and admins can view leaderboard
         return isRegularUser || user?.is_approved || user?.is_admin;
       case 'order':
-        // Regular users, approved users, and admins can place orders
-        return isRegularUser || user?.is_approved || user?.is_admin;
+        // Order catalog is public; checkout still requires sign-in
+        return true;
       case 'research':
         // Regular users, approved users, and admins can view research papers
         return isRegularUser || user?.is_approved || user?.is_admin;
@@ -1506,7 +1506,7 @@ export default function Home() {
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-6">
               <img src="/logo.png" alt="AestheticRx Network" className="w-60 h-60 sm:w-72 sm:h-72 object-contain" />
-              <span className="text-4xl font-bold"><span style={{ color: '#1E66FF' }}>Aesthetic</span><span style={{ color: '#F5C24C' }}>RX</span><span style={{ color: '#7AAC52' }}> Network</span></span>
+              <span className="text-4xl font-bold"><span style={{ color: BRAND.blue }}>Aesthetic</span><span style={{ color: BRAND.gold }}>RX</span><span style={{ color: BRAND.green }}> Network</span></span>
             </div>
             <p className="text-gray-600 text-lg mb-8">
               Professional B2B platform for clinics
@@ -1564,60 +1564,19 @@ export default function Home() {
 
         <section className="relative py-20 lg:py-32">
           <div className="container mx-auto px-4">
-            <div className="flex flex-col lg:flex-row gap-8 items-center">
-              {/* Left Sidebar - Top 3 Performers */}
-            <div className="w-full lg:w-80 flex-shrink-0 order-2 lg:order-1">
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-1 text-center">🏆 Top 3</h3>
-                <p className="text-xs text-gray-600 mb-3 text-center">Top Performer from last month</p>
-                
-                {/* Mobile Top 3 Section Ad */}
-                <div className="block md:hidden mb-4">
-                  <VideoAdvertisementDisplay 
-                    areaName="mobile-top3-section" 
-                    deviceType="mobile"
-                    className="mobile-top3-section-ad w-full"
-                  />
-                </div>
-                  {isAuthenticated ? (
-                    <Top3Sidebar />
-                  ) : (
-                    <BlurredTop3Sidebar />
-                  )}
-                </div>
-                
-                {/* Sidebar Advertisement - Top */}
-                <div className="mt-4">
-                  <VideoAdvertisementDisplay 
-                    areaName="hero_section_main" 
-                    deviceType="desktop"
-                    className="hero-section-ad w-full"
-                  />
-                </div>
-                
-                {/* Sidebar Advertisement - Bottom */}
-                <div className="mt-4">
-                  <VideoAdvertisementDisplay 
-                    areaName="hero_section_main" 
-                    deviceType="desktop"
-                    className="hero-section-ad w-full"
-                  />
-                </div>
-              </div>
-              
-              {/* Main Hero Content */}
-              <div className="flex-1 order-1 lg:order-2">
+            <div className="flex flex-col xl:flex-row gap-8 items-start w-full">
+              {/* Main Hero Content — center/left */}
+              <div className="flex-1 min-w-0 order-1 w-full">
                 <div className="max-w-5xl mx-auto">
-                  {/* Two Big CTA Cards with Product/Doctor Previews */}
                   <HeroCards />
 
                   <div className="text-center">
                     <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4">
-                    Professional <span className="text-blue-600">B2B Platform</span><br/>
+                    Professional <span style={{ color: BRAND.blue }}>B2B Platform</span><br/>
                     for Clinics
                   </h1>
                     <p className="text-base text-gray-600 mb-6 max-w-2xl mx-auto">
-                    Connect with fellow doctors, order medical supplies, share research, and track your clinic's performance on our exclusive platform.
+                    Connect with fellow doctors, order medical supplies, share research, and track your clinic&apos;s performance on our exclusive platform.
                   </p>
                   
                   {/* Dynamic Video Advertisement - Content Top */}
@@ -1651,6 +1610,46 @@ export default function Home() {
                     </div>
                   )}
                   </div>
+                </div>
+              </div>
+
+              {/* Top Clinics — pinned to far right on large screens */}
+            <div className="w-full xl:w-72 flex-shrink-0 order-2 xl:sticky xl:top-24 xl:self-start xl:ml-auto">
+              <div className="bg-white rounded-lg shadow-lg p-4">
+                <h3 className="text-lg font-bold text-gray-900 mb-1 text-center">🏆 Top Clinics of the Month</h3>
+                <p className="text-xs text-gray-600 mb-3 text-center">Based on last month&apos;s performance</p>
+                
+                {/* Mobile Top 3 Section Ad */}
+                <div className="block md:hidden mb-4">
+                  <VideoAdvertisementDisplay 
+                    areaName="mobile-top3-section" 
+                    deviceType="mobile"
+                    className="mobile-top3-section-ad w-full"
+                  />
+                </div>
+                  {isAuthenticated ? (
+                    <Top3Sidebar />
+                  ) : (
+                    <BlurredTop3Sidebar />
+                  )}
+                </div>
+                
+                {/* Sidebar Advertisement - Top */}
+                <div className="mt-4">
+                  <VideoAdvertisementDisplay 
+                    areaName="hero_section_main" 
+                    deviceType="desktop"
+                    className="hero-section-ad w-full"
+                  />
+                </div>
+                
+                {/* Sidebar Advertisement - Bottom */}
+                <div className="mt-4">
+                  <VideoAdvertisementDisplay 
+                    areaName="hero_section_main" 
+                    deviceType="desktop"
+                    className="hero-section-ad w-full"
+                  />
                 </div>
               </div>
             </div>
@@ -1734,7 +1733,7 @@ export default function Home() {
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-4">
               <img src="/logo.png" alt="AestheticRx Network" className="w-12 h-12 object-contain shadow-md rounded-lg" />
-              <span className="text-xl font-bold"><span style={{ color: '#1E66FF' }}>Aesthetic</span><span style={{ color: '#F5C24C' }}>RX</span><span style={{ color: '#7AAC52' }}> Network</span></span>
+              <span className="text-xl font-bold"><span style={{ color: BRAND.blue }}>Aesthetic</span><span style={{ color: BRAND.gold }}>RX</span><span style={{ color: BRAND.green }}> Network</span></span>
             </div>
             <p className="text-gray-400 text-sm mb-4">
               Professional B2B platform for clinics. Connect, order, research, and grow together.

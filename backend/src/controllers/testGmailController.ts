@@ -1,5 +1,56 @@
 import { Request, Response } from 'express';
 import gmailService from '../services/gmailService';
+import gmailApiService from '../services/gmailApiService';
+
+/**
+ * Read-only diagnostics for order/notification email (no send).
+ */
+export const diagnoseGmailSetup = async (_req: Request, res: Response): Promise<void> => {
+  const config = {
+    GMAIL_API_CLIENT_ID: !!process.env.GMAIL_API_CLIENT_ID,
+    GMAIL_API_CLIENT_SECRET: !!process.env.GMAIL_API_CLIENT_SECRET,
+    GMAIL_API_REFRESH_TOKEN: !!process.env.GMAIL_API_REFRESH_TOKEN,
+    GMAIL_API_USER_EMAIL: process.env.GMAIL_API_USER_EMAIL || null,
+    MAIN_ADMIN_EMAIL: process.env.MAIN_ADMIN_EMAIL || null,
+    SECONDARY_ADMIN_EMAIL: process.env.SECONDARY_ADMIN_EMAIL || null,
+    gmailApiServiceReady: gmailApiService.isConfigured(),
+  };
+
+  const issues: string[] = [];
+  if (!config.GMAIL_API_CLIENT_ID) issues.push('Missing GMAIL_API_CLIENT_ID');
+  if (!config.GMAIL_API_CLIENT_SECRET) issues.push('Missing GMAIL_API_CLIENT_SECRET');
+  if (!config.GMAIL_API_REFRESH_TOKEN) issues.push('Missing GMAIL_API_REFRESH_TOKEN');
+  if (!config.GMAIL_API_USER_EMAIL) issues.push('Missing GMAIL_API_USER_EMAIL');
+  if (!config.MAIN_ADMIN_EMAIL && !config.SECONDARY_ADMIN_EMAIL) {
+    issues.push('Missing MAIN_ADMIN_EMAIL and SECONDARY_ADMIN_EMAIL (order alerts need recipients)');
+  }
+  if (!config.gmailApiServiceReady) {
+    issues.push('gmailApiService.isConfigured() is false — check refresh token and OAuth scope (gmail.send only)');
+  }
+
+  let tokenVerification: { ok: boolean; error?: string } = { ok: false, error: 'Gmail API not configured' };
+  if (config.gmailApiServiceReady) {
+    tokenVerification = await gmailApiService.verifyConnection();
+    if (!tokenVerification.ok && tokenVerification.error) {
+      issues.push(tokenVerification.error);
+    }
+  }
+
+  res.json({
+    success: issues.length === 0 && tokenVerification.ok,
+    message:
+      issues.length === 0 && tokenVerification.ok
+        ? 'Gmail setup looks ready for order emails'
+        : 'Gmail setup has issues',
+    config,
+    issues,
+    tokenVerification,
+    orderEmailFlow: {
+      cashOnDelivery: 'POST /orders/batch-notify → sendBatchOrderPlacedAlert (awaits Gmail API)',
+      payfast: 'POST /payments/confirm-success OR PayFast ITN → sendOrderPlacedAlert',
+    },
+  });
+};
 
 export const testGmailConnection = async (req: Request, res: Response): Promise<void> => {
   try {

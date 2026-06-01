@@ -3,6 +3,9 @@ import app from './app';
 import { initializeDatabase, closeDatabase } from './db/data-source';
 import { schedulerService } from './services/schedulerService';
 import { initializeSocketServer } from './socket/socketServer';
+import { DebtService } from './services/debtService';
+import gmailApiService from './services/gmailApiService';
+import { getGmailSenderEmail } from './utils/orderAdminEmails';
 
 const PORT = parseInt(process.env.PORT || '4000', 10);
 
@@ -24,6 +27,12 @@ const startServer = async (): Promise<void> => {
       }
     } else {
       await initializeDatabase();
+      try {
+        await DebtService.initializeDefaultDebtThresholds();
+        console.log('✅ Debt limits initialized for tiers missing debt_limit');
+      } catch (debtInitError) {
+        console.warn('⚠️ Could not auto-initialize tier debt limits:', debtInitError);
+      }
     }
 
     // Create HTTP server with Express app
@@ -44,10 +53,23 @@ const startServer = async (): Promise<void> => {
       console.log(`✅ Server is ready to accept connections`);
       
       // Log Gmail configuration status at startup
-      const hasGmailApi = !!(process.env.GMAIL_API_CLIENT_ID && process.env.GMAIL_API_CLIENT_SECRET && process.env.GMAIL_API_REFRESH_TOKEN && process.env.GMAIL_API_USER_EMAIL);
+      const senderEmail = getGmailSenderEmail();
+      const hasGmailApi = gmailApiService.isConfigured();
       const hasSmtp = !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
       console.log(`📧 Email Configuration:`);
+      console.log(`   Sender (GMAIL_API_USER_EMAIL): ${senderEmail || '❌ NOT SET'}`);
+      console.log(`   MAIN_ADMIN_EMAIL: ${process.env.MAIN_ADMIN_EMAIL || '(not set — using sender inbox)'}`);
       console.log(`   Gmail API: ${hasGmailApi ? '✅ Configured' : '❌ Not configured'}`);
+      if (hasGmailApi) {
+        gmailApiService.verifyConnection().then((v) => {
+          if (v.ok) {
+            console.log('   Gmail API token: ✅ valid (can send order emails)');
+          } else {
+            console.error('   Gmail API token: ❌ INVALID —', v.error);
+            console.error('   → Regenerate GMAIL_API_REFRESH_TOKEN signed in as', senderEmail || 'aestheticrxnetwork@gmail.com');
+          }
+        }).catch((e) => console.error('   Gmail API verify error:', e));
+      }
       console.log(`   SMTP Fallback: ${hasSmtp ? '✅ Configured' : '❌ Not configured'}`);
       if (!hasGmailApi && !hasSmtp) {
         console.log(`   ⚠️ WARNING: No email service configured! OTPs and notifications will not be sent.`);

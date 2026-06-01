@@ -303,7 +303,7 @@ export class PaymentController {
 
         // Update orders based on payment status
         if (paymentStatus === 'COMPLETE') {
-          // Update payment status FIRST (this sets payment_completed_at)
+          // Update payment status (payment_completed_at set after email succeeds)
           await this.updateOrdersPaymentStatus(orderIds, 'paid', transactionId, amount, amountFee, amountNet);
           console.log('✅ Orders marked as paid');
           
@@ -372,9 +372,7 @@ export class PaymentController {
         order.payment_status = status;
         order.payment_transaction_id = transactionId;
         order.payment_amount = orderPaymentAmount; // Use order's own total, not the PayFast total
-        if (status === 'paid') {
-          order.payment_completed_at = new Date();
-        }
+        // payment_completed_at is set only after admin notification email succeeds
         order.payment_method = 'payfast_online';
 
         // If payment is successful, also mark order as completed
@@ -624,22 +622,20 @@ export class PaymentController {
           console.log(`🚀 Sending PayFast ITN payment notification for order ${freshOrder.order_number} to ${adminEmails.length} admin(s)`);
           console.log(`   Payment Status: ${freshOrder.payment_status}`);
           console.log(`   Admin emails: ${adminEmails.join(', ')}`);
-          // Set payment_completed_at BEFORE sending to prevent race conditions
-          // This ensures only one notification is sent even if both ITN and frontend trigger simultaneously
-          // IMPORTANT: Payment is marked as completed even if email fails - email is non-blocking
-          freshOrder.payment_completed_at = new Date();
-          await orderRepository.save(freshOrder);
-          
-          // Send email notification (non-blocking - payment processing continues even if email fails)
+          // Send email notification; mark payment_completed_at only after success
           gmailService.sendOrderPlacedAlert(freshOrder, 'payfast_online', realITNData, adminEmails)
-            .then(() => {
+            .then(async () => {
+              const orderToUpdate = await orderRepository.findOne({ where: { id: orderId } });
+              if (orderToUpdate && !orderToUpdate.payment_completed_at) {
+                orderToUpdate.payment_completed_at = new Date();
+                await orderRepository.save(orderToUpdate);
+              }
               console.log(`✅ Gmail notification sent successfully for order ${freshOrder.order_number} (Status: ${freshOrder.payment_status})`);
             })
             .catch((err: unknown) => {
               console.error(`❌ Failed to send payment confirmation email for order ${freshOrder.order_number}:`, err);
               console.error('Error details:', err instanceof Error ? err.message : String(err));
               console.error('Error stack:', err instanceof Error ? err.stack : 'No stack trace');
-              // Payment is still marked as completed - email failure does not affect order status
             });
         } else {
           console.warn('⚠️ No admin emails found! PayFast payment notifications will not be sent.');
@@ -825,18 +821,6 @@ export class PaymentController {
 
           if (!freshOrder) {
             console.error(`❌ Order ${order.order_number} not found after reload`);
-            continue;
-          }
-
-          // If payment_status is already 'paid', ITN likely already processed it
-          // Skip sending to avoid duplicate emails
-          if (freshOrder.payment_status === 'paid' && freshOrder.payment_method === 'payfast_online') {
-            console.log(`⏭️ Skipping notification for order ${freshOrder.order_number} - ITN already processed (payment_status: 'paid', payment_method: 'payfast_online')`);
-            // Mark as completed even if we didn't send (to prevent future attempts)
-            if (!freshOrder.payment_completed_at) {
-              freshOrder.payment_completed_at = new Date();
-              await orderRepository.save(freshOrder);
-            }
             continue;
           }
 

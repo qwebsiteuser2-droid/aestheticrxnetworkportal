@@ -12,7 +12,31 @@ export interface DebtStatus {
   isOverLimit: boolean;
 }
 
+/** Minimum debt limit when tier config is missing or set to 0 in the database */
+const DEFAULT_DEBT_LIMIT = 50000;
+
 export class DebtService {
+  /**
+   * Resolve a usable debt limit from tier config (never return 0 for active tiers)
+   */
+  private static resolveDebtLimitFromTierConfig(tierConfig: TierConfig | null, tierName: string): number {
+    if (!tierConfig) {
+      console.warn(`⚠️ No tier config for "${tierName}", using default debt limit PKR ${DEFAULT_DEBT_LIMIT}`);
+      return DEFAULT_DEBT_LIMIT;
+    }
+
+    const configured = Number(tierConfig.debt_limit);
+    if (configured > 0) {
+      return configured;
+    }
+
+    const fromThreshold = Math.max(DEFAULT_DEBT_LIMIT, (Number(tierConfig.threshold) || 0) * 0.1);
+    console.warn(
+      `⚠️ Tier "${tierName}" has debt_limit 0/null — using PKR ${fromThreshold} (10% of threshold or minimum)`
+    );
+    return fromThreshold;
+  }
+
   /**
    * Calculate current debt for a user
    */
@@ -87,10 +111,10 @@ export class DebtService {
         }
       });
 
-      return tierConfig ? Number(tierConfig.debt_limit) : 0;
+      return this.resolveDebtLimitFromTierConfig(tierConfig, tierName);
     } catch (error: unknown) {
       console.error('Error getting debt limit for tier:', error);
-      return 0;
+      return DEFAULT_DEBT_LIMIT;
     }
   }
 
@@ -113,42 +137,46 @@ export class DebtService {
         };
       }
 
+      const currentDebt = await this.calculateUserDebt(doctorId);
+      const tierName = doctor.tier || 'Lead Starter';
+
       // Check if admin has overridden the debt limit
-      if (doctor.admin_debt_override && doctor.custom_debt_limit) {
-        const currentDebt = await this.calculateUserDebt(doctorId);
-        const customLimit = Number(doctor.custom_debt_limit);
-        
+      if (doctor.admin_debt_override && doctor.custom_debt_limit != null) {
+        let customLimit = Number(doctor.custom_debt_limit);
+        if (customLimit <= 0) {
+          customLimit = await this.getDebtLimitForTier(tierName);
+        }
+
         return {
           currentDebt,
           debtLimit: customLimit,
           canPlaceOrder: currentDebt < customLimit,
           remainingLimit: Math.max(0, customLimit - currentDebt),
-          tierName: doctor.tier || 'Unknown',
+          tierName,
           isOverLimit: currentDebt >= customLimit
         };
       }
 
       // Use tier-based debt limit
-      const currentDebt = await this.calculateUserDebt(doctorId);
-      const debtLimit = await this.getDebtLimitForTier(doctor.tier || '');
-      
+      const debtLimit = await this.getDebtLimitForTier(tierName);
+
       return {
         currentDebt,
         debtLimit,
         canPlaceOrder: currentDebt < debtLimit,
         remainingLimit: Math.max(0, debtLimit - currentDebt),
-        tierName: doctor.tier || 'Unknown',
+        tierName,
         isOverLimit: currentDebt >= debtLimit
       };
     } catch (error: unknown) {
       console.error('Error checking if user can place order:', error);
       return {
         currentDebt: 0,
-        debtLimit: 0,
-        canPlaceOrder: false,
-        remainingLimit: 0,
+        debtLimit: DEFAULT_DEBT_LIMIT,
+        canPlaceOrder: true,
+        remainingLimit: DEFAULT_DEBT_LIMIT,
         tierName: 'Unknown',
-        isOverLimit: true
+        isOverLimit: false
       };
     }
   }

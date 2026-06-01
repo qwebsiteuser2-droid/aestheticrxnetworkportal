@@ -108,8 +108,11 @@ export default function LoginPage() {
           console.log('🔑 Login - User approved, redirecting to home page');
           router.push('/');
         }
-      } else if (response.data?.otpRequired) {
-        // OTP verification required
+      } else if (
+        response.data?.otpRequired &&
+        process.env.NEXT_PUBLIC_ENABLE_LOGIN_OTP === 'true'
+      ) {
+        // OTP verification required (only when enabled in configuration)
         console.log('🔑 Login - OTP verification required');
         setOtpData({
           userId: response.data.userId,
@@ -119,6 +122,8 @@ export default function LoginPage() {
         });
         setShowOTPModal(true);
         toast.success(response.data.message || 'OTP verification required');
+      } else if (response.data?.otpRequired) {
+        toast.error('Login verification is disabled. Please try again or contact support.');
       } else {
         console.log('🔑 Login - Login failed:', response.message);
         toast.error(response.message || 'Login failed');

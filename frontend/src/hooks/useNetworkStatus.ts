@@ -65,7 +65,8 @@ export function useConnectionWarning() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    if (status === 'offline' || status === 'slow') {
+    // Only warn when fully offline (not slow connection)
+    if (status === 'offline') {
       setShowWarning(true);
       setDismissed(false);
     } else if (status === 'online' && !dismissed) {

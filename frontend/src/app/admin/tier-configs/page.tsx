@@ -11,6 +11,7 @@ import api from '@/lib/api';
 import { getAccessToken } from '@/lib/auth';
 import { toast } from 'react-hot-toast';
 import { Tier } from '@/types';
+import { getTierIcon } from '@/lib/tierColors';
 
 export default function TierConfigsPage() {
   const router = useRouter();
@@ -70,7 +71,9 @@ export default function TierConfigsPage() {
       });
 
       if (response.data.success) {
-        setTiers(response.data.data.tiers || []);
+        const list: Tier[] = response.data.data.tiers || [];
+        list.sort((a, b) => (a.threshold ?? 0) - (b.threshold ?? 0));
+        setTiers(list);
       } else {
         toast.error('Failed to fetch tier configurations');
       }
@@ -490,7 +493,14 @@ export default function TierConfigsPage() {
                     <label className="block text-sm font-medium text-gray-700">Color</label>
                     <select
                       value={formData.color}
-                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                      onChange={(e) => {
+                        const color = e.target.value;
+                        setFormData({
+                          ...formData,
+                          color,
+                          icon: getTierIcon(color),
+                        });
+                      }}
                       className={`mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${isViewerAdmin ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                       disabled={isViewerAdmin}
                     >

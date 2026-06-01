@@ -1,6 +1,7 @@
 import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
+import { getAllFrontendUrls } from '../config/urlConfig';
 import { AppDataSource } from '../db/data-source';
 import { Doctor } from '../models/Doctor';
 import { Message } from '../models/Message';
@@ -15,10 +16,40 @@ interface AuthenticatedSocket extends Socket {
 // Track online users: Map<userId, Set<socketId>>
 const onlineUsers = new Map<string, Set<string>>();
 
+function isSocketOriginAllowed(origin: string | undefined): boolean {
+  if (!origin) {
+    return true;
+  }
+  // Match Express CORS: allow all Vercel preview/production hosts
+  if (origin.includes('.vercel.app')) {
+    return true;
+  }
+  if (process.env.NODE_ENV === 'development') {
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return true;
+    }
+  }
+  const allowedOrigins = getAllFrontendUrls();
+  return allowedOrigins.some((allowedOrigin) => {
+    if (allowedOrigin.includes('*')) {
+      const pattern = new RegExp(`^${allowedOrigin.replace(/\./g, '\\.').replace(/\*/g, '.*')}$`);
+      return pattern.test(origin);
+    }
+    return allowedOrigin === origin;
+  });
+}
+
 export function initializeSocketServer(httpServer: HttpServer): Server {
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+      origin: (origin, callback) => {
+        if (isSocketOriginAllowed(origin)) {
+          callback(null, true);
+        } else {
+          console.error('❌ Socket.io CORS blocked origin:', origin);
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       methods: ['GET', 'POST'],
       credentials: true,
     },

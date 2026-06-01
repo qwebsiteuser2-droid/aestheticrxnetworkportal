@@ -64,10 +64,14 @@ export const getAllFrontendUrls = (): string[] => {
     'http://127.0.0.1:3000',
   ];
 
-  // Production Vercel domains
+  // Production Vercel domains (current deployment)
+  urls.push('https://aestheticrxnetworkportal.vercel.app');
+  urls.push('https://aestheticrxnetworkportal-zeta.vercel.app');
+  urls.push('https://aestheticrxnetworkportal-*.vercel.app');
+
   urls.push('https://aestheticrxnetwork.vercel.app');
   urls.push('https://aestheticrxnetwork-*.vercel.app');
-  
+
   // Legacy domains (keep for backward compatibility)
   urls.push('https://aestheticrxdepolying.vercel.app');
   urls.push('https://aestheticrxdepolying-*.vercel.app');

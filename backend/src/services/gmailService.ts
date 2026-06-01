@@ -9,7 +9,6 @@ import { isValidEmail, filterValidEmails } from '../utils/emailValidator';
 import { createEmailDeliveryRecord, updateEmailDeliveryStatus } from './emailTrackingService';
 import { getFrontendUrl, getFrontendUrlWithPath } from '../config/urlConfig';
 import gmailApiService from './gmailApiService';
-import nodemailer, { Transporter } from 'nodemailer';
 
 /**
  * Retry configuration for email sending
@@ -131,71 +130,17 @@ async function withRetry<T>(
 }
 
 class GmailService {
-  private smtpTransporter: Transporter | null = null;
-
   constructor() {
-    const smtpUser = process.env.GMAIL_USER;
-    const smtpPassword = process.env.GMAIL_APP_PASSWORD;
-    if (smtpUser && smtpPassword) {
-      this.smtpTransporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: smtpUser,
-          pass: smtpPassword,
-        },
-        connectionTimeout: EMAIL_SEND_TIMEOUT_MS,
-        greetingTimeout: EMAIL_SEND_TIMEOUT_MS,
-        socketTimeout: EMAIL_SEND_TIMEOUT_MS,
-      });
-      console.log('✅ Gmail SMTP fallback initialized');
-    } else {
-      console.log('⚠️ Gmail SMTP fallback not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.');
-    }
-
+    // Gmail API is initialized in gmailApiService
     if (gmailApiService.isConfigured()) {
-      console.log('✅ GmailService using Gmail API as primary transport');
+      console.log('✅ GmailService using Gmail API (no SMTP)');
     } else {
-      console.log('⚠️ Gmail API not configured. SMTP fallback will be used when available.');
+      console.log('⚠️ Gmail API not configured. Check GMAIL_API_* environment variables.');
     }
   }
 
   private isConfigured(): boolean {
-    return gmailApiService.isConfigured() || !!this.smtpTransporter;
-  }
-
-  private isSmtpConfigured(): boolean {
-    return !!this.smtpTransporter;
-  }
-
-  private async sendEmailViaSmtp(
-    to: string[],
-    subject: string,
-    htmlContent: string,
-    fromEmail: string,
-    options?: { isOTP?: boolean }
-  ): Promise<void> {
-    if (!this.smtpTransporter) {
-      throw new Error('SMTP transport not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.');
-    }
-
-    await withRetry(
-      async () => {
-        await this.smtpTransporter!.sendMail({
-          from: fromEmail,
-          to: to.join(', '),
-          subject,
-          html: htmlContent,
-          text: htmlContent.replace(/<[^>]*>/g, ''),
-        });
-      },
-      `SMTP send to ${to.join(', ')}`,
-      EMAIL_RETRY_CONFIG
-    );
-
-    console.log('✅ Email sent successfully via SMTP', {
-      to: to.join(', '),
-      isOTP: options?.isOTP,
-    });
+    return gmailApiService.isConfigured();
   }
 
   /**
@@ -244,11 +189,14 @@ class GmailService {
   async sendEmail(to: string | string[], subject: string, htmlContent: string, options?: { isMarketing?: boolean; userId?: string; isOTP?: boolean; bypassQuota?: boolean; orderId?: string; orderNumber?: string; fromEmail?: string }): Promise<void> {
     if (!this.isConfigured()) {
       console.error('❌ Gmail API not configured, skipping email', {
-        gmailApiClientEmail: process.env.GMAIL_API_CLIENT_EMAIL ? 'Set' : 'Not Set',
-        gmailApiPrivateKey: process.env.GMAIL_API_PRIVATE_KEY ? 'Set' : 'Not Set',
-        gmailApiUserEmail: process.env.GMAIL_API_USER_EMAIL ? 'Set' : 'Not Set'
+        GMAIL_API_CLIENT_ID: process.env.GMAIL_API_CLIENT_ID ? 'Set' : 'Missing',
+        GMAIL_API_CLIENT_SECRET: process.env.GMAIL_API_CLIENT_SECRET ? 'Set' : 'Missing',
+        GMAIL_API_REFRESH_TOKEN: process.env.GMAIL_API_REFRESH_TOKEN ? 'Set' : 'Missing',
+        GMAIL_API_USER_EMAIL: process.env.GMAIL_API_USER_EMAIL || process.env.GMAIL_USER || 'Missing',
       });
-      throw new Error('Gmail transporter not configured. Please check GMAIL_USER and GMAIL_APP_PASSWORD environment variables.');
+      throw new Error(
+        'Gmail API not configured. Set GMAIL_API_CLIENT_ID, GMAIL_API_CLIENT_SECRET, GMAIL_API_REFRESH_TOKEN, and GMAIL_API_USER_EMAIL (aestheticrxnetwork@gmail.com).'
+      );
     }
 
     // Validate email addresses before sending
@@ -334,39 +282,26 @@ class GmailService {
       const recipientList = Array.isArray(recipients) ? recipients : [recipients];
       const fromEmail = options?.fromEmail || process.env.GMAIL_API_USER_EMAIL || process.env.GMAIL_USER;
 
-      const canUseGmailApi = gmailApiService.isConfigured();
-      const canUseSmtp = this.isSmtpConfigured();
-      const selectedTransport = canUseGmailApi ? 'gmail_api' : 'smtp';
-
-      if (!canUseGmailApi && !canUseSmtp) {
-        throw new Error('No email transport configured. Configure Gmail API or SMTP credentials.');
-      }
-
-      console.log('📧 Attempting to send email...', {
-        transport: selectedTransport,
+      console.log('📧 Attempting to send email via Gmail API...', {
         from: fromEmail,
         to: recipientList.join(', '),
         subject: subject.substring(0, 50),
         isOTP: options?.isOTP
       });
-
-      if (canUseGmailApi) {
-        await gmailApiService.sendEmail(
-          recipientList,
-          subject,
-          finalHtmlContent,
-          fromEmail,
-          undefined,
-          Object.keys(emailHeaders).length > 0 ? emailHeaders : undefined
-        );
-        console.log('✅ Email sent successfully via Gmail API', {
-          to: recipientList.join(', ')
-        });
-      } else {
-        await this.sendEmailViaSmtp(recipientList, subject, finalHtmlContent, fromEmail, {
-          isOTP: options?.isOTP,
-        });
-      }
+      
+      // Send email using Gmail API (with built-in retry logic)
+      await gmailApiService.sendEmail(
+        recipientList,
+        subject,
+        finalHtmlContent,
+        fromEmail,
+        undefined, // no attachments for regular emails
+        Object.keys(emailHeaders).length > 0 ? emailHeaders : undefined
+      );
+      
+      console.log('✅ Email sent successfully via Gmail API', {
+        to: recipientList.join(', ')
+      });
       
       // Update email delivery status to 'sent' (then mark as 'delivered' after a short delay)
       if (emailDeliveryId) {
@@ -440,8 +375,9 @@ class GmailService {
     options?: { isMarketing?: boolean; userId?: string; isOTP?: boolean; bypassQuota?: boolean; orderId?: string; orderNumber?: string; fromEmail?: string }
   ): Promise<void> {
     if (!this.isConfigured()) {
-      console.log('❌ Gmail not configured, skipping email');
-      return;
+      throw new Error(
+        'Gmail API not configured. Set GMAIL_API_CLIENT_ID, GMAIL_API_CLIENT_SECRET, GMAIL_API_REFRESH_TOKEN, and GMAIL_API_USER_EMAIL.'
+      );
     }
 
     // Validate email addresses before sending
@@ -494,55 +430,28 @@ class GmailService {
       const recipientList = Array.isArray(recipients) ? recipients : [recipients];
       const fromEmail = options?.fromEmail || process.env.GMAIL_API_USER_EMAIL || process.env.GMAIL_USER;
 
-      const canUseGmailApi = gmailApiService.isConfigured();
-      const canUseSmtp = this.isSmtpConfigured();
-
-      if (!canUseGmailApi && !canUseSmtp) {
-        throw new Error('No email transport configured. Configure Gmail API or SMTP credentials.');
-      }
-
-      console.log('📧 Attempting to send email with attachments...', {
-        transport: canUseGmailApi ? 'gmail_api' : 'smtp',
+      console.log('📧 Attempting to send email with attachments via Gmail API...', {
         from: fromEmail,
         to: recipientList.join(', '),
         subject: subject.substring(0, 50),
         attachments: attachments.length
       });
 
-      if (canUseGmailApi) {
-        const gmailAttachments = attachments.map(attachment => ({
-          filename: attachment.filename,
-          content: attachment.content,
-          contentType: attachment.contentType
-        }));
+      // Convert attachments to Gmail API format
+      const gmailAttachments = attachments.map(attachment => ({
+        filename: attachment.filename,
+        content: attachment.content,
+        contentType: attachment.contentType
+      }));
 
-        await gmailApiService.sendEmail(
-          recipientList,
-          subject,
-          htmlContent,
-          fromEmail,
-          gmailAttachments
-        );
-      } else {
-        await withRetry(
-          async () => {
-            await this.smtpTransporter!.sendMail({
-              from: fromEmail,
-              to: recipientList.join(', '),
-              subject,
-              html: htmlContent,
-              text: htmlContent.replace(/<[^>]*>/g, ''),
-              attachments: attachments.map(attachment => ({
-                filename: attachment.filename,
-                content: attachment.content,
-                contentType: attachment.contentType
-              }))
-            });
-          },
-          `SMTP attachment send to ${recipientList.join(', ')}`,
-          EMAIL_RETRY_CONFIG
-        );
-      }
+      // Send email using Gmail API (with built-in retry logic)
+      await gmailApiService.sendEmail(
+        recipientList,
+        subject,
+        htmlContent,
+        fromEmail,
+        gmailAttachments
+      );
       
       // Update email delivery status to 'sent' and then 'delivered'
       if (emailDeliveryId) {
@@ -681,11 +590,16 @@ class GmailService {
     console.log(`📧 sendOrderPlacedAlert called for order ${order.order_number}, paymentMethod: ${paymentMethod}`);
     
     if (!this.isConfigured()) {
-      console.log('❌ Gmail API not configured, skipping order notification');
-      console.log('   Gmail API Client Email:', process.env.GMAIL_API_CLIENT_EMAIL ? 'Set' : 'Not set');
-      console.log('   Gmail API Private Key:', process.env.GMAIL_API_PRIVATE_KEY ? 'Set' : 'Not set');
-      console.log('   Gmail API User Email:', process.env.GMAIL_API_USER_EMAIL ? 'Set' : 'Not set');
-      return;
+      const missing = {
+        GMAIL_API_CLIENT_ID: !process.env.GMAIL_API_CLIENT_ID,
+        GMAIL_API_CLIENT_SECRET: !process.env.GMAIL_API_CLIENT_SECRET,
+        GMAIL_API_REFRESH_TOKEN: !process.env.GMAIL_API_REFRESH_TOKEN,
+        GMAIL_API_USER_EMAIL: !process.env.GMAIL_API_USER_EMAIL,
+      };
+      console.error('❌ Gmail API not configured, cannot send order notification', missing);
+      throw new Error(
+        'Gmail API not configured. Set GMAIL_API_CLIENT_ID, GMAIL_API_CLIENT_SECRET, GMAIL_API_REFRESH_TOKEN, and GMAIL_API_USER_EMAIL.'
+      );
     }
 
     try {
@@ -951,7 +865,9 @@ class GmailService {
         console.warn('⚠️ No admin emails available to send order notification');
         console.warn('   Provided adminEmails:', adminEmails);
         console.warn('   Database adminEmailsList:', adminEmailsList);
-        return;
+        throw new Error(
+          'No admin recipient emails configured. Set MAIN_ADMIN_EMAIL / SECONDARY_ADMIN_EMAIL or ensure admin users have valid emails.'
+        );
       }
       
       console.log(`📧 Sending order notification to ${recipientEmails.length} admin(s): ${recipientEmails.join(', ')}`);
@@ -1042,13 +958,13 @@ class GmailService {
     console.log(`📧 sendBatchOrderPlacedAlert called for ${orders.length} order(s), paymentMethod: ${paymentMethod}`);
     
     if (!this.isConfigured()) {
-      console.log('❌ Gmail not configured, skipping batch order notification');
-      return;
+      throw new Error(
+        'Gmail API not configured. Set GMAIL_API_CLIENT_ID, GMAIL_API_CLIENT_SECRET, GMAIL_API_REFRESH_TOKEN, and GMAIL_API_USER_EMAIL.'
+      );
     }
 
     if (!orders || orders.length === 0) {
-      console.warn('⚠️ No orders provided for batch notification');
-      return;
+      throw new Error('No orders provided for batch notification');
     }
 
     // Type guard: ensure we have at least one order
@@ -1122,8 +1038,9 @@ class GmailService {
         : adminEmailsList.filter((email): email is string => Boolean(email));
       
       if (recipientEmails.length === 0) {
-        console.warn('⚠️ No admin emails available to send batch order notification');
-        return;
+        throw new Error(
+          'No admin recipient emails for batch order notification. Set MAIN_ADMIN_EMAIL or add admin users with emails.'
+        );
       }
 
       // Calculate totals

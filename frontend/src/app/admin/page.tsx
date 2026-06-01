@@ -10,16 +10,6 @@ import { toast } from 'react-hot-toast';
 import OTPModal from '@/components/OTPModal';
 import { getApiUrl } from '@/lib/getApiUrl';
 
-type OTPResendResult = {
-  retryAfterSeconds?: number;
-};
-
-type OTPResendError = Error & {
-  retryAfterSeconds?: number;
-  status?: number;
-  code?: string;
-};
-
 interface AdminFeature {
   id: string;
   name: string;
@@ -76,8 +66,23 @@ export default function AdminPage() {
         return;
       }
       
-      // For now, skip additional dashboard OTP if user just logged in
-      // The login flow should have already enforced OTP based on admin settings
+      // Parent/full admins do not need a second OTP on the dashboard
+      if (!isChildAdmin) {
+        setOtpVerified(true);
+        setCheckingOTP(false);
+        return;
+      }
+
+      const loginOtpEnabled = process.env.NEXT_PUBLIC_ENABLE_LOGIN_OTP === 'true';
+      const adminDashboardOtpEnabled =
+        process.env.NEXT_PUBLIC_ENABLE_ADMIN_DASHBOARD_OTP === 'true';
+      if (!loginOtpEnabled || !adminDashboardOtpEnabled) {
+        setOtpVerified(true);
+        setCheckingOTP(false);
+        return;
+      }
+
+      // Skip additional dashboard OTP if user just logged in
       const fromLogin = sessionStorage.getItem('fromLogin');
       if (fromLogin === 'true') {
         console.log('🔐 User came from login, OTP should have been verified there');
@@ -87,7 +92,7 @@ export default function AdminPage() {
         return;
       }
 
-      // Generate OTP for child admin access
+      // Generate OTP for child admin access only
       try {
         const token = getAccessToken();
         if (!token) {
@@ -158,14 +163,13 @@ export default function AdminPage() {
     }
   };
 
-  const handleResendOTP = async (): Promise<OTPResendResult> => {
+  const handleResendOTP = async () => {
     try {
       const token = getAccessToken();
       if (!token) {
+        toast.error('No authentication token. Please login again.');
         router.push('/login');
-        const authError = new Error('No authentication token. Please login again.') as OTPResendError;
-        authError.status = 401;
-        throw authError;
+        return;
       }
 
       // Use centralized API instance
@@ -183,23 +187,15 @@ export default function AdminPage() {
 
       if (response.data.success) {
         console.log('✅ OTP resent successfully', response.data);
-        return {};
+        toast.success('OTP resent to your email');
       } else {
         const result = response.data;
         console.error('❌ Failed to resend OTP', { status: response.status, error: result });
-        const resendError = new Error(result.message || 'Failed to resend OTP') as OTPResendError;
-        resendError.status = response.status;
-        resendError.retryAfterSeconds = result.retryAfterSeconds;
-        resendError.code = result.code;
-        throw resendError;
+        toast.error(result.message || 'Failed to resend OTP');
       }
     } catch (error: any) {
       console.error('❌ Error resending OTP:', error);
-      const resendError = new Error(error?.response?.data?.message || error?.message || 'Failed to resend OTP. Please try again.') as OTPResendError;
-      resendError.status = error?.response?.status;
-      resendError.retryAfterSeconds = error?.response?.data?.retryAfterSeconds;
-      resendError.code = error?.response?.data?.code;
-      throw resendError;
+      toast.error('Failed to resend OTP. Please try again.');
     }
   };
 

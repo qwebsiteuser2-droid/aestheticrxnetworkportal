@@ -436,14 +436,20 @@ export const getPublicProducts = async (req: Request, res: Response): Promise<vo
       .createQueryBuilder('product')
       .select([
         'product.id',
+        'product.slot_index',
         'product.name',
+        'product.description',
         'product.price',
         'product.image_url',
         'product.is_visible',
         'product.stock_quantity',
+        'product.category',
+        'product.unit',
+        'product.is_featured',
       ])
       .where('product.is_visible = true')
       .orderBy('product.is_featured', 'DESC')
+      .addOrderBy('product.slot_index', 'ASC')
       .addOrderBy('product.created_at', 'DESC')
       .take(limit)
       .getMany();

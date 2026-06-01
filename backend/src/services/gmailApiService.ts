@@ -100,10 +100,15 @@ class GmailApiService {
    * Initialize Gmail API client with OAuth 2.0 credentials
    */
   private initialize(): void {
-    const clientId = process.env.GMAIL_API_CLIENT_ID;
-    const clientSecret = process.env.GMAIL_API_CLIENT_SECRET;
-    const refreshToken = process.env.GMAIL_API_REFRESH_TOKEN;
-    const userEmail = process.env.GMAIL_API_USER_EMAIL;
+    const clientId = process.env.GMAIL_API_CLIENT_ID?.trim();
+    const clientSecret = process.env.GMAIL_API_CLIENT_SECRET?.trim();
+    const refreshToken = process.env.GMAIL_API_REFRESH_TOKEN?.trim();
+    // Sender must match the Google account used to create the refresh token
+    const userEmail = (
+      process.env.GMAIL_API_USER_EMAIL ||
+      process.env.GMAIL_USER ||
+      ''
+    ).trim().toLowerCase();
 
     if (!clientId || !clientSecret || !refreshToken || !userEmail) {
       console.log('⚠️ Gmail API credentials not fully configured');
@@ -111,7 +116,8 @@ class GmailApiService {
         clientId: !clientId,
         clientSecret: !clientSecret,
         refreshToken: !refreshToken,
-        userEmail: !userEmail
+        userEmail: !userEmail,
+        hint: 'Set GMAIL_API_USER_EMAIL=aestheticrxnetwork@gmail.com (same account as OAuth refresh token)',
       });
       return;
     }
@@ -152,6 +158,25 @@ class GmailApiService {
   }
 
   /**
+   * Verify OAuth credentials can obtain a valid access token (no email sent).
+   */
+  async verifyConnection(): Promise<{ ok: boolean; error?: string }> {
+    if (!this.isConfigured()) {
+      return {
+        ok: false,
+        error: 'Gmail API not configured. Set GMAIL_API_CLIENT_ID, GMAIL_API_CLIENT_SECRET, GMAIL_API_REFRESH_TOKEN, GMAIL_API_USER_EMAIL.',
+      };
+    }
+    try {
+      await this.ensureValidToken();
+      return { ok: true };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      return { ok: false, error: message };
+    }
+  }
+
+  /**
    * Refresh access token if needed
    */
   private async ensureValidToken(): Promise<void> {
@@ -160,18 +185,36 @@ class GmailApiService {
     }
 
     try {
-      // Get current credentials
-      const credentials = await this.oauth2Client.getAccessToken();
-      
-      // If token is expired or missing, refresh it
-      if (!credentials.token) {
-        await this.oauth2Client.refreshAccessToken();
+      const expiryDate = this.oauth2Client.credentials.expiry_date;
+      const isExpired =
+        !this.oauth2Client.credentials.access_token ||
+        (typeof expiryDate === 'number' && expiryDate <= Date.now() + 60_000);
+
+      if (isExpired) {
+        const { credentials } = await this.oauth2Client.refreshAccessToken();
+        this.oauth2Client.setCredentials({
+          ...this.oauth2Client.credentials,
+          ...credentials,
+        });
+      } else {
+        const tokenResponse = await this.oauth2Client.getAccessToken();
+        if (!tokenResponse.token) {
+          const { credentials } = await this.oauth2Client.refreshAccessToken();
+          this.oauth2Client.setCredentials({
+            ...this.oauth2Client.credentials,
+            ...credentials,
+          });
+        }
       }
     } catch (error: unknown) {
       console.error('❌ Error refreshing access token:', error);
-      // Try to re-initialize
-      this.initialize();
-      throw new Error('Failed to refresh access token');
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes('invalid_grant')) {
+        throw new Error(
+          'Gmail API: Refresh token expired or invalid. Regenerate GMAIL_API_REFRESH_TOKEN using OAuth Playground with gmail.send scope only.'
+        );
+      }
+      throw new Error(`Failed to refresh access token: ${message}`);
     }
   }
 

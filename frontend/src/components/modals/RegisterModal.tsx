@@ -7,6 +7,10 @@ import { z } from 'zod';
 import { XMarkIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { authApi } from '@/lib/api';
 import { toast } from 'react-hot-toast';
+import {
+  PasswordRequirementsList,
+  PasswordRequirementsModal,
+} from '@/components/PasswordRequirements';
 
 const registerSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -39,6 +43,7 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const {
     register,
@@ -64,7 +69,11 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
         onClose();
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Registration failed');
+      const message = error.response?.data?.message || 'Registration failed';
+      if (message.includes('Password does not meet requirements')) {
+        setShowPasswordModal(true);
+      }
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -147,6 +156,12 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
               </div>
               {errors.password && (
                 <p className="form-error">{errors.password.message}</p>
+              )}
+              {password && password.length > 0 && (
+                <div className="mt-2 p-3 rounded-md bg-gray-50 border border-gray-200">
+                  <p className="text-xs font-medium text-gray-700 mb-2">Password must include:</p>
+                  <PasswordRequirementsList password={password} />
+                </div>
               )}
             </div>
 
@@ -323,6 +338,12 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
             </div>
           </div>
         </div>
+
+        <PasswordRequirementsModal
+          isOpen={showPasswordModal}
+          onClose={() => setShowPasswordModal(false)}
+          password={password || ''}
+        />
       </div>
     </div>
   );

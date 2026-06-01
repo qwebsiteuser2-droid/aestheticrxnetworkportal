@@ -1723,7 +1723,12 @@ export class DataExportController {
       
       // Use gmailService for sending emails (Gmail API with SMTP fallback)
       const gmailService = (await import('../services/gmailService')).default;
-      const adminEmail = process.env.GMAIL_USER || process.env.MAIN_ADMIN_EMAIL || '';
+      const adminEmail =
+        process.env.MAIN_ADMIN_EMAIL ||
+        process.env.SECONDARY_ADMIN_EMAIL ||
+        process.env.GMAIL_API_USER_EMAIL ||
+        process.env.GMAIL_USER ||
+        '';
       
       const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

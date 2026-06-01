@@ -133,7 +133,7 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
 
   return (
     <>
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 relative">
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 relative pl-0">
       {/* Desktop Meta Attribution Banner - Hidden on mobile */}
       <div className="hidden md:block bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100">
         <div className="container mx-auto px-4 py-2">
@@ -161,11 +161,11 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
           {/* Top Row: Logo + BAx + Auth */}
           <div className="flex items-center justify-between py-2">
             {/* Logo and BAx */}
-            <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
+            <Link href="/" className="flex items-center space-x-1 flex-shrink-0 -ml-1">
               <img 
                 src="/logo.png" 
                 alt="AestheticRx Network" 
-                className="w-20 h-20 object-contain"
+                className="w-16 h-16 object-contain"
               />
               <span className="text-lg font-black"><span style={{ color: '#1E66FF' }}>A</span><span style={{ color: '#F5C24C' }}>RX</span></span>
             </Link>
@@ -253,19 +253,24 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
         </div>
         
         {/* Desktop Header Layout */}
-        <div className="hidden md:flex justify-between items-center h-16">
-          {/* Logo - Desktop */}
-          <div className="flex items-center flex-shrink-0">
-            <Link href="/" className="flex items-center space-x-3">
+        <div className="hidden md:flex justify-between items-center min-h-[4.5rem] relative">
+          {/* Logo - pinned top-left */}
+          <div className="absolute left-0 top-0 z-20 flex items-start">
+            <Link href="/" className="flex items-center gap-2 pl-1 pt-1">
               <img 
                 src="/logo.png" 
                 alt="AestheticRx Network" 
-                className="w-32 h-32 lg:w-40 lg:h-40 object-contain"
+                className="w-24 h-24 lg:w-28 lg:h-28 object-contain drop-shadow-sm"
               />
-              <span className="text-2xl lg:text-3xl font-black hidden lg:block"><span style={{ color: '#1E66FF' }}>Aesthetic</span><span style={{ color: '#F5C24C' }}>RX</span><span style={{ color: '#7AAC52' }}> Network</span></span>
-              <span className="text-2xl font-black lg:hidden"><span style={{ color: '#1E66FF' }}>A</span><span style={{ color: '#F5C24C' }}>RX</span></span>
+              <span className="text-xl lg:text-2xl font-black hidden xl:block leading-tight pt-2">
+                <span style={{ color: '#1E66FF' }}>Aesthetic</span>
+                <span style={{ color: '#F5C24C' }}>RX</span>
+                <span style={{ color: '#7AAC52' }}> Network</span>
+              </span>
             </Link>
           </div>
+
+          <div className="flex-1 min-w-[7rem] lg:min-w-[9rem]" aria-hidden />
 
           {/* Main Navigation Links - Desktop - Tab Style */}
           <div className="flex items-center space-x-0.5 bg-gray-100 p-1 rounded-xl">
@@ -285,7 +290,6 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
             
             <Link
               href="/order"
-              onClick={(e) => handleProtectedNav(e, '/order')}
               className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all font-medium text-sm ${
                 isActive('/order') 
                   ? 'bg-blue-500 text-white shadow-md' 
@@ -295,6 +299,19 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
             >
               <span>🛒</span>
               <span>Order</span>
+            </Link>
+
+            <Link
+              href="/doctors"
+              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all font-medium text-sm ${
+                isActive('/doctors') 
+                  ? 'bg-emerald-500 text-white shadow-md' 
+                  : 'text-gray-600 hover:text-emerald-600 hover:bg-white'
+              }`}
+              title="Find doctors near you"
+            >
+              <span>👨‍⚕️</span>
+              <span>Find Doctors</span>
             </Link>
             
             <Link
@@ -350,7 +367,7 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
                 title={hasAdminAccess ? "View all appointment requests (Admin)" : "View and respond to appointment requests"}
               >
                 <ChatBubbleLeftRightIcon className="w-4 h-4" />
-                <span>Appoint Status</span>
+                <span>Appointment Status</span>
               </Link>
             )}
           </div>
@@ -469,7 +486,6 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
         {/* Order */}
         <Link
           href="/order"
-          onClick={(e) => handleProtectedNav(e, '/order')}
           className={`flex flex-col items-center justify-center py-2 transition-colors ${
             isActive('/order') 
               ? 'text-blue-600 bg-blue-50 border-t-2 border-blue-500' 
@@ -508,18 +524,17 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
           <span className={`text-[9px] mt-0.5 ${isActive('/hall-of-pride') ? 'font-bold' : 'font-medium'}`}>Pride</span>
         </Link>
         
-        {/* Appointments with Doctors */}
+        {/* Find Doctors */}
         <Link
-          href="/appointments"
-          onClick={(e) => handleProtectedNav(e, '/appointments')}
+          href="/doctors"
           className={`flex flex-col items-center justify-center py-2 transition-colors ${
-            isActive('/appointments') 
+            isActive('/doctors') 
               ? 'text-emerald-600 bg-emerald-50 border-t-2 border-emerald-500' 
               : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50'
           }`}
         >
           <span className="text-lg">👨‍⚕️</span>
-          <span className={`text-[9px] mt-0.5 ${isActive('/appointments') ? 'font-bold' : 'font-medium'}`}>Doctors</span>
+          <span className={`text-[9px] mt-0.5 ${isActive('/doctors') ? 'font-bold' : 'font-medium'}`}>Find</span>
         </Link>
         
         {/* Appointments or Home */}
@@ -533,7 +548,7 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
             }`}
           >
             <ChatBubbleLeftRightIcon className="w-5 h-5" />
-            <span className={`text-[9px] mt-0.5 ${isActive('/messages') ? 'font-bold' : 'font-medium'}`}>Appoints</span>
+            <span className={`text-[9px] mt-0.5 ${isActive('/messages') ? 'font-bold' : 'font-medium'}`}>Appts</span>
           </Link>
         ) : (
           <Link

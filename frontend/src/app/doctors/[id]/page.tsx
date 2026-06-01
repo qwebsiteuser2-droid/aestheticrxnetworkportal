@@ -59,9 +59,8 @@ export default function DoctorProfilePage() {
       setLoading(true);
       const response = await api.get(`/public/doctors/${id}`);
       
-      if (response.ok) {
-        const data = await response.json();
-        setDoctor(data.data);
+      if (response.data?.success && response.data?.data) {
+        setDoctor(response.data.data);
       } else {
         toast.error('Doctor not found');
         router.push('/doctors');
@@ -87,12 +86,10 @@ export default function DoctorProfilePage() {
         doctor_id: id,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        router.push(`/messages/${data.data.id}`);
+      if (response.data?.success) {
+        router.push(`/messages/${response.data.data.id}`);
       } else {
-        const error = await response.json();
-        toast.error(error.message || 'Failed to start conversation');
+        toast.error(response.data?.message || 'Failed to start conversation');
       }
     } catch (err) {
       console.error('Error starting chat:', err);
