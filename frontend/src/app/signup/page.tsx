@@ -439,7 +439,7 @@ function SignupContent() {
             />
             <label htmlFor="consent" className="ml-2 block text-sm text-gray-900">
               I consent to the collection and processing of my personal data, including email communications, data usage, cookies, and organization access, and I agree to the{' '}
-              <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-500 underline">
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-500 underline">
                 Privacy Policy
               </a>{' '}
               and{' '}

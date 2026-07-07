@@ -1,8 +1,10 @@
 # Database Scripts Directory
 
-**Last Updated:** January 14, 2026
+**Last Updated:** June 1, 2026
 
 This directory contains database-related SQL scripts and utilities.
+
+> **Schema migrations** for the application (including `doctor_comments` in v3.5.4) live in `backend/src/migrations/` and run automatically on backend startup. See [CHANGELOG.md](../docs/CHANGELOG.md).
 
 ## 📋 Scripts Overview
 

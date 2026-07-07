@@ -182,17 +182,31 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {/* Dropdown */}
+      {/* Dropdown — fixed on mobile so it fits the screen */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+        <>
+          <div
+            className="fixed inset-0 z-[80] bg-black/30 md:hidden"
+            aria-hidden
+            onClick={() => setIsOpen(false)}
+          />
+          <div
+            className="
+              fixed left-2 right-2 top-[calc(env(safe-area-inset-top,0px)+5.75rem)] z-[90]
+              max-h-[min(70vh,calc(100dvh-5rem))]
+              flex flex-col overflow-hidden
+              bg-white rounded-xl shadow-2xl border border-gray-200
+              md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-80 md:max-h-96 md:flex-none
+            "
+          >
+          <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between shrink-0">
             <h3 className="font-semibold text-gray-900">Notifications</h3>
             {totalUnread > 0 && (
               <span className="text-xs text-gray-500">{totalUnread} unread</span>
             )}
           </div>
 
-          <div className="max-h-96 overflow-y-auto">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
             {loading ? (
               <div className="p-4 text-center">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto" />
@@ -283,19 +297,20 @@ export default function NotificationBell() {
           </div>
 
           {notifications.length > 0 && (
-            <div className="px-4 py-3 border-t border-gray-200">
+            <div className="px-4 py-3 border-t border-gray-200 shrink-0">
               <button
                 onClick={() => {
                   router.push('/messages');
                   setIsOpen(false);
                 }}
-                className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium py-1"
               >
-                View Appointments Status
+                View Appointment Status
               </button>
             </div>
           )}
         </div>
+        </>
       )}
     </div>
   );

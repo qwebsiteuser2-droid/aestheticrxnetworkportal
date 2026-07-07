@@ -5,13 +5,14 @@ import { useAuth } from '@/app/providers';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Header } from '@/components/layout/Header';
-import { MagnifyingGlassIcon, XMarkIcon, UserGroupIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, XMarkIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { getAccessToken } from '@/lib/auth';
 import { toast } from 'react-hot-toast';
 import { useAdminPermission } from '@/hooks/useAdminPermission';
 import { getApiUrl } from '@/lib/getApiUrl';
 import api from '@/lib/api';
 import { BRAND } from '@/lib/brandColors';
+import { BrandTitle } from '@/components/BrandTitle';
 
 // Dynamic imports for heavy components - reduces initial bundle size by ~30%
 const VideoAdvertisementModal = dynamic(
@@ -35,16 +36,17 @@ const VideoAdvertisementDisplay = dynamic(
   }
 );
 
-const HeroCards = dynamic(
-  () => import('@/components/HeroCards'),
-  { 
+const PublicOrderCatalog = dynamic(
+  () => import('@/components/PublicOrderCatalog'),
+  {
     ssr: false,
     loading: () => (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="h-48 bg-gray-200 animate-pulse rounded-xl" />
-        <div className="h-48 bg-gray-200 animate-pulse rounded-xl" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="aspect-square bg-gray-200 animate-pulse rounded-xl" />
+        ))}
       </div>
-    )
+    ),
   }
 );
 
@@ -1034,58 +1036,82 @@ function Top3Sidebar() {
   );
 }
 
+function FoldableTopClinicsMobile({
+  children,
+  isAuthenticated,
+}: {
+  children: React.ReactNode;
+  isAuthenticated: boolean;
+}) {
+  const [expanded, setExpanded] = useState(isAuthenticated);
+
+  useEffect(() => {
+    if (isAuthenticated) setExpanded(true);
+  }, [isAuthenticated]);
+
+  return (
+    <div className="md:hidden">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center justify-between gap-2 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2.5 text-left touch-manipulation"
+        aria-expanded={expanded}
+      >
+        <div>
+          <p className="text-sm font-bold text-gray-900">🏆 Top Clinics of the Month</p>
+          <p className="text-xs text-gray-600">
+            {expanded ? 'Tap to collapse' : 'Tap to expand rankings'}
+          </p>
+        </div>
+        <span className="text-gray-500 text-sm shrink-0" aria-hidden>
+          {expanded ? '▲' : '▼'}
+        </span>
+      </button>
+      {expanded ? <div className="mt-3">{children}</div> : null}
+    </div>
+  );
+}
+
 function BlurredTop3Sidebar() {
   return (
     <div className="space-y-2">
       {[1, 2, 3].map((rank) => (
-        <div key={rank} className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-2 sm:p-3 border border-gray-200 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-blue-200 opacity-50 blur-sm"></div>
-          <div className="relative z-10">
-            <div className="flex items-center space-x-2">
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm ${
-                rank === 1 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' :
-                rank === 2 ? 'bg-gradient-to-r from-gray-300 to-gray-500' :
-                'bg-gradient-to-r from-orange-400 to-orange-600'
-              }`}>
-                {getOrdinalPosition(rank)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-1 mb-0.5">
-                  <span className="text-sm sm:text-lg">
-                    {rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}
-                  </span>
-                  <h4 className="font-semibold text-gray-900 text-xs">*** *** ***</h4>
-                </div>
-                <p className="text-gray-600 text-[10px] sm:text-xs">Dr. *** ***</p>
-                
-                {/* Blurred Business Tagline */}
-                <p className="text-[10px] text-gray-400 italic truncate mt-0.5">"*** *** ***"</p>
-                
-                {/* Blurred Tier Progress Bar */}
-                <div className="mt-1">
-                  <div className="flex items-center justify-between text-[10px] text-gray-500 mb-0.5">
-                    <span className="px-1.5 py-0.5 rounded-full bg-gray-100 font-medium">*** ***</span>
-                    <span className="font-bold">**%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className="h-1.5 rounded-full bg-gray-400" style={{ width: '60%' }} />
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-center mt-1">
-                  <span className="text-[10px] font-medium text-green-600">Top Performer</span>
-                </div>
-              </div>
+        <div
+          key={rank}
+          className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200"
+        >
+          <div className="flex items-center gap-2">
+            <div
+              className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-white font-bold text-xs ${
+                rank === 1
+                  ? 'bg-gradient-to-r from-yellow-400 to-yellow-600'
+                  : rank === 2
+                    ? 'bg-gradient-to-r from-gray-300 to-gray-500'
+                    : 'bg-gradient-to-r from-orange-400 to-orange-600'
+              }`}
+            >
+              {getOrdinalPosition(rank)}
             </div>
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
-            <div className="text-center">
-              <div className="text-white font-bold text-sm mb-0.5">🔒</div>
-              <div className="text-white text-[10px]">Sign in to view</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1">
+                <span className="text-base">{rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}</span>
+                <h4 className="font-semibold text-gray-400 text-sm">Clinic name hidden</h4>
+              </div>
+              <p className="text-gray-400 text-xs">Sign in to see rankings</p>
+              <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                <div className="h-1.5 rounded-full bg-gray-300 w-3/5" />
+              </div>
             </div>
           </div>
         </div>
       ))}
+      <a
+        href="/login"
+        className="block w-full text-center py-3 px-4 rounded-lg text-white text-sm font-semibold shadow-md hover:opacity-95 transition-opacity"
+        style={{ backgroundColor: '#1E6BFF' }}
+      >
+        Sign in to view top clinics
+      </a>
     </div>
   );
 }
@@ -1506,7 +1532,7 @@ export default function Home() {
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-6">
               <img src="/logo.png" alt="AestheticRx Network" className="w-60 h-60 sm:w-72 sm:h-72 object-contain" />
-              <span className="text-4xl font-bold"><span style={{ color: BRAND.blue }}>Aesthetic</span><span style={{ color: BRAND.gold }}>RX</span><span style={{ color: BRAND.green }}> Network</span></span>
+              <BrandTitle size="lg" />
             </div>
             <p className="text-gray-600 text-lg mb-8">
               Professional B2B platform for clinics
@@ -1540,116 +1566,87 @@ export default function Home() {
       />
       
       <main>
-        {/* Header Advertisement Banner - Responsive */}
-        <div className="bg-white/90 backdrop-blur-sm border-b border-gray-200">
+        {/* Header Advertisement Banner - desktop only (mobile keeps focus on order) */}
+        <div className="hidden md:block bg-white/90 backdrop-blur-sm border-b border-gray-200">
           <div className="container mx-auto px-4 py-2">
-            {/* Mobile Header Banner */}
-            <div className="block md:hidden">
-              <VideoAdvertisementDisplay 
-                areaName="mobile-header-banner" 
-                deviceType="mobile"
-                className="mobile-header-banner mx-auto"
-              />
-            </div>
-            {/* Desktop Header Banner */}
-            <div className="hidden md:block">
-              <VideoAdvertisementDisplay 
-                areaName="desktop-header-banner" 
-                deviceType="desktop"
-                className="header-banner mx-auto"
-              />
-            </div>
-                      </div>
-                    </div>
+            <VideoAdvertisementDisplay
+              areaName="desktop-header-banner"
+              deviceType="desktop"
+              className="header-banner mx-auto"
+            />
+          </div>
+        </div>
 
-        <section className="relative py-20 lg:py-32">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col xl:flex-row gap-8 items-start w-full">
-              {/* Main Hero Content — center/left */}
-              <div className="flex-1 min-w-0 order-1 w-full">
-                <div className="max-w-5xl mx-auto">
-                  <HeroCards />
-
-                  <div className="text-center">
-                    <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4">
-                    Professional <span style={{ color: BRAND.blue }}>B2B Platform</span><br/>
-                    for Clinics
-                  </h1>
-                    <p className="text-base text-gray-600 mb-6 max-w-2xl mx-auto">
-                    Connect with fellow doctors, order medical supplies, share research, and track your clinic&apos;s performance on our exclusive platform.
-                  </p>
-                  
-                  {/* Dynamic Video Advertisement - Content Top */}
-                    <div className="mb-6">
-                    {/* Mobile Hero Section Ad */}
-                    <div className="block md:hidden">
-                      <VideoAdvertisementDisplay 
-                        areaName="mobile-hero-section" 
-                        deviceType="mobile"
-                        className="mobile-hero-section-ad mx-auto"
-                      />
-                    </div>
-                    {/* Desktop Hero Section Ad */}
-                    <div className="hidden md:block">
-                      <VideoAdvertisementDisplay 
-                        areaName="hero_section_main" 
-                        deviceType="desktop"
-                        className="hero-section-ad mx-auto max-w-4xl"
-                      />
-                    </div>
+        <section className="relative py-4 lg:py-8 bg-white/90">
+          <div className="w-full max-w-[1920px] mx-auto px-0 sm:px-1 lg:px-2">
+            <div className="flex flex-col lg:flex-row gap-4 lg:gap-5 items-start w-full">
+              {/* Order catalog: guests on all screens; signed-in on desktop only */}
+              <div
+                className={`flex-1 min-w-0 w-full px-2 sm:px-3 lg:px-4 order-1 lg:order-2 ${
+                  isAuthenticated ? 'hidden md:block' : ''
+                }`}
+              >
+                <PublicOrderCatalog />
+                {!isAuthenticated && (
+                  <div className="hidden md:flex flex-col sm:flex-row gap-3 justify-center items-center mt-8 pb-4">
+                    <a
+                      href="/signup/select-type"
+                      className="text-white px-6 py-3 font-semibold rounded-lg hover:opacity-95 transition-opacity"
+                      style={{ backgroundColor: BRAND.blue }}
+                    >
+                      Get Started
+                    </a>
+                    <a
+                      href="/login"
+                      className="border-2 px-6 py-3 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
+                      style={{ borderColor: BRAND.blue, color: BRAND.blue }}
+                    >
+                      Sign In
+                    </a>
                   </div>
-                    
-                  {!isAuthenticated && (
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                      <a href="/signup/select-type" className="bg-blue-600 text-white px-8 py-4 text-lg font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-                        Get Started
-                      </a>
-                      <a href="/login" className="border-2 border-blue-600 text-blue-600 px-8 py-4 text-lg font-semibold rounded-lg hover:bg-blue-50 transition-colors">
-                        Sign In
-                      </a>
-                    </div>
-                  )}
-                  </div>
-                </div>
+                )}
               </div>
 
-              {/* Top Clinics — pinned to far right on large screens */}
-            <div className="w-full xl:w-72 flex-shrink-0 order-2 xl:sticky xl:top-24 xl:self-start xl:ml-auto">
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-1 text-center">🏆 Top Clinics of the Month</h3>
-                <p className="text-xs text-gray-600 mb-3 text-center">Based on last month&apos;s performance</p>
-                
-                {/* Mobile Top 3 Section Ad */}
-                <div className="block md:hidden mb-4">
-                  <VideoAdvertisementDisplay 
-                    areaName="mobile-top3-section" 
-                    deviceType="mobile"
-                    className="mobile-top3-section-ad w-full"
-                  />
-                </div>
-                  {isAuthenticated ? (
-                    <Top3Sidebar />
-                  ) : (
-                    <BlurredTop3Sidebar />
-                  )}
-                </div>
-                
-                {/* Sidebar Advertisement - Top */}
-                <div className="mt-4">
-                  <VideoAdvertisementDisplay 
-                    areaName="hero_section_main" 
-                    deviceType="desktop"
-                    className="hero-section-ad w-full"
-                  />
-                </div>
-                
-                {/* Sidebar Advertisement - Bottom */}
-                <div className="mt-4">
-                  <VideoAdvertisementDisplay 
-                    areaName="hero_section_main" 
-                    deviceType="desktop"
-                    className="hero-section-ad w-full"
-                  />
+              {/* Top Clinics — foldable on mobile, sidebar on desktop */}
+              <div className="w-full lg:w-64 xl:w-72 flex-shrink-0 order-2 lg:order-1 lg:sticky lg:top-24 lg:self-start lg:pl-0 px-2 sm:px-0">
+                <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4">
+                  <h3 className="hidden md:block text-lg font-bold text-gray-900 mb-1 text-center">
+                    🏆 Top Clinics of the Month
+                  </h3>
+                  <p className="hidden md:block text-xs text-gray-600 mb-3 text-center">
+                    Based on last month&apos;s performance
+                  </p>
+
+                  <FoldableTopClinicsMobile isAuthenticated={isAuthenticated}>
+                    <div className="mb-4">
+                      <VideoAdvertisementDisplay
+                        areaName="mobile-top3-section"
+                        deviceType="mobile"
+                        className="mobile-top3-section-ad w-full"
+                      />
+                    </div>
+                    {isAuthenticated ? <Top3Sidebar /> : <BlurredTop3Sidebar />}
+                  </FoldableTopClinicsMobile>
+
+                  <div className="hidden md:block">
+                    {isAuthenticated ? <Top3Sidebar /> : <BlurredTop3Sidebar />}
+                  </div>
+
+                  <div className="hidden md:block mt-4">
+                    <VideoAdvertisementDisplay
+                      areaName="hero_section_main"
+                      deviceType="desktop"
+                      className="hero-section-ad w-full"
+                    />
+                  </div>
+
+                  <div className="hidden md:block mt-4">
+                    <VideoAdvertisementDisplay
+                      areaName="hero_section_main"
+                      deviceType="desktop"
+                      className="hero-section-ad w-full"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1657,8 +1654,13 @@ export default function Home() {
         </section>
 
         {/* Top Research Papers - Show blurred for non-authenticated, full for authenticated */}
-        <section className="py-8 bg-gradient-to-br from-purple-50 to-pink-100">
+        <section className="py-4 md:py-8 bg-gradient-to-br from-purple-50 to-pink-100">
           <div className="container mx-auto px-4">
+            <div className="md:hidden mb-2 px-1">
+              <p className="text-xs font-medium text-purple-800 text-center">
+                More below — tap sections to expand
+              </p>
+            </div>
             <FoldableResearchSection isAuthenticated={isAuthenticated} />
           </div>
           
@@ -1683,7 +1685,7 @@ export default function Home() {
           </div>
         </section>
         
-        <section className="py-16 bg-white">
+        <section className="py-8 md:py-16 bg-white">
           <div className="container mx-auto px-4">
             <FoldableFeaturesSection />
             
@@ -1699,7 +1701,7 @@ export default function Home() {
         </section>
 
         {/* Contact Us Section */}
-        <section className="py-16 bg-gray-50">
+        <section className="py-8 md:py-12 bg-gray-50">
           <div className="container mx-auto px-4">
             <FoldableContactSection />
           </div>
@@ -1728,23 +1730,29 @@ export default function Home() {
         </div>
       </div>
       
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-gray-900 text-white py-8 md:py-12">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <img src="/logo.png" alt="AestheticRx Network" className="w-12 h-12 object-contain shadow-md rounded-lg" />
-              <span className="text-xl font-bold"><span style={{ color: BRAND.blue }}>Aesthetic</span><span style={{ color: BRAND.gold }}>RX</span><span style={{ color: BRAND.green }}> Network</span></span>
+            <div className="flex flex-col items-center mb-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+                <img src="/logo.png" alt="AestheticRx Network" className="w-11 h-11 sm:w-12 sm:h-12 object-contain shadow-md rounded-lg shrink-0" />
+                <BrandTitle
+                  size="md"
+                  variant="onDark"
+                  showTagline
+                  taglineClassName="text-gray-400 text-xs sm:text-sm font-medium text-center max-w-md mt-1 sm:mt-2 px-2"
+                />
+              </div>
             </div>
-            <p className="text-gray-400 text-sm mb-4">
-              Professional B2B platform for clinics. Connect, order, research, and grow together.
-            </p>
-            <div className="flex items-center justify-center space-x-4 mb-4">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mb-4">
               <a href="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors underline">Privacy Policy</a>
-              <span className="text-gray-600">|</span>
+              <span className="text-gray-600 hidden sm:inline">|</span>
               <a href="/terms" className="text-gray-400 hover:text-white text-sm transition-colors underline">Terms of Service</a>
+              <span className="text-gray-600 hidden sm:inline">|</span>
+              <a href="/oauth-verification" className="text-gray-400 hover:text-white text-sm transition-colors underline">Google API Disclosure</a>
             </div>
-            <p className="text-gray-400 text-sm">
-              © 2025 AestheticRx Network. All rights reserved.
+            <p className="text-gray-400 text-xs sm:text-sm">
+              © {new Date().getFullYear()} AestheticRx Network. All rights reserved.
             </p>
           </div>
         </div>

@@ -1,24 +1,27 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { LegalPageShell } from '@/components/layout/LegalPageShell';
+import { absoluteUrl } from '@/lib/siteUrl';
 
-// SEO Metadata - Static page, pre-rendered at build time
 export const metadata: Metadata = {
-  title: 'Terms of Service | AestheticRxNetwork',
-  description: 'Read the Terms of Service for AestheticRxNetwork. Understand your rights and responsibilities when using our B2B medical platform.',
-  keywords: 'terms of service, user agreement, terms and conditions, AestheticRx, medical platform',
+  title: 'Terms of Service | AestheticRx Network',
+  description:
+    'Terms of Service for AestheticRx Network B2B medical platform.',
+  keywords: 'terms of service, user agreement, AestheticRx, medical platform',
+  alternates: {
+    canonical: absoluteUrl('/terms'),
+  },
   openGraph: {
-    title: 'Terms of Service | AestheticRxNetwork',
-    description: 'Terms and conditions for using AestheticRxNetwork B2B medical platform.',
+    title: 'Terms of Service | AestheticRx Network',
+    description: 'Terms and conditions for using AestheticRx Network.',
     type: 'website',
+    url: absoluteUrl('/terms'),
   },
 };
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Terms of Service</h1>
-        
+    <LegalPageShell title="Terms of Service">
         <div className="prose prose-lg max-w-none">
           <p className="text-sm text-gray-600 mb-6">
             <strong>Last Updated:</strong> January 27, 2026
@@ -129,7 +132,7 @@ export default function TermsPage() {
               We accept the following payment methods:
             </p>
             <ul className="list-disc pl-6 mb-4 text-gray-700">
-              <li><strong>PayFast:</strong> Online payment processing</li>
+              <li><strong>PayFast:</strong> Online payment processing (backend integration; portal checkout currently uses Cash on Delivery)</li>
               <li><strong>Cash on Delivery:</strong> Payment upon delivery</li>
             </ul>
             <p className="text-gray-700">
@@ -367,15 +370,11 @@ export default function TermsPage() {
           </section>
 
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <Link 
-              href="/" 
-              className="text-blue-600 hover:text-blue-800 font-medium"
-            >
+            <Link href="/" className="text-blue-600 hover:text-blue-800 font-medium">
               ← Back to Home
             </Link>
           </div>
         </div>
-      </div>
-    </div>
+    </LegalPageShell>
   );
 }

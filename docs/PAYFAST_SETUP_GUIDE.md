@@ -13,7 +13,9 @@
 
 ## Overview
 
-PayFast is integrated for online payment processing. You need to configure your own PayFast credentials for production use.
+PayFast is integrated on the **backend** (initialize payment, ITN callbacks, order status updates). The **portal UI does not offer PayFast checkout** as of v3.5.6 — orders and advertisements use **Cash on Delivery** in the app. Re-enable PayFast in the frontend when you are ready to accept online payments.
+
+You still need PayFast credentials if you use ITN webhooks, admin exports, or re-enable the checkout UI.
 
 ---
 

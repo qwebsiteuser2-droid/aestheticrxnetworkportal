@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AppDataSource } from '../db/data-source';
 import { Product } from '../models/Product';
 import { getBackendUrl } from '../config/urlConfig';
+import { buildProductImagePublicUrl } from '../utils/productImageServe';
 
 /** Columns safe to query before optional gallery migrations are applied on production DB */
 const PRODUCT_CATALOG_COLUMNS = [
@@ -64,17 +65,9 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
     // Transform relative image URLs to full URLs
     const backendUrl = getBackendUrl();
     console.log('🔧 getProducts - Backend URL:', backendUrl);
-    const transformedProducts = products.map(product => {
+    const transformedProducts = products.map((product) => {
       const productData = product.toPublicJSON();
-      if (productData.image_url && !productData.image_url.startsWith('http://') && !productData.image_url.startsWith('https://')) {
-        // Remove leading slash if present
-        const imagePath = productData.image_url.startsWith('/')
-          ? productData.image_url.substring(1)
-          : productData.image_url;
-        const fullImageUrl = `${backendUrl}/api/images/${imagePath}`;
-        console.log(`🖼️ Transforming image: ${productData.image_url} → ${fullImageUrl}`);
-        productData.image_url = fullImageUrl;
-      }
+      productData.image_url = buildProductImagePublicUrl(product.id, backendUrl);
       return productData;
     });
     
@@ -119,16 +112,10 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
       return;
     }
     
-    // Transform relative image URL to full URL
     const backendUrl = getBackendUrl();
     const productData = product.toPublicJSON();
-    if (productData.image_url && !productData.image_url.startsWith('http://') && !productData.image_url.startsWith('https://')) {
-      const imagePath = productData.image_url.startsWith('/')
-        ? productData.image_url.substring(1)
-        : productData.image_url;
-      productData.image_url = `${backendUrl}/api/images/${imagePath}`;
-    }
-    
+    productData.image_url = buildProductImagePublicUrl(product.id, backendUrl);
+
     res.json({
       success: true,
       data: {
@@ -171,16 +158,10 @@ export const getProductBySlot = async (req: Request, res: Response): Promise<voi
       return;
     }
     
-    // Transform relative image URL to full URL
     const backendUrl = getBackendUrl();
     const productData = product.toPublicJSON();
-    if (productData.image_url && !productData.image_url.startsWith('http://') && !productData.image_url.startsWith('https://')) {
-      const imagePath = productData.image_url.startsWith('/')
-        ? productData.image_url.substring(1)
-        : productData.image_url;
-      productData.image_url = `${backendUrl}/api/images/${imagePath}`;
-    }
-    
+    productData.image_url = buildProductImagePublicUrl(product.id, backendUrl);
+
     res.json({
       success: true,
       data: {
@@ -267,14 +248,9 @@ export const searchProducts = async (req: Request, res: Response): Promise<void>
     
     // Transform relative image URLs to full URLs
     const backendUrl = getBackendUrl();
-    const transformedProducts = products.map(product => {
+    const transformedProducts = products.map((product) => {
       const productData = product.toPublicJSON();
-      if (productData.image_url && !productData.image_url.startsWith('http://') && !productData.image_url.startsWith('https://')) {
-        const imagePath = productData.image_url.startsWith('/')
-          ? productData.image_url.substring(1)
-          : productData.image_url;
-        productData.image_url = `${backendUrl}/api/images/${imagePath}`;
-      }
+      productData.image_url = buildProductImagePublicUrl(product.id, backendUrl);
       return productData;
     });
     

@@ -3,7 +3,9 @@
   "short_name": "AestheticRXNetwork",
   "description": "Professional B2B platform for aesthetic clinics and medical professionals",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#1E66FF",
   "icons": [

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Header } from '@/components/layout/Header';
 import { useAuth } from '@/app/providers';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import DoctorCard from '@/components/DoctorCard';
 import api from '@/lib/api';
 import {
@@ -34,6 +34,8 @@ interface Doctor {
   availability_status?: string;
   last_active_at?: string;
   distance_km?: number;
+  appointments_received?: number;
+  appointments_accepted?: number;
   google_location?: {
     lat: number;
     lng: number;
@@ -44,7 +46,9 @@ interface Doctor {
 export default function DoctorsPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
-  
+  const searchParams = useSearchParams();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,6 +58,11 @@ export default function DoctorsPage() {
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
   const [selectedRadius, setSelectedRadius] = useState(50);
   const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState<
+    'default' | 'appointments_received' | 'appointments_accepted'
+  >('default');
+  const [minAppointmentsReceived, setMinAppointmentsReceived] = useState(0);
+  const [minAppointmentsAccepted, setMinAppointmentsAccepted] = useState(0);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 12,
@@ -78,6 +87,16 @@ export default function DoctorsPage() {
       
       if (showOnlineOnly) {
         url += `&available_only=true`;
+      }
+
+      if (sortBy !== 'default') {
+        url += `&sort=${sortBy}`;
+      }
+      if (minAppointmentsReceived > 0) {
+        url += `&min_received=${minAppointmentsReceived}`;
+      }
+      if (minAppointmentsAccepted > 0) {
+        url += `&min_accepted=${minAppointmentsAccepted}`;
       }
 
       const response = await api.get(url);
@@ -105,7 +124,24 @@ export default function DoctorsPage() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, userLocation, showOnlineOnly, selectedRadius, pagination.page, pagination.limit]);
+  }, [
+    searchQuery,
+    userLocation,
+    showOnlineOnly,
+    selectedRadius,
+    sortBy,
+    minAppointmentsReceived,
+    minAppointmentsAccepted,
+    pagination.page,
+    pagination.limit,
+  ]);
+
+  useEffect(() => {
+    if (searchParams.get('focus') === 'search') {
+      const t = window.setTimeout(() => searchInputRef.current?.focus(), 300);
+      return () => window.clearTimeout(t);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     // Check for geolocation
@@ -272,11 +308,13 @@ export default function DoctorsPage() {
             <div className="flex-1 relative">
               <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
-                type="text"
+                ref={searchInputRef}
+                type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name, clinic, or specialty..."
                 className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                enterKeyHint="search"
               />
             </div>
 
@@ -369,12 +407,70 @@ export default function DoctorsPage() {
                 <span className="text-sm text-gray-600">Available now</span>
               </label>
 
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600">Sort by:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => {
+                    setSortBy(
+                      e.target.value as
+                        | 'default'
+                        | 'appointments_received'
+                        | 'appointments_accepted'
+                    );
+                    setTimeout(() => fetchDoctors(true), 0);
+                  }}
+                  className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                >
+                  <option value="default">Default</option>
+                  <option value="appointments_received">Most requests received</option>
+                  <option value="appointments_accepted">Most accepted appointments</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600">Min received:</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={minAppointmentsReceived || ''}
+                  onChange={(e) =>
+                    setMinAppointmentsReceived(Math.max(0, parseInt(e.target.value, 10) || 0))
+                  }
+                  className="w-20 px-2 py-2 border border-gray-200 rounded-lg text-sm"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600">Min accepted:</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={minAppointmentsAccepted || ''}
+                  onChange={(e) =>
+                    setMinAppointmentsAccepted(Math.max(0, parseInt(e.target.value, 10) || 0))
+                  }
+                  className="w-20 px-2 py-2 border border-gray-200 rounded-lg text-sm"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => fetchDoctors(true)}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Apply appointment filters
+              </button>
+
               {/* Clear Filters */}
               <button
                 onClick={() => {
                   setShowOnlineOnly(false);
                   setSelectedRadius(50);
                   setSearchQuery('');
+                  setSortBy('default');
+                  setMinAppointmentsReceived(0);
+                  setMinAppointmentsAccepted(0);
                   fetchDoctors(true);
                 }}
                 className="text-sm text-gray-500 hover:text-gray-700"

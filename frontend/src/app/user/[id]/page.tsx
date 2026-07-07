@@ -8,6 +8,8 @@ import { getApiUrl } from '@/lib/getApiUrl';
 import api from '@/lib/api';
 import { FaTrophy, FaMedal, FaCalendarAlt, FaTag, FaEdit, FaSave, FaTimes, FaPlus, FaMinus, FaDownload, FaEye, FaThumbsUp, FaAward, FaStar, FaRibbon, FaCrown, FaGem, FaChartLine, FaCheck, FaUser } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
+import DoctorAppointmentStatsTab from '@/components/profile/DoctorAppointmentStatsTab';
+import DoctorPatientCommentsTab from '@/components/profile/DoctorPatientCommentsTab';
 
 interface ResearchPaper {
   id: string;
@@ -146,6 +148,11 @@ export default function UserProfilePage() {
                   (user?.id && currentUser?.id && String(currentUser.id) === String(user.id)) ||
                   (user?.doctor_id && currentUser?.doctor_id && currentUser.doctor_id === user.doctor_id);
   const canEdit = isAdmin || isOwner; // Only admins or profile owner can edit
+  const currentUserType = currentUser?.user_type || '';
+  const isPatient =
+    currentUserType === 'regular' || currentUserType === 'regular_user';
+  const canPostDoctorComment =
+    isAuthenticated && isPatient && currentUser?.id !== userId;
   
   // Helper function to get certificate download URL
   const getCertificateDownloadUrl = (cert: any) => {
@@ -1073,6 +1080,26 @@ export default function UserProfilePage() {
             >
               📈 Rank Progress
             </button>
+            <button
+              onClick={() => setSelectedSection('appointments')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                selectedSection === 'appointments'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              📅 Appointments
+            </button>
+            <button
+              onClick={() => setSelectedSection('comments')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                selectedSection === 'comments'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              💬 Patient Comments
+            </button>
           </div>
 
           {/* Rank Progress Bar */}
@@ -1485,6 +1512,18 @@ export default function UserProfilePage() {
               </div>
             </div>
           </div>
+        )}
+
+        {selectedSection === 'appointments' && (
+          <DoctorAppointmentStatsTab doctorId={userId} />
+        )}
+
+        {selectedSection === 'comments' && (
+          <DoctorPatientCommentsTab
+            doctorId={userId}
+            isAdmin={isAdmin}
+            canPostComment={canPostDoctorComment}
+          />
         )}
 
         {/* Progress Section */}

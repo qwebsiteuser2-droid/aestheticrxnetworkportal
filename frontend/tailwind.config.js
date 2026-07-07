@@ -112,6 +112,13 @@ module.exports = {
         'medium': '0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
         'strong': '0 10px 40px -10px rgba(0, 0, 0, 0.15), 0 2px 10px -2px rgba(0, 0, 0, 0.05)',
       },
+      spacing: {
+        'safe-bottom': 'env(safe-area-inset-bottom, 0px)',
+        'mobile-nav': '4.5rem',
+      },
+      padding: {
+        safe: 'env(safe-area-inset-bottom, 0px)',
+      },
     },
   },
   plugins: [

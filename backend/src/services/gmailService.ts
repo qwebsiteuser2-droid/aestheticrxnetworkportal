@@ -584,6 +584,94 @@ class GmailService {
   }
 
   /**
+   * Order confirmation to the customer (doctor) with invoice PDF attachment(s).
+   */
+  async sendCustomerOrderPlacedConfirmation(
+    orders: Order[],
+    attachments: Array<{ filename: string; content: Buffer; contentType: string }>
+  ): Promise<void> {
+    if (!this.isConfigured()) {
+      throw new Error(
+        'Gmail API not configured. Set GMAIL_API_CLIENT_ID, GMAIL_API_CLIENT_SECRET, GMAIL_API_REFRESH_TOKEN, and GMAIL_API_USER_EMAIL.'
+      );
+    }
+
+    if (!orders.length) {
+      return;
+    }
+
+    const firstOrder = orders[0]!;
+    const customer = firstOrder.doctor;
+    if (!customer?.email) {
+      console.warn('⚠️ Customer order confirmation skipped: no doctor email');
+      return;
+    }
+
+    const totalAmount = orders.reduce((sum, o) => sum + parseFloat(o.order_total.toString()), 0);
+    const orderRows = orders
+      .map(
+        (order, index) => `
+        <tr style="border-bottom: 1px solid #dee2e6;">
+          <td style="padding: 10px; text-align: center;">${index + 1}</td>
+          <td style="padding: 10px;">${order.order_number}</td>
+          <td style="padding: 10px;">${order.product?.name || 'N/A'}</td>
+          <td style="padding: 10px; text-align: center;">${order.qty}</td>
+          <td style="padding: 10px; text-align: right;">PKR ${parseFloat(order.order_total.toString()).toLocaleString()}</td>
+        </tr>`
+      )
+      .join('');
+
+    const subject =
+      orders.length === 1
+        ? `Your order #${firstOrder.order_number} — AestheticRx Network`
+        : `Your order confirmation (${orders.length} items) — AestheticRx Network`;
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
+        <div style="background: linear-gradient(90deg, #1E6BFF 0%, #35B7D6 55%, #D59225 100%); padding: 28px; text-align: center; color: white; border-radius: 10px 10px 0 0;">
+          <div style="font-size: 22px; font-weight: bold;">Thank you for your order</div>
+          <div style="font-size: 13px; margin-top: 8px; font-weight: 600; letter-spacing: 0.05em;">CONNECTED AESTHETIC CARE</div>
+        </div>
+        <div style="padding: 28px; background: #ffffff; border: 1px solid #e5e7eb;">
+          <p style="color: #374151;">Dear ${customer.doctor_name || 'Customer'},</p>
+          <p style="color: #374151;">We have received your order. Your challan / invoice is attached as <strong>Invoices.pdf</strong> (same document as our printed Rx challan).</p>
+          <p style="color: #374151;"><strong>Payment:</strong> Cash on Delivery — pay when your order arrives.</p>
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #dee2e6;">
+            <thead>
+              <tr style="background: #1E6BFF; color: #ffffff;">
+                <th style="padding: 10px;">#</th>
+                <th style="padding: 10px; text-align: left;">Order</th>
+                <th style="padding: 10px; text-align: left;">Product</th>
+                <th style="padding: 10px;">Qty</th>
+                <th style="padding: 10px; text-align: right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>${orderRows}</tbody>
+            <tfoot>
+              <tr style="background: #f9fafb; font-weight: bold;">
+                <td colspan="4" style="padding: 12px; text-align: right;">Total</td>
+                <td style="padding: 12px; text-align: right; color: #16a34a;">PKR ${totalAmount.toLocaleString()}</td>
+              </tr>
+            </tfoot>
+          </table>
+          <p style="color: #6b7280; font-size: 13px;">Delivery: ${firstOrder.order_location?.address || 'See your order details in the portal.'}</p>
+          <p style="color: #374151;">Our team will process your order shortly. If you have questions, reply to this email.</p>
+        </div>
+        <div style="background: #f9fafb; padding: 16px; text-align: center; color: #6b7280; font-size: 12px; border-radius: 0 0 10px 10px;">
+          Payable to AestheticRx Network. Thank you for your connection with us!
+        </div>
+      </div>
+    `;
+
+    await this.sendEmailWithAttachments(customer.email, subject, htmlContent, attachments, {
+      isMarketing: false,
+      orderId: firstOrder.id,
+      orderNumber: firstOrder.order_number,
+      userId: customer.id,
+    });
+  }
+
+  /**
    * Send order placed notification to admins
    */
   async sendOrderPlacedAlert(order: Order, paymentMethod: string = 'cash_on_delivery', itnData?: any, adminEmails?: string[]): Promise<void> {

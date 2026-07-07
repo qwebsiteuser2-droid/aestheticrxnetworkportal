@@ -1,0 +1,26 @@
+{
+  "name": "aestheticrxnetworkportal",
+  "version": "1.0.0",
+  "description": "**Version:** 3.5.4   **Last Updated:** June 1, 2026   **Status:** Production Ready ✅",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muhammadqasimshabbir3-art/AestheticRxNetworkPortal.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/muhammadqasimshabbir3-art/AestheticRxNetworkPortal/issues"
+  },
+  "homepage": "https://github.com/muhammadqasimshabbir3-art/AestheticRxNetworkPortal#readme",
+  "devDependencies": {
+    "playwright": "^1.49.1"
+  }
+}

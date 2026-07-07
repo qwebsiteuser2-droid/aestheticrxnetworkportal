@@ -15,6 +15,7 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
 } from '@heroicons/react/24/outline';
+import { getProductImageSrc } from '@/lib/productImageUrl';
 import { getApiBaseUrl as getApiBaseUrlFromLib } from '@/lib/getApiUrl';
 
 interface Product {
@@ -264,7 +265,7 @@ export default function FeaturedItemsAdminPage() {
                               <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden">
                                 {product.id ? (
                                   <Image
-                                    src={`${getApiBaseUrl()}/api/product-images/${product.id}`}
+                                    src={getProductImageSrc(product.id, 'front')}
                                     alt={product.name}
                                     width={40}
                                     unoptimized
@@ -322,7 +323,7 @@ export default function FeaturedItemsAdminPage() {
                       <div className="w-8 h-8 bg-gray-100 rounded overflow-hidden flex-shrink-0">
                         {product.id ? (
                           <Image
-                            src={`${getApiBaseUrl()}/api/product-images/${product.id}`}
+                            src={getProductImageSrc(product.id, 'front')}
                             alt={product.name}
                             width={32}
                             unoptimized

@@ -63,11 +63,22 @@ import {
   getAvailableDoctorsForHallOfPride
 } from '../controllers/hallOfPrideController';
 import { uploadSingle } from '../middleware/upload';
-import { uploadProductImage } from '../middleware/productImageUpload';
+import { uploadProductGalleryImages } from '../middleware/productImageUpload';
 import { getEmailQuota, getEmailQuotaStats } from '../controllers/emailQuotaController';
 import { getEmailMonitoringStats, getEmailDeliveryDetails } from '../controllers/emailMonitoringController';
 import { checkMissingImages, fixMissingUploadImages, migrateUploadsPaths, reassignAvailableImages } from '../controllers/imageDiagnosticsController';
 import { getAdminFeaturedItems, setFeaturedProducts, setFeaturedDoctors } from '../controllers/featuredItemsController';
+import { deleteDoctorComment } from '../controllers/doctorCommentController';
+import {
+  listInvoices,
+  getNextInvoiceNumber,
+  createManualInvoice,
+  createInvoiceFromOrder,
+  previewInvoicePdf,
+  downloadInvoicePdf,
+  sendInvoiceEmail,
+  getInvoiceTotals,
+} from '../controllers/invoiceController';
 
 const router = Router();
 
@@ -151,11 +162,9 @@ router.put('/user-profiles/:id', updateUserProfile);
 router.get('/research-settings', getResearchSettings);
 router.put('/research-settings', updateResearchSettings);
 
-import { uploadProductImage } from '../middleware/productImageUpload';
-
 router.get('/products', getProducts);
-router.post('/products', uploadProductImage, createProduct);
-router.put('/products/:id', uploadProductImage, updateProduct);
+router.post('/products', uploadProductGalleryImages, createProduct);
+router.put('/products/:id', uploadProductGalleryImages, updateProduct);
 router.delete('/products/:id', deleteProduct);
 
 // User Management
@@ -182,5 +191,17 @@ router.get('/available-doctors-hall-of-pride', getAvailableDoctorsForHallOfPride
 router.get('/featured', getAdminFeaturedItems);
 router.post('/featured/products', setFeaturedProducts);
 router.post('/featured/doctors', setFeaturedDoctors);
+
+router.delete('/doctor-comments/:id', deleteDoctorComment);
+
+// Invoice generation (AestheticRx Network)
+router.get('/invoices', listInvoices);
+router.get('/invoices/next-number', getNextInvoiceNumber);
+router.post('/invoices/totals', getInvoiceTotals);
+router.post('/invoices/preview', previewInvoicePdf);
+router.post('/invoices', createManualInvoice);
+router.post('/invoices/from-order/:orderId', createInvoiceFromOrder);
+router.get('/invoices/:id/pdf', downloadInvoicePdf);
+router.post('/invoices/:id/send-email', sendInvoiceEmail);
 
 export default router;

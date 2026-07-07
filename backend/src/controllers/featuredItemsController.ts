@@ -454,9 +454,18 @@ export const getPublicProducts = async (req: Request, res: Response): Promise<vo
       .take(limit)
       .getMany();
 
+    const { getBackendUrl } = await import('../config/urlConfig');
+    const { buildProductImagePublicUrl } = await import('../utils/productImageServe');
+    const backendUrl = getBackendUrl();
+
+    const data = products.map((p) => ({
+      ...p,
+      image_url: buildProductImagePublicUrl(p.id, backendUrl),
+    }));
+
     res.json({
       success: true,
-      data: products,
+      data,
     });
   } catch (error) {
     console.error('Error fetching public products:', error);

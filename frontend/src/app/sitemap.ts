@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
+import { PRODUCTION_SITE_URL } from '@/lib/siteUrl';
 
-const BASE_URL = 'https://aestheticrxnetworkportal.vercel.app';
+const BASE_URL = PRODUCTION_SITE_URL;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
@@ -29,6 +30,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified,
       changeFrequency: 'monthly',
       priority: 0.7,
+    },
+    {
+      url: `${BASE_URL}/oauth-verification`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.6,
     },
     {
       url: `${BASE_URL}/leaderboard`,

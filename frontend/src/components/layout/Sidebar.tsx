@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/app/providers';
 import { getProfileImageUrl } from '@/lib/apiConfig';
+import { BrandTitle } from '@/components/BrandTitle';
 import { 
   HomeIcon,
   ShoppingCartIcon,
@@ -100,7 +101,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 alt="AestheticRx Network" 
                 className="w-12 h-12 object-contain"
               />
-              <span className="text-xl font-bold"><span style={{ color: '#1E66FF' }}>Aesthetic</span><span style={{ color: '#F5C24C' }}>RX</span><span style={{ color: '#7AAC52' }}> Network</span></span>
+              <BrandTitle size="md" />
             </Link>
             
             {/* Close button for mobile */}

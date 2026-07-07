@@ -32,6 +32,7 @@ RUN npm install && npm cache clean --force
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
+COPY --chown=nodejs:nodejs --from=builder /app/assets ./assets
 COPY --from=builder /app/src/db/migrations ./src/db/migrations
 
 # Create non-root user

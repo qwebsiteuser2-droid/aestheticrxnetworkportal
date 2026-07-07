@@ -94,6 +94,11 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Let the browser set multipart boundary (manual Content-Type breaks file uploads)
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
     // Log request URL for debugging (only for specific routes to reduce noise)
     if (config.url?.includes('contact-platforms') || config.url?.includes('backgrounds')) {
       console.log('📤 API Request:', config.method?.toUpperCase(), config.url);
@@ -186,6 +191,13 @@ api.interceptors.response.use(
     } else if (isUserNotFound) {
       console.log('✅ Interceptor - userNotFound flag detected, skipping toast');
       // Don't show any toast - let the component handle it
+    } else if (
+      error.response?.status === 403 &&
+      (error.response?.data?.debtStatus ||
+        /debt limit/i.test(String(error.response?.data?.message || '')))
+    ) {
+      // Debt limit modal is shown by order/checkout UI — avoid duplicate toasts
+      console.log('✅ Interceptor - debt limit 403, skipping toast');
     } else {
       // Only show toast for errors that are NOT user not found
       if (error.response?.data?.message) {

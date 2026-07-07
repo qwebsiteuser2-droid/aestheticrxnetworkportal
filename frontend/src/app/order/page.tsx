@@ -1,20 +1,29 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import {
+  buildOrderLoginUrl,
+  parseOrderResumeParams,
+  type OrderResumeAction,
+} from '@/lib/authRedirect';
+import { applyOrderResumeToCart } from '@/lib/orderCartResume';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/app/providers';
 import { getAccessToken } from '@/lib/auth';
-import DOMPurify from 'dompurify';
 import Image from 'next/image';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import DebtRestrictionModal from '@/components/DebtRestrictionModal';
-import { UserMessageModal } from '@/components/modals/UserMessageModal';
 import { ProductDetailsModal } from '@/components/ProductDetailsModal';
-import { getApiBaseUrl as getApiBaseUrlFromLib } from '@/lib/getApiUrl';
+import { getProductImageSrc } from '@/lib/productImageUrl';
+import { ProductCatalogImage } from '@/components/ProductCatalogImage';
 import api, { productsApi, ordersApi, authApi } from '@/lib/api';
 import { MainLayout } from '@/components/layout/MainLayout';
-import HeroCards from '@/components/HeroCards';
+import {
+  parseDebtLimitFromError,
+  toDebtLimitError,
+  type DebtStatusPayload,
+} from '@/lib/debtLimitError';
 
 interface Product {
   id: string;
@@ -77,11 +86,22 @@ export default function OrderPage() {
   const [locationInput, setLocationInput] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductDetailsModal, setShowProductDetailsModal] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const orderResumeHandledRef = useRef(false);
+  const productShareHandledRef = useRef(false);
+
+  const redirectToLogin = (opts: { productId?: string; action?: OrderResumeAction }) => {
+    router.push(buildOrderLoginUrl(opts));
+  };
+
+  const ensureLoggedInForCart = (productId: string, action: 'cart' | 'buy'): boolean => {
+    if (isAuthenticated) return true;
+    redirectToLogin({ productId, action });
+    return false;
+  };
 
   const requireAuthForCheckout = (): boolean => {
     if (!isAuthenticated) {
-      setShowLoginModal(true);
+      redirectToLogin({ action: 'buy' });
       return false;
     }
     const userType = user?.user_type || (user as { user_type?: string })?.user_type || '';
@@ -101,6 +121,16 @@ export default function OrderPage() {
       }
     }
   }, [authLoading, isAuthenticated]);
+
+  // Open cart when arriving from homepage Buy Now (?openCart=1)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('openCart') === '1') {
+      setShowCart(true);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // Handle payment status from URL parameters
   useEffect(() => {
@@ -165,7 +195,7 @@ export default function OrderPage() {
     try {
       const token = getAccessToken();
       if (!token) {
-        toast.error('Please login to save location');
+        redirectToLogin({ action: 'location' });
         return;
       }
 
@@ -270,15 +300,29 @@ export default function OrderPage() {
   // Order confirmation state
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
   const [showDebtModal, setShowDebtModal] = useState(false);
-  const [debtStatus, setDebtStatus] = useState<{
-    currentDebt: number;
-    debtLimit: number;
-    tierName: string;
-    remainingLimit: number;
-  } | null>(null);
+  const [debtStatus, setDebtStatus] = useState<DebtStatusPayload | null>(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'cash' | 'payfast' | null>(null);
-  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
+  const [placementProgress, setPlacementProgress] = useState<{
+    label: string;
+    current: number;
+    total: number;
+  } | null>(null);
+
+  const showDebtLimitModal = (status: DebtStatusPayload) => {
+    toast.dismiss('batch-progress');
+    setDebtStatus(status);
+    setShowDebtModal(true);
+    setIsPlacingOrder(false);
+    setShowOrderConfirmation(false);
+  };
+
+  /** Returns true when error was a debt limit — opens modal and suppresses generic errors. */
+  const handleDebtLimitError = (error: unknown): boolean => {
+    const status = parseDebtLimitFromError(error);
+    if (!status) return false;
+    showDebtLimitModal(status);
+    return true;
+  };
 
   // Validate Google Maps link and extract location
   const validateGoogleMapsLink = (link: string) => {
@@ -409,29 +453,8 @@ export default function OrderPage() {
     }
   };
 
-  // Helper for image URLs - use full URL from backend if available, otherwise construct
-  // Get product image URL using the new database-backed endpoint (more reliable on Railway)
-  const getProductImageById = (productId: string, view?: string): string => {
-    const baseUrl = getApiBaseUrlFromLib();
-    const q = view && view !== 'main' ? `?view=${view}` : '';
-    return `${baseUrl}/api/product-images/${productId}${q}`;
-  };
-
-  const getImageUrl = (imageUrl: string | null | undefined): string => {
-    if (!imageUrl) {
-      return '';
-    }
-    
-    // If image_url already starts with http:// or https://, use it directly (backend now returns full URLs)
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return imageUrl;
-    }
-    
-    // Fallback: Construct URL if backend didn't provide full URL (for backward compatibility)
-    const baseUrl = getApiBaseUrlFromLib(); // Returns URL without /api suffix
-    const normalizedUrl = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-    return `${baseUrl}/api/images${normalizedUrl}`;
-  };
+  const getProductImageById = (productId: string, view?: 'main' | 'front' | 'back' | 'side') =>
+    getProductImageSrc(productId, (view as 'main' | 'front' | 'back' | 'side') || 'front');
 
   const applyLoadedProducts = (productsData: Product[]) => {
     setProducts(productsData);
@@ -499,6 +522,8 @@ export default function OrderPage() {
   };
 
   const addToCart = (productId: string) => {
+    if (!ensureLoggedInForCart(productId, 'cart')) return;
+
     // Find the product to check stock
     const product = products.find(p => p.id === productId);
     if (!product) {
@@ -534,7 +559,9 @@ export default function OrderPage() {
     toast.success('Added to cart!');
   };
 
-  const addToCartWithQuantity = (productId: string, qty: number) => {
+  const addToCartWithQuantity = (productId: string, qty: number, skipAuthCheck = false) => {
+    if (!skipAuthCheck && !ensureLoggedInForCart(productId, 'cart')) return;
+
     const product = products.find((p) => p.id === productId);
     if (!product) return;
     const originalStock = product.stock_quantity || 0;
@@ -552,20 +579,15 @@ export default function OrderPage() {
   };
 
   const buyNow = (productId: string, qty = 1) => {
-    if (!requireAuthForCheckout()) return;
+    if (!ensureLoggedInForCart(productId, 'buy')) return;
+
     const product = products.find((p) => p.id === productId);
     if (!product || !product.stock_quantity || product.stock_quantity < 1) {
       toast.error('This product is out of stock');
       return;
     }
-    setCart({ [productId]: Math.min(qty, product.stock_quantity) });
+    addToCartWithQuantity(productId, qty);
     setShowCart(true);
-    if (!selectedLocation) {
-      setShowLocationModal(true);
-      toast('Select your delivery location to complete checkout', { icon: '📍' });
-    } else {
-      setShowPaymentOptions(true);
-    }
   };
 
   const removeFromCart = (productId: string) => {
@@ -596,6 +618,68 @@ export default function OrderPage() {
     router.back();
   };
 
+  // Shared product link (?productId=…&action=view) — works signed in or out
+  useEffect(() => {
+    if (loading || products.length === 0) return;
+    if (productShareHandledRef.current) return;
+    if (typeof window === 'undefined') return;
+
+    const { productId, action } = parseOrderResumeParams(window.location.search);
+    if (!productId || action !== 'view') return;
+
+    productShareHandledRef.current = true;
+    orderResumeHandledRef.current = true;
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    const product = products.find((p) => p.id === productId);
+    if (!product) {
+      toast.error('Product not found or no longer available');
+      return;
+    }
+    setSelectedProduct(product);
+    setShowProductDetailsModal(true);
+  }, [loading, products]);
+
+  // After login: return to product, add to cart, or open location modal
+  useEffect(() => {
+    if (authLoading || !isAuthenticated || loading || products.length === 0) return;
+    if (orderResumeHandledRef.current) return;
+    if (typeof window === 'undefined') return;
+
+    const { productId, action } = parseOrderResumeParams(window.location.search);
+    if (!productId && action !== 'location') return;
+
+    orderResumeHandledRef.current = true;
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    if (action === 'location') {
+      loadSavedLocation();
+      setShowLocationModal(true);
+      toast.success('Sign in successful. Set your delivery location.');
+      return;
+    }
+
+    if (!productId || !action || action === 'view') return;
+
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+
+    setSelectedProduct(product);
+    setShowProductDetailsModal(true);
+
+    setCart((prev) => {
+      const { cart: next } = applyOrderResumeToCart(prev, productId, product, action, 1);
+      return next;
+    });
+
+    if (action === 'buy') {
+      setShowCart(true);
+      toast.success('Welcome back! Your cart is ready.');
+    } else {
+      toast.success('Added to cart');
+    }
+  }, [authLoading, isAuthenticated, loading, products]);
+
   const handleOrder = async () => {
     if (!requireAuthForCheckout()) return;
 
@@ -611,159 +695,7 @@ export default function OrderPage() {
       return;
     }
 
-    // Show payment options modal
-    setShowPaymentOptions(true);
-  };
-
-  // Initialize PayFast payment - CREATE ORDERS FIRST, THEN INITIALIZE PAYMENT
-  const initializePayFastPayment = async () => {
-    try {
-      setIsPlacingOrder(true);
-      
-      const token = getAccessToken();
-      if (!token) {
-        toast.error('No authentication token found. Please login again.');
-        router.push('/login');
-        return;
-      }
-
-      // STEP 1: Create all orders first (one order per product in cart)
-      console.log('🛒 Step 1: Creating orders for PayFast payment...');
-      const orderIds: string[] = [];
-      let totalAmount = 0;
-      
-      for (const [productId, quantity] of Object.entries(cart)) {
-        const product = products.find(p => p.id === productId);
-        if (!product) {
-          console.warn(`⚠️ Product ${productId} not found, skipping...`);
-          continue;
-        }
-
-        try {
-          // Use centralized API instance
-          const orderResponse = await ordersApi.create({
-            product_id: productId,
-            qty: quantity,
-            order_location: savedLocation || {
-              lat: 0,
-              lng: 0,
-              address: 'Location not set'
-            },
-            notes: `Order placed via PayFast online payment. Delivery to: ${savedLocation?.address || 'Location not set'}`,
-            payment_method: 'payfast_online', // Mark as PayFast order to skip cash on delivery notifications
-            skip_notification: true // Skip immediate notifications
-          });
-
-          if (!orderResponse.success) {
-            console.error(`❌ Failed to create order for product ${productId}:`, orderResponse);
-            throw new Error(orderResponse.message || `Failed to create order for ${product.name}`);
-          }
-
-          const orderData = orderResponse;
-          if (orderData.success && orderData.data?.order?.id) {
-            orderIds.push(orderData.data.order.id);
-            const price = typeof product.price === 'string' ? parseFloat(product.price) : (product.price || 0);
-            totalAmount += price * quantity;
-            console.log(`✅ Order created: ${orderData.data.order.order_number} (${orderData.data.order.id})`);
-          } else {
-            throw new Error(`Invalid response when creating order for ${product.name}`);
-          }
-        } catch (error) {
-          console.error(`❌ Error creating order for product ${productId}:`, error);
-          throw error;
-        }
-      }
-
-      if (orderIds.length === 0) {
-        throw new Error('No orders were created. Please try again.');
-      }
-
-      console.log(`✅ Created ${orderIds.length} order(s) with total amount: PKR ${totalAmount}`);
-      console.log('   Order IDs:', orderIds);
-
-      // STEP 2: Initialize PayFast payment with REAL order IDs
-      console.log('🚀 Step 2: Initializing PayFast payment with real order IDs...');
-      
-      // Use centralized API instance
-      const response = await api.post('/payments/payfast/initialize', {
-        orderIds: orderIds
-      });
-
-      console.log('📡 PayFast Response Status:', response.status);
-      
-      if (!response.data.success) {
-        console.error('❌ PayFast Initialization Error:', response.data);
-        throw new Error(response.data.message || 'Failed to initialize PayFast payment');
-      }
-
-      const paymentData = response.data;
-      console.log('✅ PayFast Payment Data:', paymentData);
-
-      if (paymentData.success && paymentData.data?.paymentForm) {
-        // Create a temporary div to hold the form HTML
-        // SECURITY: Sanitize HTML before injecting to prevent XSS attacks
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = typeof window !== 'undefined'
-          ? DOMPurify.sanitize(paymentData.data.paymentForm, {
-              ALLOWED_TAGS: ['form', 'input', 'button'],
-              ALLOWED_ATTR: ['name', 'value', 'type', 'action', 'method', 'id', 'class']
-            })
-          : paymentData.data.paymentForm;
-        
-        // Get the form element
-        const form = tempDiv.querySelector('form');
-        if (form) {
-          // Set form to open in new tab
-          form.target = '_blank';
-      form.style.display = 'none';
-
-      // Add form to document and submit
-      document.body.appendChild(form);
-      form.submit();
-      
-      // Clean up
-          setTimeout(() => {
-            if (document.body.contains(form)) {
-      document.body.removeChild(form);
-            }
-          }, 1000);
-        } else {
-          throw new Error('PayFast form not found in response');
-        }
-      } else {
-        throw new Error('Invalid PayFast response format');
-      }
-
-      // Show success message
-      toast.success(`Created ${orderIds.length} order(s). Redirecting to PayFast...`);
-
-    } catch (error) {
-      console.error('❌ Error initializing PayFast payment:', error);
-      console.error('❌ Error details:', {
-        name: error instanceof Error ? error.name : 'Unknown',
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : 'No stack trace'
-      });
-      
-      // More specific error messages
-      let errorMessage = 'Failed to initialize payment. Please try Cash on Delivery instead.';
-      if (error instanceof Error) {
-        if (error.message.includes('fetch') || error.message.includes('Network')) {
-          errorMessage = 'Network error. Please check your connection and try again.';
-        } else if (error.message.includes('CORS')) {
-          errorMessage = 'CORS error. Please contact support.';
-        } else if (error.message.includes('form not found')) {
-          errorMessage = 'Payment form error. Please try again.';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      toast.error(errorMessage);
-    } finally {
-      setIsPlacingOrder(false);
-      setShowPaymentOptions(false);
-    }
+    setShowOrderConfirmation(true);
   };
 
   // Function to actually place the order
@@ -777,7 +709,14 @@ export default function OrderPage() {
     // Proceed directly to order placement (browser confirm dialog removed)
 
     setIsPlacingOrder(true);
-    
+    const cartEntries = Object.entries(cart);
+    const totalSteps = cartEntries.length + 1; // orders + one confirmation email
+    setPlacementProgress({
+      label: 'Creating your order…',
+      current: 0,
+      total: totalSteps,
+    });
+
     try {
       const token = getAccessToken();
       if (!token) {
@@ -786,13 +725,11 @@ export default function OrderPage() {
         return;
       }
 
-      // Validate cart is not empty
-      if (Object.keys(cart).length === 0) {
+      if (cartEntries.length === 0) {
         toast.error('Your cart is empty. Please add products before placing an order.');
         return;
       }
 
-      // Validate location is selected
       if (!selectedLocation) {
         toast.error('Please select your delivery location first.');
         setShowLocationModal(true);
@@ -804,7 +741,7 @@ export default function OrderPage() {
       console.log('Selected location:', selectedLocation);
       
       // Create orders for each product in cart (backend expects individual orders)
-      const orderPromises = Object.entries(cart).map(async ([productId, quantity], index) => {
+      const orderPromises = cartEntries.map(async ([productId, quantity], index) => {
         // Add a progressive delay between requests to prevent race conditions
         if (index > 0) {
           const delay = Math.min(200 * index, 2000); // Progressive delay: 200ms, 400ms, 600ms, etc., max 2 seconds
@@ -820,13 +757,11 @@ export default function OrderPage() {
             placeUrl: selectedLocation.placeUrl || ''
           } : null,
           notes: `Order placed via web interface. Delivery to: ${selectedLocation?.address || 'No address specified'}`,
-          payment_method: selectedPaymentMethod === 'cash' ? 'cash_on_delivery' : undefined, // Explicitly set payment method for Cash on Delivery
-          skip_notification: selectedPaymentMethod === 'cash' // Skip individual notifications for Cash on Delivery, will send batch notification
+          payment_method: 'cash_on_delivery',
+          skip_notification: true
         };
 
         console.log(`🛒 Creating order for product ${productId}, quantity: ${quantity}`);
-        console.log(`   Selected Payment Method: ${selectedPaymentMethod}`);
-        console.log(`   Payment Method in Order Data: ${orderData.payment_method || 'not set'}`);
 
         try {
           const controller = new AbortController();
@@ -870,16 +805,16 @@ export default function OrderPage() {
         return result;
         
         } catch (fetchError: unknown) {
-          console.error(`Network error for product ${productId}:`, fetchError);
+          console.error(`Order request failed for product ${productId}:`, fetchError);
+          const debtErr = toDebtLimitError(fetchError);
+          if (debtErr) throw debtErr;
           if (fetchError instanceof Error) {
-          if (fetchError.name === 'AbortError') {
-            throw new Error(`Order timeout for product ${productId}. Please try again.`);
-          } else {
-            throw new Error(`Network error for product ${productId}: ${fetchError.message}`);
+            if (fetchError.name === 'AbortError') {
+              throw new Error(`Order timeout for product ${productId}. Please try again.`);
             }
-          } else {
-            throw new Error(`Network error for product ${productId}: Unknown error`);
+            throw fetchError;
           }
+          throw new Error(`Order failed for product ${productId}`);
         }
       });
 
@@ -890,13 +825,10 @@ export default function OrderPage() {
       const results = [];
       const successful = [];
       const failed = [];
+      let blockedByDebt = false;
       
-      // Show initial progress
-      toast.loading(`Starting to process ${orderPromises.length} orders...`, {
-        id: 'batch-progress',
-        duration: 2000
-      });
-      
+      toast.dismiss('batch-progress');
+
       for (let batchStart = 0; batchStart < orderPromises.length; batchStart += BATCH_SIZE) {
         const batchEnd = Math.min(batchStart + BATCH_SIZE, orderPromises.length);
         const batchNumber = Math.floor(batchStart / BATCH_SIZE) + 1;
@@ -904,110 +836,30 @@ export default function OrderPage() {
         
         console.log(`Processing batch ${batchNumber} of ${totalBatches} (orders ${batchStart + 1}-${batchEnd})`);
         
-        // Update batch progress
-        toast.loading(`Processing batch ${batchNumber} of ${totalBatches} (${batchEnd - batchStart} orders)...`, {
-          id: 'batch-progress',
-          duration: 2000
-        });
-        
         for (let i = batchStart; i < batchEnd; i++) {
         try {
-          // Show progress to user
-          toast.loading(`Processing order ${i + 1} of ${orderPromises.length}...`, {
-            id: `order-progress-${i}`,
-            duration: 1000
+          setPlacementProgress({
+            label: `Saving order line ${i + 1} of ${orderPromises.length}…`,
+            current: i,
+            total: totalSteps,
           });
-          
+
           const result = await orderPromises[i];
           results.push({ status: 'fulfilled', value: result });
           successful.push(result);
           console.log(`Order ${i + 1} completed successfully`);
-          
-          // Update progress
-          toast.success(`Order ${i + 1} completed!`, {
-            id: `order-progress-${i}`,
-            duration: 1000
-          });
         } catch (error: unknown) {
           results.push({ status: 'rejected', reason: error });
           failed.push(error);
           console.error(`Order ${i + 1} failed:`, error);
-          
-          // Check if this is a debt limit error (with structured data)
-          const errorWithDebt = error as Error & { debtStatus?: any };
-          if (errorWithDebt.debtStatus) {
-            console.log('Debt limit error with structured data:', errorWithDebt.debtStatus);
-            setDebtStatus({
-              currentDebt: errorWithDebt.debtStatus.currentDebt,
-              debtLimit: errorWithDebt.debtStatus.debtLimit,
-              tierName: errorWithDebt.debtStatus.tierName,
-              remainingLimit: errorWithDebt.debtStatus.remainingLimit
-            });
-            setShowDebtModal(true);
-            return; // Don't show toast for debt limit errors
-          }
-          
-          // Check if this is a debt limit error (from message parsing)
-          if (error instanceof Error && error.message && error.message.includes('debt limit')) {
-            console.log('Debt limit error detected:', error.message);
-            
-            // Extract debt information from error message - more flexible regex
-            const debtMatch = error.message.match(/debt limit of ([\d,]+) for your (\w+(?:\s+\w+)*) tier\. Your current debt is ([\d,]+\.?\d*)/);
-            if (debtMatch) {
-              console.log('Debt match found:', debtMatch);
-              const debtLimit = parseFloat(debtMatch[1].replace(/,/g, ''));
-              const tierName = debtMatch[2].trim();
-              const currentDebt = parseFloat(debtMatch[3].replace(/,/g, ''));
-              
-              console.log('Debt data extracted:', { debtLimit, tierName, currentDebt });
-              
-              setDebtStatus({
-                currentDebt,
-                debtLimit,
-                tierName,
-                remainingLimit: Math.max(0, debtLimit - currentDebt)
-              });
-              setShowDebtModal(true);
-              return; // Don't show toast for debt limit errors
-            } else {
-              console.log('Debt regex did not match, trying alternative pattern');
-              // Try alternative pattern for different error formats
-              const altMatch = error.message.match(/debt limit.*?(\d+(?:,\d+)*).*?(\w+(?:\s+\w+)*).*?debt is ([\d,]+\.?\d*)/);
-              if (altMatch) {
-                console.log('Alternative debt match found:', altMatch);
-                const debtLimit = parseFloat(altMatch[1].replace(/,/g, ''));
-                const tierName = altMatch[2].trim();
-                const currentDebt = parseFloat(altMatch[3].replace(/,/g, ''));
-                
-                setDebtStatus({
-                  currentDebt,
-                  debtLimit,
-                  tierName,
-                  remainingLimit: Math.max(0, debtLimit - currentDebt)
-                });
-                setShowDebtModal(true);
-                return;
-              }
-            }
-            
-            // Fallback: If we detect debt limit but can't parse details, show modal with generic info
-            console.log('Showing debt modal with fallback data');
-            setDebtStatus({
-              currentDebt: 0,
-              debtLimit: 0,
-              tierName: 'Unknown',
-              remainingLimit: 0
-            });
-            setShowDebtModal(true);
+
+          if (handleDebtLimitError(error)) {
+            blockedByDebt = true;
             return;
           }
-          
-          // Show error for this order (non-debt limit errors)
+
           const errorMessage = error instanceof Error ? error.message : String(error);
-          toast.error(`Order ${i + 1} failed: ${errorMessage}`, {
-            id: `order-progress-${i}`,
-            duration: 3000
-          });
+          toast.error(`Order ${i + 1} failed: ${errorMessage}`, { duration: 4000 });
         }
         }
         
@@ -1022,49 +874,68 @@ export default function OrderPage() {
       console.log('Successful orders:', successful);
       console.log('Failed orders:', failed);
       
+      if (blockedByDebt) {
+        return;
+      }
+
       if (failed.length > 0) {
         console.error('Some orders failed:', failed);
         toast.error(`${failed.length} order(s) failed. ${successful.length} order(s) succeeded.`);
       }
       
       if (successful.length > 0) {
-        toast.success(`Order placed successfully! ${successful.length} item(s) ordered.`);
-        
-        // Send batch notification for Cash on Delivery orders
-        if (selectedPaymentMethod === 'cash' && successful.length > 0) {
+        const orderIds = successful
+          .map((result) => result.data?.order?.id)
+          .filter((id): id is string => Boolean(id));
+
+        if (orderIds.length > 0) {
+          setPlacementProgress({
+            label: 'Sending one confirmation email with Invoices.pdf…',
+            current: orderPromises.length,
+            total: totalSteps,
+          });
+
           try {
-            // Use centralized API instance (no need for apiUrl or token variables)
-            const orderIds = successful
-              .map(result => result.data?.order?.id)
-              .filter((id): id is string => Boolean(id));
-            
-            if (orderIds.length > 0) {
-              console.log(`📧 Sending batch notification for ${orderIds.length} order(s)`);
-              // Use centralized API instance
-              const batchResponse = await api.post('/orders/batch-notify', {
-                order_ids: orderIds,
-                payment_method: 'cash_on_delivery'
-              });
-              
-              if (batchResponse.data.success && batchResponse.data.data?.emailSent !== false) {
-                console.log('✅ Batch notification email sent successfully', batchResponse.data.data);
-              } else {
-                console.error('❌ Failed to send batch notification:', batchResponse.data);
-                const emailErr =
-                  batchResponse.data?.data?.emailError ||
-                  batchResponse.data?.message ||
-                  'Admin email could not be sent';
-                toast.error(emailErr, { duration: 8000 });
+            console.log(`📧 Sending single customer + admin notification for ${orderIds.length} order(s)`);
+            const batchResponse = await api.post('/orders/batch-notify', {
+              order_ids: orderIds,
+              payment_method: 'cash_on_delivery',
+            });
+
+            if (batchResponse.data.success) {
+              const customerSent = batchResponse.data.data?.customerEmailSent !== false;
+              console.log('✅ Batch notify OK', batchResponse.data.data);
+              toast.success(
+                customerSent
+                  ? `Order placed! One confirmation email with Invoices.pdf was sent to your inbox.`
+                  : `Order placed! ${successful.length} item(s) saved.`,
+                { duration: 7000 }
+              );
+              if (batchResponse.data.data?.emailSent === false) {
+                toast.error(
+                  batchResponse.data.data?.emailError ||
+                    'Admin notification email could not be sent.',
+                  { duration: 6000 }
+                );
               }
+            } else {
+              const emailErr =
+                batchResponse.data?.data?.emailError ||
+                batchResponse.data?.message ||
+                'Confirmation email could not be sent.';
+              toast.error(emailErr, { duration: 8000 });
             }
-          } catch (error: any) {
+          } catch (error: unknown) {
             console.error('❌ Error sending batch notification:', error);
+            const err = error as { response?: { data?: { message?: string; data?: { emailError?: string } } } };
             const emailErr =
-              error.response?.data?.data?.emailError ||
-              error.response?.data?.message ||
-              'Admin notification email failed. Check Gmail API settings on the server.';
+              err.response?.data?.data?.emailError ||
+              err.response?.data?.message ||
+              'Confirmation email failed. Your order was saved — contact support if needed.';
             toast.error(emailErr, { duration: 8000 });
           }
+        } else {
+          toast.success(`Order placed successfully! ${successful.length} item(s) ordered.`);
         }
       }
       
@@ -1104,10 +975,8 @@ export default function OrderPage() {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast.error(`Error placing order: ${errorMessage}`);
     } finally {
-      // Add a small delay to prevent rapid clicking
-      setTimeout(() => {
+      setPlacementProgress(null);
       setIsPlacingOrder(false);
-      }, 1000);
     }
   };
 
@@ -1170,10 +1039,6 @@ export default function OrderPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
-        <div className="mb-6 sm:mb-8">
-          <HeroCards />
-        </div>
-
         <div className="mb-4 sm:mb-6">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
             <h3 className="text-base sm:text-lg font-medium text-blue-900 mb-2">Product Catalog</h3>
@@ -1210,7 +1075,7 @@ export default function OrderPage() {
         ) : productSearchQuery.trim() ? (
           // Show filtered results when searching
           filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-4">
               {filteredProducts.map((product) => (
                 <div 
                   key={product.id} 
@@ -1223,25 +1088,14 @@ export default function OrderPage() {
                   {/* Product Image - uses database-backed endpoint for reliability */}
                   <div className="aspect-square mb-3 bg-gray-100 rounded-lg overflow-hidden">
                     {product.id ? (
-                      <img
-                        src={getProductImageById(product.id)}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          console.log('❌ Image failed to load:', product.name, product.id);
-                          e.currentTarget.style.display = 'none';
-                          const nextSibling = e.currentTarget.nextElementSibling;
-                          if (nextSibling) {
-                            (nextSibling as HTMLElement).style.display = 'flex';
-                          }
-                        }}
-                      />
-                    ) : null}
-                    <div className={`w-full h-full flex items-center justify-center text-gray-400 ${product.id ? 'hidden' : ''}`}>
-                      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
+                      <ProductCatalogImage productId={product.id} alt={product.name} view="front" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    )}
                   </div>
 
                   {/* Product Info */}
@@ -1329,7 +1183,7 @@ export default function OrderPage() {
             </div>
           )
         ) : catalogProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-4">
             {catalogProducts.map((product) => (
                 <div 
                   key={product.id} 
@@ -1343,37 +1197,10 @@ export default function OrderPage() {
                       {/* Product Image */}
                       <div className="aspect-square mb-3 bg-gray-100 rounded-lg overflow-hidden">
                         {product.id ? (
-                          <>
-                            <img
-                              src={getProductImageById(product.id)}
-                              alt={product.name}
-                              width={200}
-                              height={128}
-                              className="w-full h-full object-cover"
-                              style={{ 
-                                minWidth: '100%', 
-                                minHeight: '100%',
-                                backgroundColor: '#f0f0f0'
-                              }}
-                              onLoad={() => {
-                                console.log('✅ Image loaded successfully:', product.name, product.image_url);
-                              }}
-                              onError={(e) => {
-                                console.log('❌ Image failed to load:', product.name, product.id);
-                                e.currentTarget.style.backgroundColor = '#ffcccc';
-                                e.currentTarget.alt = 'FAILED TO LOAD';
-                              }}
-                            />
-                            {/* Fallback image when main image fails to load */}
-                            <div className="w-full h-full flex items-center justify-center text-gray-400" style={{ display: 'none' }}>
-                              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                            </div>
-                          </>
+                          <ProductCatalogImage productId={product.id} alt={product.name} view="front" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                           </div>
@@ -1418,7 +1245,7 @@ export default function OrderPage() {
                               const cartQuantity = cart[product.id] || 0;
                               return originalStock === 0 || cartQuantity >= originalStock;
                             })()}
-                            className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-colors ${
+                            className={`flex-1 py-2 px-1.5 rounded-lg text-[11px] sm:text-xs font-medium transition-colors ${
                               (() => {
                                 const originalStock = product.stock_quantity || 0;
                                 const cartQuantity = cart[product.id] || 0;
@@ -1428,7 +1255,7 @@ export default function OrderPage() {
                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             }`}
                           >
-                            Add
+                            Add to Cart
                           </button>
                           <button
                             onClick={(e) => {
@@ -1436,7 +1263,7 @@ export default function OrderPage() {
                               buyNow(product.id);
                             }}
                             disabled={!product.stock_quantity || product.stock_quantity < 1}
-                            className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-colors ${
+                            className={`flex-1 py-2 px-1.5 rounded-lg text-[11px] sm:text-xs font-medium transition-colors ${
                               product.stock_quantity && product.stock_quantity > 0
                                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -1719,86 +1546,17 @@ export default function OrderPage() {
         </div>
       )}
 
-      {/* Payment Options Modal */}
-      {showPaymentOptions && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Choose Payment Method</h2>
-            
-            {/* Order Summary */}
-            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h3 className="font-semibold text-blue-800 mb-2">Order Summary:</h3>
-              <div className="text-sm text-blue-700 space-y-1">
-                <div>Total: <span className="font-semibold">PKR {getCartTotal().toLocaleString()}</span></div>
-                <div>Delivery to: <span className="font-semibold">{selectedLocation?.address}</span></div>
-                <div>Items: <span className="font-semibold">{Object.keys(cart).length} product(s)</span></div>
-              </div>
-            </div>
-
-            {/* Payment Options */}
-            <div className="mb-6 space-y-3">
-              <div className="text-sm font-medium text-gray-700 mb-3">Select your preferred payment method:</div>
-              
-              {/* Cash on Delivery */}
-              <button
-                onClick={() => {
-                  setSelectedPaymentMethod('cash');
-                  setShowPaymentOptions(false);
-                  setShowOrderConfirmation(true);
-                }}
-                className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors text-left"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-green-600 text-lg">💰</span>
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">Cash on Delivery</div>
-                    <div className="text-sm text-gray-600">Pay when your order arrives</div>
-                  </div>
-                </div>
-              </button>
-
-              {/* PayFast Online Payment */}
-              <button
-                onClick={() => {
-                  setSelectedPaymentMethod('payfast');
-                  initializePayFastPayment();
-                }}
-                disabled={isPlacingOrder}
-                className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 text-lg">💳</span>
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">PayFast Online Payment</div>
-                    <div className="text-sm text-gray-600">Pay securely with credit/debit card</div>
-                  </div>
-                </div>
-              </button>
-            </div>
-
-            {/* Cancel Button */}
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowPaymentOptions(false)}
-                disabled={isPlacingOrder}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Order Confirmation Modal */}
       {showOrderConfirmation && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Confirm Your Order</h2>
+
+            <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+              <p className="text-sm text-green-800">
+                <strong>Payment:</strong> Cash on Delivery — pay when your order arrives.
+              </p>
+            </div>
             
             {/* Order Summary */}
             <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -1811,11 +1569,53 @@ export default function OrderPage() {
             </div>
 
             {/* Warning */}
-            <div className="mb-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-              <p className="text-sm text-yellow-800">
-                <strong>⚠️ Please review your order carefully.</strong> Once confirmed, this order cannot be cancelled.
-              </p>
-            </div>
+            {!isPlacingOrder && (
+              <div className="mb-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <p className="text-sm text-yellow-800">
+                  <strong>⚠️ Please review your order carefully.</strong> Once confirmed, this order cannot be cancelled.
+                </p>
+              </div>
+            )}
+
+            {isPlacingOrder && (
+              <div
+                className="mb-4 flex flex-col items-center gap-3 py-6 px-4 rounded-lg border border-blue-200 bg-blue-50/80"
+                role="status"
+                aria-live="polite"
+                aria-busy="true"
+              >
+                <div
+                  className="h-11 w-11 rounded-full border-[3px] border-[#1E6BFF] border-t-transparent animate-spin"
+                  aria-hidden
+                />
+                <p className="text-sm font-semibold text-gray-900 text-center">
+                  {placementProgress?.label ?? 'Placing your order…'}
+                </p>
+                {placementProgress && placementProgress.total > 0 && (
+                  <>
+                    <div className="w-full max-w-xs h-2 bg-white rounded-full overflow-hidden border border-blue-100">
+                      <div
+                        className="h-full bg-[#1E6BFF] rounded-full transition-all duration-300 ease-out"
+                        style={{
+                          width: `${Math.min(
+                            100,
+                            Math.round((placementProgress.current / placementProgress.total) * 100)
+                          )}%`,
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      Step {Math.min(placementProgress.current + 1, placementProgress.total)} of{' '}
+                      {placementProgress.total}
+                    </p>
+                  </>
+                )}
+                <p className="text-xs text-gray-500 text-center max-w-xs">
+                  You will receive <strong>one email</strong> with your order summary and{' '}
+                  <strong>Invoices.pdf</strong>. Please keep this window open.
+                </p>
+              </div>
+            )}
             
             <div className="flex justify-end space-x-4">
               <button
@@ -1832,33 +1632,24 @@ export default function OrderPage() {
                   confirmAndPlaceOrder();
                 }}
                 disabled={isPlacingOrder}
-                className={`px-6 py-2 rounded-lg transition-colors ${
-                  isPlacingOrder 
-                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                className={`inline-flex items-center justify-center gap-2 min-w-[9.5rem] px-6 py-2 rounded-lg transition-colors ${
+                  isPlacingOrder
+                    ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
                     : 'bg-green-600 text-white hover:bg-green-700'
                 }`}
-                style={{ 
-                  pointerEvents: isPlacingOrder ? 'none' : 'auto',
-                  userSelect: 'none'
-                }}
               >
-                {isPlacingOrder ? 'Placing Order...' : 'Confirm Order'}
+                {isPlacingOrder && (
+                  <span
+                    className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin shrink-0"
+                    aria-hidden
+                  />
+                )}
+                {isPlacingOrder ? 'Processing…' : 'Confirm Order'}
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Debt Restriction Modal */}
-      <UserMessageModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onConfirm={() => router.push(`/login?redirect=${encodeURIComponent('/order')}`)}
-        title="Sign in required"
-        message="Please sign in to place an order, save your delivery location, and complete checkout."
-        confirmLabel="Go to Sign In"
-        variant="info"
-      />
 
       {showDebtModal && debtStatus && (
         <DebtRestrictionModal

@@ -1,6 +1,55 @@
 # Google OAuth App Verification Guide
 
-This guide covers everything required to pass Google's OAuth app verification for AestheticRx Network. Follow all steps in order.
+This guide covers everything required to pass Google's OAuth app verification for AestheticRx Network (Cloud project **244788420362**). Follow all steps in order.
+
+---
+
+## Google rejection (May 2026) — what to fix
+
+Google flagged two items:
+
+1. **Homepage / privacy policy on third-party hosts** (e.g. Google Sites, social networks) — **Do not** use Google Sites or Facebook URLs in Cloud Console. Use only URLs on your deployed app:
+   - Homepage: `https://aestheticrxnetworkportal.vercel.app`
+   - Privacy: `https://aestheticrxnetworkportal.vercel.app/privacy`
+   - Terms: `https://aestheticrxnetworkportal.vercel.app/terms`
+   - Optional disclosure page: `https://aestheticrxnetworkportal.vercel.app/oauth-verification`
+
+2. **Demo video not accessible** — Re-upload as **YouTube Unlisted** (or Google Drive with “Anyone with the link”), test in an incognito window, then reply to the verification email with the new link. See [GOOGLE_OAUTH_DEMO_VIDEO.md](./GOOGLE_OAUTH_DEMO_VIDEO.md).
+
+After fixing Cloud Console URLs, verifying domain ownership (Step 1), and publishing a working demo video, **reply directly** to `api-oauth-dev-verification-reply+1sybjt2ojucfh1d@google.com` (template below).
+
+### Reply email template (copy, edit video URL, send)
+
+```
+Subject: Re: OAuth Dev Verification — aestheticrxnetworkportal (244788420362)
+
+Hello Google Developer Verification Team,
+
+We have addressed the items in your May 26, 2026 email:
+
+1. Homepage and Privacy Policy
+   - Application homepage: https://aestheticrxnetworkportal.vercel.app
+   - Privacy policy: https://aestheticrxnetworkportal.vercel.app/privacy
+   - Terms of service: https://aestheticrxnetworkportal.vercel.app/terms
+   - Google API disclosure: https://aestheticrxnetworkportal.vercel.app/oauth-verification
+   These pages are hosted on our Vercel deployment (not Google Sites or social media).
+   The homepage footer links to the Privacy Policy and Terms of Service.
+
+2. Domain ownership
+   - We verified https://aestheticrxnetworkportal.vercel.app in Google Search Console (HTML meta tag).
+
+3. Cloud Console
+   - OAuth consent screen homepage, privacy policy, and terms URLs updated to the links above.
+
+4. Demo video (public, no login required to view the video):
+   - [PASTE YOUR YOUTUBE UNLISTED URL HERE]
+
+Project ID: aestheticrxnetworkportal (244788420362)
+
+Thank you,
+[Your name]
+muhammadqasimshabbir3@gmail.com
+```
 
 ---
 
@@ -8,7 +57,9 @@ This guide covers everything required to pass Google's OAuth app verification fo
 
 The following have already been implemented in the codebase:
 
-- Privacy Policy page at `/privacy` with Google API Limited Use disclosure (section 14)
+- Privacy Policy at `/privacy` with Google API Limited Use disclosure (Section 13)
+- Public OAuth disclosure page at `/oauth-verification`
+- Shared legal layout with homepage + privacy links (for Google crawlers)
 - Terms of Service page at `/terms` (also accessible via `/terms-of-service`)
 - Privacy Policy and Terms links in the landing page footer
 - `robots.txt` and `sitemap.xml` in `frontend/public/`

@@ -22,6 +22,8 @@ interface DoctorCardProps {
     availability_status?: string;
     last_active_at?: string;
     distance_km?: number;
+    appointments_received?: number;
+    appointments_accepted?: number;
     google_location?: {
       lat: number;
       lng: number;
@@ -92,10 +94,13 @@ export default function DoctorCard({ doctor, showDistance = true, variant = 'car
     availability_status,
     last_active_at,
     distance_km,
+    appointments_received,
+    appointments_accepted,
   } = doctor;
 
-  // Profile URL
-  const profileUrl = `/doctors/${id}`;
+  const profileUrl = `/user/${id}`;
+  const showAppointmentStats =
+    (appointments_received ?? 0) > 0 || (appointments_accepted ?? 0) > 0;
 
   // Handle Set Appointment click
   const handleSetAppointment = async (e: React.MouseEvent) => {
@@ -166,6 +171,11 @@ export default function DoctorCard({ doctor, showDistance = true, variant = 'car
                   {distance_km} km
                 </span>
               )}
+              {showAppointmentStats && (
+                <span className="text-xs text-blue-600">
+                  {appointments_received ?? 0} received · {appointments_accepted ?? 0} accepted
+                </span>
+              )}
             </div>
           </Link>
 
@@ -228,6 +238,11 @@ export default function DoctorCard({ doctor, showDistance = true, variant = 'car
               </span>
             )}
           </div>
+          {showAppointmentStats && (
+            <p className="text-xs text-blue-600 mt-2">
+              {appointments_received ?? 0} requests · {appointments_accepted ?? 0} accepted
+            </p>
+          )}
 
           {/* Two Action Buttons */}
           <div className="mt-4 space-y-2">

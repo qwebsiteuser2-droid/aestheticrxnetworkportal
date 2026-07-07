@@ -2,14 +2,16 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { MinusIcon, PlusIcon, StarIcon } from '@heroicons/react/24/outline';
+import { ShareLinkButton } from '@/components/ShareLinkButton';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
-import { getApiBaseUrl } from '@/lib/getApiUrl';
+import { getProductImageSrc, type ProductImageView } from '@/lib/productImageUrl';
 import api from '@/lib/api';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/app/providers';
-import { UserMessageModal } from '@/components/modals/UserMessageModal';
+import { useRouter } from 'next/navigation';
+import { buildOrderLoginUrl } from '@/lib/authRedirect';
 
-export type ProductViewAngle = 'main' | 'front' | 'back' | 'side';
+export type ProductViewAngle = ProductImageView;
 
 export interface OrderProduct {
   id: string;
@@ -49,12 +51,6 @@ const VIEW_ANGLES: { key: ProductViewAngle; label: string }[] = [
   { key: 'side', label: 'Side' },
 ];
 
-function productImageUrl(productId: string, view: ProductViewAngle = 'main'): string {
-  const base = getApiBaseUrl();
-  const v = view === 'main' ? '' : `?view=${view}`;
-  return `${base}/api/product-images/${productId}${v}`;
-}
-
 export function ProductDetailsModal({
   product,
   isOpen,
@@ -73,7 +69,7 @@ export function ProductDetailsModal({
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const router = useRouter();
   const [mainImageError, setMainImageError] = useState(false);
 
   const unitPrice = useMemo(() => {
@@ -113,7 +109,7 @@ export function ProductDetailsModal({
 
   const submitReview = async () => {
     if (!isAuthenticated) {
-      setShowLoginModal(true);
+      router.push(buildOrderLoginUrl({ productId: product.id, action: 'view' }));
       return;
     }
     if (!newComment.trim() || newComment.trim().length < 3) {
@@ -160,10 +156,69 @@ export function ProductDetailsModal({
 
   if (!isOpen) return null;
 
-  const mainSrc =
-    activeView === 'main'
-      ? productImageUrl(product.id, 'main')
-      : productImageUrl(product.id, activeView);
+  const mainSrc = getProductImageSrc(product.id, activeView);
+
+  const quantityControls = (
+    <div className="border border-gray-200 rounded-xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="font-medium text-gray-900">Quantity</span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => changeQty(-1)}
+            disabled={quantity <= 1}
+            className="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40"
+          >
+            <MinusIcon className="w-4 h-4" />
+          </button>
+          <span className="w-10 text-center font-semibold text-lg">{quantity}</span>
+          <button
+            type="button"
+            onClick={() => changeQty(1)}
+            disabled={!inStock || quantity >= maxQty - cartQuantity}
+            className="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40"
+          >
+            <PlusIcon className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-gray-600">Line total</span>
+        <span className="text-lg font-bold text-gray-900">₨{lineTotal.toFixed(2)}</span>
+      </div>
+    </div>
+  );
+
+  const shareControl = (
+    <ShareLinkButton entityId={product.id} label="Share" variant="prominent" />
+  );
+
+  const actionButtons = (
+    <div className="flex gap-3">
+      <button
+        type="button"
+        disabled={!inStock}
+        onClick={() => {
+          onAddToCart(product.id, quantity);
+          onClose();
+        }}
+        className="flex-1 py-3 rounded-xl font-medium border border-gray-300 text-gray-800 hover:bg-gray-50 disabled:opacity-50 min-h-[44px]"
+      >
+        Add to Cart
+      </button>
+      <button
+        type="button"
+        disabled={!inStock}
+        onClick={() => {
+          onBuyNow(product.id, quantity);
+          onClose();
+        }}
+        className="flex-1 py-3 rounded-xl font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 min-h-[44px]"
+      >
+        Buy Now
+      </button>
+    </div>
+  );
 
   return (
     <>
@@ -175,12 +230,12 @@ export function ProductDetailsModal({
           className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10 rounded-t-2xl">
+          <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10 rounded-t-2xl gap-3">
             <h2 className="text-xl font-bold text-gray-900">Product Details</h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+              className="text-gray-400 hover:text-gray-600 text-2xl leading-none p-1"
               aria-label="Close"
             >
               ×
@@ -209,14 +264,14 @@ export function ProductDetailsModal({
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={productImageUrl(product.id, key)}
+                        src={getProductImageSrc(product.id, key)}
                         alt={`${product.name} ${label}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           const el = e.currentTarget;
                           if (!el.dataset.fallback) {
                             el.dataset.fallback = '1';
-                            el.src = productImageUrl(product.id, 'main');
+                            el.src = getProductImageSrc(product.id, 'main');
                           }
                         }}
                       />
@@ -241,6 +296,13 @@ export function ProductDetailsModal({
                     {activeView === 'main' ? 'Front' : activeView} view
                   </span>
                 </div>
+              </div>
+
+              {/* Mobile: quantity → actions → share directly under gallery */}
+              <div className="md:hidden space-y-3 mt-1">
+                {quantityControls}
+                {actionButtons}
+                {shareControl}
               </div>
 
               {/* Info */}
@@ -302,61 +364,11 @@ export function ProductDetailsModal({
                     : 'Out of stock'}
                 </div>
 
-                {/* Quantity */}
-                <div className="border border-gray-200 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">Quantity</span>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => changeQty(-1)}
-                        disabled={quantity <= 1}
-                        className="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40"
-                      >
-                        <MinusIcon className="w-4 h-4" />
-                      </button>
-                      <span className="w-10 text-center font-semibold text-lg">{quantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => changeQty(1)}
-                        disabled={!inStock || quantity >= maxQty - cartQuantity}
-                        className="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40"
-                      >
-                        <PlusIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Line total</span>
-                    <span className="text-lg font-bold text-gray-900">
-                      ₨{lineTotal.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    disabled={!inStock}
-                    onClick={() => {
-                      onAddToCart(product.id, quantity);
-                      onClose();
-                    }}
-                    className="flex-1 py-3 rounded-xl font-medium border border-gray-300 text-gray-800 hover:bg-gray-50 disabled:opacity-50"
-                  >
-                    Add to Cart
-                  </button>
-                  <button
-                    type="button"
-                    disabled={!inStock}
-                    onClick={() => {
-                      onBuyNow(product.id, quantity);
-                      onClose();
-                    }}
-                    className="flex-1 py-3 rounded-xl font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    Buy Now
-                  </button>
+                {/* Quantity → actions → share — desktop (mobile shows under images) */}
+                <div className="hidden md:block space-y-4">
+                  {quantityControls}
+                  {actionButtons}
+                  {shareControl}
                 </div>
               </div>
             </div>
@@ -406,7 +418,11 @@ export function ProductDetailsModal({
                   <button
                     type="button"
                     className="text-blue-600 font-medium hover:underline"
-                    onClick={() => setShowLoginModal(true)}
+                    onClick={() =>
+                      router.push(
+                        buildOrderLoginUrl({ productId: product.id, action: 'view' })
+                      )
+                    }
                   >
                     Sign in
                   </button>{' '}
@@ -448,17 +464,6 @@ export function ProductDetailsModal({
         </div>
       </div>
 
-      <UserMessageModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        title="Sign in to review"
-        message="Please sign in to rate and comment on products."
-        confirmLabel="Sign in"
-        variant="info"
-        onConfirm={() => {
-          window.location.href = `/login?redirect=${encodeURIComponent('/order')}`;
-        }}
-      />
     </>
   );
 }

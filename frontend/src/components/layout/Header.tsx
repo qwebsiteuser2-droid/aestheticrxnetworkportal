@@ -20,9 +20,10 @@ import {
   DocumentTextIcon,
   StarIcon,
   MegaphoneIcon,
-  HomeIcon
 } from '@heroicons/react/24/outline';
 import NotificationBell from '@/components/NotificationBell';
+import { BrandTitle } from '@/components/BrandTitle';
+import { MobileHeaderChrome } from '@/components/layout/MobileHeaderChrome';
 
 interface HeaderProps {
   onLoginClick: () => void;
@@ -133,7 +134,8 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
 
   return (
     <>
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 relative pl-0">
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 relative pl-0 overflow-visible md:overflow-visible">
+      <MobileHeaderChrome onLoginClick={onLoginClick} onRegisterClick={onRegisterClick} />
       {/* Desktop Meta Attribution Banner - Hidden on mobile */}
       <div className="hidden md:block bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100">
         <div className="container mx-auto px-4 py-2">
@@ -155,122 +157,27 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
         </div>
       </div>
       
-      <nav className="container mx-auto px-2 sm:px-4">
-        {/* Mobile Header Layout - Simplified */}
-        <div className="md:hidden">
-          {/* Top Row: Logo + BAx + Auth */}
-          <div className="flex items-center justify-between py-2">
-            {/* Logo and BAx */}
-            <Link href="/" className="flex items-center space-x-1 flex-shrink-0 -ml-1">
-              <img 
-                src="/logo.png" 
-                alt="AestheticRx Network" 
-                className="w-16 h-16 object-contain"
-              />
-              <span className="text-lg font-black"><span style={{ color: '#1E66FF' }}>A</span><span style={{ color: '#F5C24C' }}>RX</span></span>
-            </Link>
-            
-            {/* Auth Section */}
-            <div className="flex items-center space-x-2">
-              {isAuthenticated ? (
-                <>
-                  <NotificationBell />
-                  <button
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center space-x-1 px-2 py-1 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg"
-                  >
-                    <UserCircleIcon className="w-5 h-5" />
-                    <span className="text-xs font-medium truncate max-w-[60px]">{user?.doctor_name?.split(' ')[0]}</span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={onLoginClick}
-                    className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-blue-600 border border-gray-300 rounded-lg hover:border-blue-300"
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={onRegisterClick}
-                    className="px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Register
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-          
-          {/* Mobile AI Attribution - Below logo in one line */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg px-2 py-1 mb-2">
-            <p className="text-[10px] text-gray-600 text-center">
-              🤖 AI powered by <a href="https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium">LLaMA 3.1 Meta</a> via Hugging Face
-            </p>
-          </div>
-          
-          {/* Mobile User Menu Dropdown */}
-          {isUserMenuOpen && isAuthenticated && (
-            <div className="absolute right-2 top-14 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-              <div className="py-2">
-                <div className="px-4 py-3 border-b border-gray-200">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user?.doctor_name}</p>
-                  <p className="text-xs text-gray-500 truncate">{user?.clinic_name}</p>
-                  {hasAdminAccess && (() => {
-                    const badge = getAdminBadge();
-                    return badge ? (
-                      <div className="mt-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium border ${badge.color}`}>
-                          {badge.text}
-                        </span>
-                      </div>
-                    ) : null;
-                  })()}
-                </div>
-                
-                {userNavigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    onClick={() => setIsUserMenuOpen(false)}
-                  >
-                    <item.icon className="w-5 h-5 mr-3" />
-                    {item.name}
-                  </Link>
-                ))}
-                
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  <ArrowRightOnRectangleIcon className="w-5 h-5 mr-3" />
-                  Sign out
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-        
+      <nav className="w-full max-w-[1920px] mx-auto px-0 sm:px-1 lg:px-2 hidden md:block">
         {/* Desktop Header Layout */}
-        <div className="hidden md:flex justify-between items-center min-h-[4.5rem] relative">
-          {/* Logo - pinned top-left */}
-          <div className="absolute left-0 top-0 z-20 flex items-start">
-            <Link href="/" className="flex items-center gap-2 pl-1 pt-1">
+        <div className="hidden md:flex justify-between items-center min-h-[5rem] relative py-1">
+          {/* Logo + wordmark + tagline — top-left, vertically centered */}
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 z-20 flex items-center -ml-1 sm:-ml-2 lg:-ml-3">
+            <Link href="/" className="flex items-center gap-2.5 pl-0">
               <img 
                 src="/logo.png" 
                 alt="AestheticRx Network" 
-                className="w-24 h-24 lg:w-28 lg:h-28 object-contain drop-shadow-sm"
+                className="w-[4.5rem] h-[4.5rem] lg:w-20 lg:h-20 object-contain drop-shadow-sm shrink-0"
               />
-              <span className="text-xl lg:text-2xl font-black hidden xl:block leading-tight pt-2">
-                <span style={{ color: '#1E66FF' }}>Aesthetic</span>
-                <span style={{ color: '#F5C24C' }}>RX</span>
-                <span style={{ color: '#7AAC52' }}> Network</span>
-              </span>
+              <div className="hidden lg:block">
+                <BrandTitle size="sm" showTagline />
+              </div>
+              <div className="hidden md:block lg:hidden">
+                <BrandTitle size="sm" />
+              </div>
             </Link>
           </div>
 
-          <div className="flex-1 min-w-[7rem] lg:min-w-[9rem]" aria-hidden />
+          <div className="flex-1 min-w-[10rem] md:min-w-[12rem] lg:min-w-[18rem] xl:min-w-[22rem]" aria-hidden />
 
           {/* Main Navigation Links - Desktop - Tab Style */}
           <div className="flex items-center space-x-0.5 bg-gray-100 p-1 rounded-xl">
@@ -465,109 +372,6 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
         </div>
       </nav>
     </header>
-    
-    {/* Mobile Bottom Navigation - Fixed at bottom, persists across all pages */}
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 pb-safe">
-      <div className="grid grid-cols-6 gap-0">
-        {/* Leaderboard */}
-        <Link
-          href="/leaderboard"
-          onClick={(e) => handleProtectedNav(e, '/leaderboard')}
-          className={`flex flex-col items-center justify-center py-2 transition-colors ${
-            isActive('/leaderboard') 
-              ? 'text-amber-600 bg-amber-50 border-t-2 border-amber-500' 
-              : 'text-gray-500 hover:text-amber-600 hover:bg-amber-50'
-          }`}
-        >
-          <span className="text-lg">🏆</span>
-          <span className={`text-[9px] mt-0.5 ${isActive('/leaderboard') ? 'font-bold' : 'font-medium'}`}>Ranks</span>
-        </Link>
-        
-        {/* Order */}
-        <Link
-          href="/order"
-          className={`flex flex-col items-center justify-center py-2 transition-colors ${
-            isActive('/order') 
-              ? 'text-blue-600 bg-blue-50 border-t-2 border-blue-500' 
-              : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
-          }`}
-        >
-          <span className="text-lg">🛒</span>
-          <span className={`text-[9px] mt-0.5 ${isActive('/order') ? 'font-bold' : 'font-medium'}`}>Order</span>
-        </Link>
-        
-        {/* Research */}
-        <Link
-          href="/research"
-          onClick={(e) => handleProtectedNav(e, '/research')}
-          className={`flex flex-col items-center justify-center py-2 transition-colors ${
-            isActive('/research') 
-              ? 'text-purple-600 bg-purple-50 border-t-2 border-purple-500' 
-              : 'text-gray-500 hover:text-purple-600 hover:bg-purple-50'
-          }`}
-        >
-          <span className="text-lg">📚</span>
-          <span className={`text-[9px] mt-0.5 ${isActive('/research') ? 'font-bold' : 'font-medium'}`}>Research</span>
-        </Link>
-        
-        {/* Hall of Pride */}
-        <Link
-          href="/hall-of-pride"
-          onClick={(e) => handleProtectedNav(e, '/hall-of-pride')}
-          className={`flex flex-col items-center justify-center py-2 transition-colors ${
-            isActive('/hall-of-pride') 
-              ? 'text-yellow-600 bg-yellow-50 border-t-2 border-yellow-500' 
-              : 'text-gray-500 hover:text-yellow-600 hover:bg-yellow-50'
-          }`}
-        >
-          <span className="text-lg">🌟</span>
-          <span className={`text-[9px] mt-0.5 ${isActive('/hall-of-pride') ? 'font-bold' : 'font-medium'}`}>Pride</span>
-        </Link>
-        
-        {/* Find Doctors */}
-        <Link
-          href="/doctors"
-          className={`flex flex-col items-center justify-center py-2 transition-colors ${
-            isActive('/doctors') 
-              ? 'text-emerald-600 bg-emerald-50 border-t-2 border-emerald-500' 
-              : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50'
-          }`}
-        >
-          <span className="text-lg">👨‍⚕️</span>
-          <span className={`text-[9px] mt-0.5 ${isActive('/doctors') ? 'font-bold' : 'font-medium'}`}>Find</span>
-        </Link>
-        
-        {/* Appointments or Home */}
-        {isAuthenticated && (user?.user_type === 'doctor' || hasAdminAccess) ? (
-          <Link
-            href="/messages"
-            className={`flex flex-col items-center justify-center py-2 transition-colors ${
-              isActive('/messages') 
-                ? 'text-indigo-600 bg-indigo-50 border-t-2 border-indigo-500' 
-                : 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50'
-            }`}
-          >
-            <ChatBubbleLeftRightIcon className="w-5 h-5" />
-            <span className={`text-[9px] mt-0.5 ${isActive('/messages') ? 'font-bold' : 'font-medium'}`}>Appts</span>
-          </Link>
-        ) : (
-          <Link
-            href="/"
-            className={`flex flex-col items-center justify-center py-2 transition-colors ${
-              isActive('/') 
-                ? 'text-gray-900 bg-gray-100 border-t-2 border-gray-500' 
-                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
-            }`}
-          >
-            <HomeIcon className="w-5 h-5" />
-            <span className={`text-[9px] mt-0.5 ${isActive('/') ? 'font-bold' : 'font-medium'}`}>Home</span>
-          </Link>
-        )}
-      </div>
-    </nav>
-    
-    {/* Spacer for bottom navigation on mobile */}
-    <div className="md:hidden h-16"></div>
     </>
   );
 }

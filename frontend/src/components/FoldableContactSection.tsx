@@ -161,8 +161,8 @@ export default function FoldableContactSection() {
 
   if (error || platforms.length === 0) {
       return (
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl shadow-lg p-4 sm:p-6">
-          <div className="text-center py-3 sm:py-4 px-2">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl shadow-lg p-4 sm:p-6 max-w-lg mx-auto">
+          <div className="text-center py-2 sm:py-4 px-2">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 flex items-center justify-center">
               <ChatBubbleLeftRightIcon className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 mr-2 sm:mr-3 text-blue-600" />
               Contact Us

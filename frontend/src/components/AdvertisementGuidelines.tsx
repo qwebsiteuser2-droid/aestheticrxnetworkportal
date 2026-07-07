@@ -114,7 +114,7 @@ export default function AdvertisementGuidelines({ isOpen, onClose, onAccept }: A
             <section>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">💳 Payment Terms</h3>
               <ul className="list-disc list-inside space-y-2 text-gray-700">
-                <li>Payment can be made via PayFast (online) or Cash on Delivery / End of Month</li>
+                <li>Payment is Cash on Delivery / End of Month (online PayFast checkout is not offered in the portal UI at this time)</li>
                 <li>Advertisements will only be activated after payment is confirmed</li>
                 <li>Refunds are not available for approved and displayed advertisements</li>
                 <li>Pricing is based on the selected area and duration</li>

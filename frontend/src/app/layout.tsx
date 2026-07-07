@@ -3,11 +3,13 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { Toaster } from 'react-hot-toast';
+import { PRODUCTION_SITE_URL } from '@/lib/siteUrl';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AestheticRxNetwork - Connected Aesthetic Care',
+  metadataBase: new URL(PRODUCTION_SITE_URL),
+  title: 'AestheticRx Network - Connected Aesthetic Care',
   description: 'Professional B2B platform for aesthetic clinics and medical professionals, featuring product ordering, leaderboards, research papers, and comprehensive admin management.',
   applicationName: 'AestheticRXNetwork',
   appleWebApp: {
@@ -51,6 +53,8 @@ export const metadata: Metadata = {
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#1E66FF',
 };
 
 export default function RootLayout({
@@ -60,7 +64,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
-      <body className={`${inter.className} h-full bg-gray-50`} suppressHydrationWarning>
+      <body
+        className={`${inter.className} h-full bg-gray-50`}
+        suppressHydrationWarning
+      >
         <Providers>
           {children}
         </Providers>

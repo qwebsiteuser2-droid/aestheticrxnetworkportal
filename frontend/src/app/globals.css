@@ -325,4 +325,30 @@
   .bg-gradient-secondary {
     @apply bg-gradient-to-r from-secondary-500 to-secondary-700;
   }
+
+  /* Mobile: fixed bottom nav + notched devices */
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-nav-spacer {
+    height: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 768px) {
+    .mobile-nav-spacer {
+      display: none;
+      height: 0;
+    }
+  }
+
+  .mobile-page-pad {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 768px) {
+    .mobile-page-pad {
+      padding-bottom: 0;
+    }
+  }
 }

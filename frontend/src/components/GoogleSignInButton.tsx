@@ -7,6 +7,7 @@ import { setAuthData } from '@/lib/auth';
 import { useAuth } from '@/app/providers';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { getPostLoginRedirect } from '@/lib/authRedirect';
 
 // Dynamically import GoogleLogin to avoid SSR issues with location
 const GoogleLogin = dynamic(
@@ -24,6 +25,8 @@ interface GoogleSignInButtonProps {
   onError?: (error: string) => void;
   className?: string;
   disabled?: boolean;
+  /** Path or path+query to open after login (e.g. /order?productId=…) */
+  redirectAfterLogin?: string | null;
 }
 
 export default function GoogleSignInButton({
@@ -33,6 +36,7 @@ export default function GoogleSignInButton({
   onError,
   className = '',
   disabled = false,
+  redirectAfterLogin = null,
 }: GoogleSignInButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -106,17 +110,7 @@ export default function GoogleSignInButton({
         // Call onSuccess callback
         onSuccess?.();
 
-        // Redirect based on user type and approval status
-        const accountType = user.user_type || '';
-        const isRegularUser = accountType === 'regular' || accountType === 'regular_user';
-        
-        if (user.is_admin) {
-          router.push('/admin');
-        } else if (user.is_approved || isRegularUser) {
-          router.push('/');
-        } else {
-          router.push('/waiting-approval');
-        }
+        router.push(getPostLoginRedirect(user, redirectAfterLogin));
       } else {
         const errorMsg = response.message || 'Google Sign-In failed';
         console.error('❌ Google Sign-In failed:', errorMsg);

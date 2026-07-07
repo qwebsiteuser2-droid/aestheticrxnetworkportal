@@ -6,8 +6,8 @@
 
 | Document Information | |
 |---------------------|--|
-| **Version** | 3.4.0 |
-| **Last Updated** | January 31, 2026 |
+| **Version** | 3.5.7 |
+| **Last Updated** | June 2, 2026 |
 | **Environment** | Production |
 | **Device Type** | Mobile (iOS/Android) |
 | **Testing Status** | ✅ **PASSED - ALL SYSTEMS OPERATIONAL** |
@@ -19,6 +19,8 @@
 ## Executive Summary
 
 All production features have been tested and verified on mobile devices. The platform is fully responsive and operational on mobile browsers with no critical issues. All user-end features including authentication, order management, payment processing, and profile management are working correctly on mobile.
+
+> **v3.5.7 UI updates:** Sticky top navigation (Home, Order, Doctors, Status, Ranks, Research, Pride), signed-in Home without catalog (use Order tab), product modal action order, Appointment Status unread sorting, and mobile notification panel. See [MOBILE_AND_PWA.md](MOBILE_AND_PWA.md) and [CHANGELOG.md](CHANGELOG.md#357---2026-06-02).
 
 | Category | Status | Features Tested |
 |----------|--------|-----------------|

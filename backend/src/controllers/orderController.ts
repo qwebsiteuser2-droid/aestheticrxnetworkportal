@@ -296,7 +296,13 @@ export const createOrder = async (req: AuthenticatedRequest, res: Response): Pro
         console.log(`   Order Payment Method: ${orderWithRelations.payment_method || 'not set'}`);
         
         if (adminEmails.length > 0) {
-          // Send email notification (non-blocking - order processing continues even if email fails)
+          const { default: invoiceService } = await import('../services/invoiceService');
+          invoiceService
+            .sendOrderConfirmationWithInvoices([orderWithRelations])
+            .catch((err: unknown) =>
+              console.error('❌ Customer order confirmation failed:', err instanceof Error ? err.message : err)
+            );
+
           gmailService.sendOrderPlacedAlert(orderWithRelations, 'cash_on_delivery', undefined, adminEmails)
             .then(() => {
               console.log(`✅ Gmail notification sent successfully for order ${orderWithRelations.order_number}`);
@@ -431,16 +437,24 @@ export const sendBatchOrderNotification = async (req: AuthenticatedRequest, res:
     }
 
     try {
+      const { default: invoiceService } = await import('../services/invoiceService');
+
+      await invoiceService.sendOrderConfirmationWithInvoices(orders);
+      const customerEmail = orders[0]?.doctor?.email;
       await gmailService.sendBatchOrderPlacedAlert(orders, paymentMethod, adminEmails);
-      console.log(`✅ Batch notification email sent for ${orders.length} order(s) to: ${adminEmails.join(', ')}`);
+      console.log(
+        `✅ Notifications sent: customer ${customerEmail ?? 'n/a'} (1 email + Invoices.pdf), admins: ${adminEmails.join(', ')}`
+      );
 
       res.status(200).json({
         success: true,
-        message: `Admin notification email sent for ${orders.length} order(s)`,
+        message: `One confirmation email with Invoices.pdf sent to customer; admin notified for ${orders.length} order(s)`,
         data: {
           orders_count: orders.length,
           order_numbers: orders.map((o) => o.order_number),
           emailSent: true,
+          customerEmailSent: Boolean(customerEmail),
+          customerEmail: customerEmail || null,
           recipients: adminEmails,
         },
       });

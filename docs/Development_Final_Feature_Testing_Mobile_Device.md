@@ -6,8 +6,8 @@
 
 | Document Information | |
 |---------------------|--|
-| **Version** | 3.4.0 |
-| **Last Updated** | January 31, 2026 |
+| **Version** | 3.5.7 |
+| **Last Updated** | June 2, 2026 |
 | **Environment** | Development |
 | **Device Type** | Mobile |
 | **Author** | Muhammad Qasim Shabbir |
@@ -19,6 +19,8 @@
 ## ✅ STATUS: STABLE & PRODUCTION READY
 
 **Testing Status:** All systems tested and verified working correctly on mobile devices.
+
+> **v3.5.7:** Re-test sticky top nav, signed-in Home (no catalog), Order tab, Appointment Status layout, product modal, notifications panel — see [MOBILE_AND_PWA.md](MOBILE_AND_PWA.md).
 
 ### Last Known Issues Fixed (December 29, 2025):
 - ✅ **Mobile Size Issues**: Fixed - All mobile responsive issues resolved

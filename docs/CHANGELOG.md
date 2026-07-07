@@ -5,6 +5,148 @@ All notable changes to the AestheticRxNetwork project will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.7] - 2026-06-02
+
+### Added
+- **Mobile sticky navigation** (`MobileHeaderChrome`, `MobileTabNavigation`): compact logo, **Sign In / Register**, profile menu with **Sign out**, persistent top tab bar across pages
+- **Mobile user menu** (`MobileUserMenu`): account actions, Admin link, Appointment Status, logout
+- **Product image placeholder** (`ProductCatalogImage`): graceful “No image” instead of broken API errors in catalog
+- **Mobile & PWA guide**: [MOBILE_AND_PWA.md](MOBILE_AND_PWA.md) — install steps, nav reference, layout behavior
+
+### Changed
+- **Mobile navigation tabs** (order): Home → Order → Doctors (doctor icon + search badge) → Status (`/messages`) → Ranks → Research → Pride; removed standalone Search tab (search via Doctors / `?focus=search`)
+- **Homepage (mobile, signed in)**: product catalog **hidden** on Home; use **Order** tab. Guests still see catalog on Home; sign-in redirect for Buy Now / Add to Cart unchanged
+- **Homepage (mobile)**: **Top Clinics** foldable section **auto-expands** when logged in
+- **ProductDetailsModal (mobile)**: layout under gallery — Quantity → Add to Cart / Buy Now → Share; product details and reviews below
+- **Appointment Status** (`/messages`): mobile-friendly cards; header stacks; **unread** and **new doctor requests** sorted to top, then by latest activity
+- **Notification bell (mobile)**: full-width panel with backdrop; fits screen below sticky header
+- **PWA / viewport**: `viewportFit: cover`, theme color; manifest `scope` and `orientation`
+
+### Fixed
+- **Mobile overflow** on appointment list (status badges and timestamps clipped)
+- **Profile menu on mobile** no longer navigates away without logout option (dropdown restored)
+
+---
+
+## [3.5.6] - 2026-06-01
+
+### Fixed
+- **Order confirmation email**: one customer email per checkout with **`Invoices.pdf`** attached (batch cart = one combined challan, not multiple emails)
+- **Invoice PDF layout**: logo from `backend/assets/invoice/logo.png`, homepage brand colors (`#1E6BFF`, `#35B7D6`, `#D59225`), sample challan table format; logo copied in production Docker image
+
+### Added
+- **Invoice generator** (integrated): admin `/admin/invoices`, PDF generation (PDFKit), Gmail attachment on COD order placement
+- **Product images on production**: Next.js proxy `/api/product-images/:id?view=` + backend serve from PostgreSQL gallery columns
+- **Legal & OAuth verification pages**: `/privacy`, `/terms`, `/oauth-verification`; Google Search Console meta via `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`
+- **OAuth docs**: `GOOGLE_OAUTH_VERIFICATION.md`, scope justifications, demo video guide, Search Console steps
+- **Checkout UX**: debt-limit **modal** on 403 (replaces generic network error); sign-in **redirect** to `/login` instead of modal on Buy Now / checkout
+- **Product gallery & reviews** (customer modal): front/back/side views, `product_reviews` API
+
+### Changed
+- **PayFast**: backend routes and ITN handling **unchanged**; **removed from portal UI** (orders, advertisements) — Cash on Delivery only in checkout flows for now
+- **Auth**: removed `UserMessageModal` sign-in prompt on catalog actions
+
+### Removed
+- Standalone `AestheticRxNetworkInvoiceGenerationPortal/` folder (logic merged into main app)
+
+---
+
+## [3.5.5] - 2026-06-01
+
+### Fixed
+- **Admin product gallery images** (`/admin/products`): multipart uploads now persist to PostgreSQL (`image_data`, `image_front_data`, `image_back_data`, `image_side_data`)
+  - Axios no longer sets a broken `Content-Type` on `FormData` (files were not reaching the server)
+  - Multer uses **memory storage** → base64 saved in DB (works on Railway ephemeral disk)
+  - Edit modal shows **“Saved in database”** and previews for existing images
+  - Admin API returns `gallery: { main, front, back, side }` flags per product
+
+---
+
+## [3.5.4] - 2026-06-01
+
+### Added
+- **Doctor profile — Appointments tab** (`/user/[id]`)
+  - Summary: received, accepted/done, pending (from `conversations`)
+  - Breakdown by month or year with bar visualization
+  - Filters: year, month (`YYYY-MM`), or custom `from` / `to` date range
+  - API: `GET /api/public/doctors/:id/appointment-stats`
+- **Doctor profile — Patient Comments tab**
+  - Patients (`regular_user`) can post comments (min 3 characters)
+  - Admins can delete comments via `DELETE /api/admin/doctor-comments/:id`
+  - API: `GET` / `POST /api/public/doctors/:id/comments`
+  - Migration `1700000000029-AddDoctorComments` (`doctor_comments` table)
+- **Find Doctors** (`/doctors`)
+  - Sort: `appointments_received` | `appointments_accepted`
+  - Filters: `min_received`, `min_accepted`, `available_only`
+  - Doctor cards show request/accepted counts; profile links use `/user/[id]`
+
+### Changed
+- `GET /api/public/doctors/search` returns `appointments_received` and `appointments_accepted` on each doctor
+- `GET /api/public/doctors/:id` includes appointment count summary on public profile payload
+
+---
+
+## [3.5.3] - 2026-06-01
+
+### Added
+- **Admin product gallery uploads** (`/admin/products`)
+  - Separate uploads for catalog thumbnail, **front**, **back**, and **side** images
+  - Stored in `image_data`, `image_front_data`, `image_back_data`, `image_side_data`
+  - Customer product modal uses distinct views via `/api/product-images/:id?view=`
+
+### Changed
+- Admin create/update product routes use `uploadProductGalleryImages` (multipart fields)
+
+---
+
+## [3.5.2] - 2026-06-01
+
+### Added
+- **Homepage product catalog (`PublicOrderCatalog`)**
+  - Full product grid on the homepage (Daraz-style browse) — no sign-in required to view
+  - Search, **Add to Cart**, **Buy Now**, product details modal, and cart count
+  - **Buy Now** opens the shopping cart on `/order` (`?openCart=1`)
+- **Shared brand wordmark (`BrandTitle`)**
+  - Centralized colors aligned with `logo.svg` `nameGrad`
+  - Tagline in header: *Professional B2B platform for clinics. Connect, order, research, and grow together.* (bold, larger type)
+- **Product gallery & reviews** (backend)
+  - Optional front/back/side images and `product_reviews` table (migration `1700000000028`)
+  - `ProductDetailsModal` with quantity, reviews, Add to Cart, and Buy Now
+
+### Changed
+- **Homepage layout**
+  - **Top Clinics of the Month** sidebar on the **top-left** (sticky on desktop)
+  - Removed large blue **Order Products** hero card (`HeroCards` on homepage)
+  - Main area shows live product catalog instead of marketing hero only
+- **Header branding**
+  - Logo + wordmark pinned further **left** with tagline on large screens
+  - Wordmark letter colors: **Aesthetic** / **R** (blue), **X** (light blue), **Ne** (blue→gold gradient), **twork** (gold)
+- **Order page (`/order`)**
+  - Public browse without login redirect; checkout still requires sign-in
+  - Product grid shows **catalog items only** (not 100 empty slots)
+  - Card buttons: **Add to Cart** and **Buy Now**
+  - **Buy Now** adds to cart and opens the **Shopping Cart** modal (same as Cart button)
+  - Removed blue hero card from order page
+- **Navigation**
+  - **Order** link is public; **Find Doctors** in main nav; logo top-left on desktop
+- **Products API (production reliability)**
+  - `GET /api/products` uses explicit column select (safe before gallery migration runs)
+  - Public products fallback on frontend if primary API fails
+  - Migrations run on DB init; paths include `src/migrations` → `dist/migrations`
+
+### Fixed
+- **500 on `GET /api/products`** when gallery columns missing on production DB
+- **Doctor profile** page Axios response handling
+- **PWA / manifest** naming consistency (see 3.5.1)
+
+### Technical
+- `frontend/src/components/BrandTitle.tsx`, `PublicOrderCatalog.tsx`, `ProductDetailsModal.tsx`
+- `frontend/src/lib/brandColors.ts` — logo-aligned palette
+- `backend/src/controllers/productController.ts` — catalog-safe queries
+- `backend/src/db/data-source.ts` — migration glob + `runMigrations()` on startup
+
+---
+
 ## [3.5.1] - 2026-06-01
 
 ### Fixed

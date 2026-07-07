@@ -3,6 +3,7 @@ import { config } from 'dotenv';
 import { Doctor } from '../models/Doctor';
 import { Product } from '../models/Product';
 import { ProductReview } from '../models/ProductReview';
+import { DoctorComment } from '../models/DoctorComment';
 import { Order } from '../models/Order';
 import { ResearchPaper } from '../models/ResearchPaper';
 import { ResearchPaperView } from '../models/ResearchPaperView';
@@ -43,6 +44,7 @@ import { OTPConfig } from '../models/OTPConfig';
 import { Conversation } from '../models/Conversation';
 import { Message } from '../models/Message';
 import { FeaturedItem } from '../models/FeaturedItem';
+import { Invoice, InvoiceCounter } from '../models/Invoice';
 // import { Advertisement } from '../models/Advertisement';
 
 // Load environment variables
@@ -55,6 +57,7 @@ export const AppDataSource = new DataSource({
     Doctor,
     Product,
     ProductReview,
+    DoctorComment,
     Order,
     ResearchPaper,
     ResearchPaperView,
@@ -95,6 +98,8 @@ export const AppDataSource = new DataSource({
     Conversation,
     Message,
     FeaturedItem,
+    Invoice,
+    InvoiceCounter,
     // Advertisement,
   ],
   migrations:

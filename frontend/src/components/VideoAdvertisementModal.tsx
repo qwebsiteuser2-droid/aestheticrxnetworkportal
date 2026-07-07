@@ -5,7 +5,6 @@ import { toast } from 'react-hot-toast';
 import { getAccessToken } from '@/lib/auth';
 import { getApiUrl } from '@/lib/getApiUrl';
 import api from '@/lib/api';
-import DOMPurify from 'dompurify';
 import AdvertisementPlacementPreview from './AdvertisementPlacementPreview';
 
 interface AdvertisementArea {
@@ -68,7 +67,7 @@ export default function VideoAdvertisementModal({ isOpen, onClose }: VideoAdvert
     start_date: '' as string,
     start_time: '' as string,
     end_time: '' as string,
-    payment_method: 'payfast' as string,
+    payment_method: 'cash' as string,
     is_quitable: true as boolean
   });
 
@@ -380,44 +379,9 @@ export default function VideoAdvertisementModal({ isOpen, onClose }: VideoAdvert
       const result = response.data;
 
       if (result.success) {
-        // Handle PayFast payment integration
-        if (formData.payment_method === 'payfast' && result.data.payment) {
-          // PayFast payment - inject form and submit
-          if (result.data.payment.paymentForm) {
-            // Create a temporary form and submit it
-            // SECURITY: Sanitize HTML before injecting to prevent XSS attacks
-            const formDiv = document.createElement('div');
-            formDiv.innerHTML = typeof window !== 'undefined' 
-              ? DOMPurify.sanitize(result.data.payment.paymentForm, { 
-                  ALLOWED_TAGS: ['form', 'input', 'button'],
-                  ALLOWED_ATTR: ['name', 'value', 'type', 'action', 'method', 'id', 'class']
-                })
-              : result.data.payment.paymentForm;
-            const form = formDiv.querySelector('form') as HTMLFormElement;
-            if (form) {
-              document.body.appendChild(form);
-              form.submit();
-              toast.success('Redirecting to payment...');
-              onClose();
-              resetForm();
-              return;
-            } else {
-              toast.error('Payment form not available. Please contact support.');
-            }
-          } else if (result.data.payment_url) {
-            window.location.href = result.data.payment_url;
-            return;
-          } else {
-            toast.success('Advertisement created successfully! Redirecting to payment...');
-            // Fallback: redirect to payment page
-            window.location.href = `/payment?adId=${result.data.id}`;
-            return;
-          }
-        } else {
-          toast.success('Advertisement application submitted successfully! We will review and contact you for payment.');
-          onClose();
-          resetForm();
-        }
+        toast.success('Advertisement application submitted successfully! We will review and contact you for payment.');
+        onClose();
+        resetForm();
       } else {
         // Check if it's a time slot conflict error
         if (result.details && result.details.conflicts) {
@@ -449,7 +413,7 @@ export default function VideoAdvertisementModal({ isOpen, onClose }: VideoAdvert
       start_date: '' as string,
       start_time: '' as string,
       end_time: '' as string,
-      payment_method: 'payfast' as string,
+      payment_method: 'cash' as string,
       is_quitable: true as boolean
     });
     setSelectedArea('');
@@ -907,61 +871,18 @@ export default function VideoAdvertisementModal({ isOpen, onClose }: VideoAdvert
               />
             </div>
 
-            {/* Payment Method - Enhanced for Doctors */}
+            {/* Payment — Cash on Delivery only (PayFast backend retained for future use) */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Payment Method *</label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, payment_method: 'payfast' })}
-                  className={`p-4 border-2 rounded-lg text-left transition-all ${
-                    formData.payment_method === 'payfast'
-                      ? 'border-blue-600 bg-blue-50 shadow-md'
-                      : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl">💳</span>
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      formData.payment_method === 'payfast'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {formData.payment_method === 'payfast' ? 'Selected' : 'Select'}
-                    </span>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Payment</label>
+              <div className="p-4 border-2 border-blue-600 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">💵</span>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 text-sm">Cash on Delivery</h4>
+                    <p className="text-xs text-gray-600">Payment collected when your advertisement goes live</p>
                   </div>
-                  <h4 className="font-semibold text-gray-900 text-sm mb-1">PayFast Online</h4>
-                  <p className="text-xs text-gray-600">Secure online payment via PayFast gateway</p>
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, payment_method: 'cash' })}
-                  className={`p-4 border-2 rounded-lg text-left transition-all ${
-                    formData.payment_method === 'cash'
-                      ? 'border-blue-600 bg-blue-50 shadow-md'
-                      : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl">💵</span>
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      formData.payment_method === 'cash'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {formData.payment_method === 'cash' ? 'Selected' : 'Select'}
-                    </span>
-                  </div>
-                  <h4 className="font-semibold text-gray-900 text-sm mb-1">Cash on Delivery</h4>
-                  <p className="text-xs text-gray-600">Pay when advertisement starts</p>
-                </button>
+                </div>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                {formData.payment_method === 'payfast' 
-                  ? 'You will be redirected to PayFast for secure payment processing'
-                  : 'Payment will be collected when your advertisement goes live'}
-              </p>
             </div>
           </div>
 
@@ -1018,11 +939,6 @@ export default function VideoAdvertisementModal({ isOpen, onClose }: VideoAdvert
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                   <span>Submitting...</span>
-                </>
-              ) : formData.payment_method === 'payfast' ? (
-                <>
-                  <span>💳</span>
-                  <span>Proceed to Payment</span>
                 </>
               ) : (
                 <>

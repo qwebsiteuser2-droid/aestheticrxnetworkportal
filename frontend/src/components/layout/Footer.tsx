@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { BrandTitle } from '@/components/BrandTitle';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -45,7 +46,7 @@ export function Footer() {
                 alt="AestheticRx Network" 
                 className="w-12 h-12 object-contain"
               />
-              <span className="text-xl font-bold"><span style={{ color: '#1E66FF' }}>Aesthetic</span><span style={{ color: '#F5C24C' }}>RX</span><span style={{ color: '#7AAC52' }}> Network</span></span>
+              <BrandTitle size="md" />
             </Link>
             <p className="text-gray-400 text-sm mb-4">
               Professional B2B platform for aesthetic clinics. Connect, order, research, and grow together.

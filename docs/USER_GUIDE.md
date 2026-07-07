@@ -6,8 +6,8 @@
 
 | Document Information | |
 |---------------------|--|
-| **Version** | 3.4.0 |
-| **Last Updated** | January 31, 2026 |
+| **Version** | 3.5.7 |
+| **Last Updated** | June 2, 2026 |
 
 ---
 
@@ -18,6 +18,7 @@ Welcome to AestheticRxNetwork! This comprehensive guide will help you understand
 ### 1. Getting Started
 - [1.1 What is AestheticRxNetwork?](#11-what-is-aestheticrx)
 - [1.2 Accessing the Website](#12-accessing-the-website)
+- [1.3 Mobile navigation & installing the app](#13-mobile-navigation--installing-the-app)
 
 ### 2. User Types & Access
 - [2.1 Doctor](#21-doctor)
@@ -39,6 +40,8 @@ Welcome to AestheticRxNetwork! This comprehensive guide will help you understand
 - [4.6 Tier System](#46-tier-system)
 - [4.7 Certificates](#47-certificates)
 - [4.8 Badges](#48-badges)
+- [4.9 Doctor Appointment System](#49-doctor-appointment-system-)
+- [4.10 Location Services](#410-location-services-)
 
 ### 5. Admin Features
 - [5.1 Admin Dashboard](#51-admin-dashboard)
@@ -77,7 +80,32 @@ AestheticRxNetwork is a B2B platform designed for medical clinics and doctors. I
 
 1. Open your web browser
 2. Navigate to the website URL (provided by your administrator)
-3. You'll see the homepage with information about the platform
+3. You'll see the **homepage** with:
+   - **AestheticRX Network** branding in the header
+   - **Top Clinics of the Month** (expanded automatically on mobile when signed in)
+   - A **product catalog** when **not signed in** (browse, search, prices, stock)
+4. **Signed-in users on mobile:** use the **Order** tab to shop — the home page does not show the product grid on small screens
+5. **Desktop or guests:** browse the catalog on Home or open **Order** for checkout
+
+### 1.3 Mobile navigation & installing the app
+
+On a phone, a **sticky bar** at the top stays visible while you scroll:
+
+| Tab | What it does |
+|-----|----------------|
+| **Home** | Landing page |
+| **Order** | Products, cart, checkout |
+| **Doctors** | Find doctors (icon includes a search badge) |
+| **Status** | Appointment Status — your messages with doctors |
+| **Ranks** | Leaderboard |
+| **Research** | Research papers |
+| **Pride** | Hall of Pride |
+
+- Tap **Sign In** / **Register** (top right) when logged out
+- When logged in, tap your **name** for **Sign out**, Admin, or Appointment Status
+- Tap the **bell** for notifications
+
+**Install as an app:** In Chrome (Android) use *Install app*; on iPhone use Safari → *Add to Home Screen*. Details: [MOBILE_AND_PWA.md](MOBILE_AND_PWA.md).
 
 ---
 
@@ -292,8 +320,24 @@ Your profile page includes the following sections:
 - **🔬 Research Papers**: Your published research papers
 - **💎 Badges**: Achievement badges assigned by admins
 - **📈 Rank Progress**: Live tier progress data with points to next rank
+- **📅 Appointments** (v3.5.4): Public statistics for appointment requests received, accepted, and pending
+- **💬 Patient Comments** (v3.5.4): Feedback left by patients (admins can remove comments)
 
-#### 4.2.3 Editing Your Profile
+#### 4.2.3 Viewing Another Doctor's Profile
+
+Doctor profiles are available at **`/user/{doctor-id}`** (also linked from **Find Doctors**).
+
+**Appointments tab:**
+- See how many appointment requests the doctor **received**, **accepted/done**, and still **pending**
+- Filter by **year**, a specific **month**, or a **custom date range**
+- View a **monthly or yearly** breakdown table with a simple chart
+
+**Patient Comments tab:**
+- **Patients** (regular users): sign in and post a comment about the doctor (minimum 3 characters)
+- **Everyone**: read published comments
+- **Admins**: delete inappropriate comments using the remove control on each comment
+
+#### 4.2.4 Editing Your Profile
 
 1. Go to your Profile page
 2. Click "Edit Profile" (if you're viewing your own profile)
@@ -307,7 +351,7 @@ Your profile page includes the following sections:
    - **Tags**: Add custom tags for categorization
 4. Click "Save Changes" for each section
 
-#### 4.2.4 Profile Features
+#### 4.2.5 Profile Features
 
 **Bio Section:**
 - Add or edit your personal/professional bio
@@ -350,7 +394,7 @@ Your profile page includes the following sections:
   - Next rank score
 - Updates automatically based on your sales and achievements
 
-#### 4.2.5 Adding Profile Photo
+#### 4.2.6 Adding Profile Photo
 
 1. Go to your Profile page
 2. Click on the profile photo area
@@ -371,27 +415,27 @@ Your profile page includes the following sections:
 
 ### 4.3 Order Management
 
+You can browse products on the **homepage** or on the **Order** page without logging in. Sign-in is required when you complete checkout.
+
 #### 4.3.1 Placing an Order
 
-1. **Navigate to "Order"** from the main menu
-2. **Browse products:**
-   - View product images
-   - Read descriptions
-   - Check prices
-   - Check stock availability
-3. **Add to cart:**
-   - Select quantity
-   - Click "Add to Cart"
-4. **Review cart:**
+1. **Browse products** on the homepage or **navigate to "Order"** from the main menu
+2. **Browse the catalog:**
+   - Search by name, description, or category
+   - View product images (tap a card for details, gallery views, and reviews)
+   - Check prices and stock (**In Stock** / **Out of Stock**)
+3. **Add items:**
+   - **Add to Cart** — adds one unit (respects stock limits)
+   - **Buy Now** — adds the item and **opens the Shopping Cart** immediately (same as tapping **Cart**)
+4. **Review cart** (Shopping Cart modal or **Cart** button):
    - View selected items
-   - Check quantities
+   - Adjust quantities with + / −
    - Review total amount
 5. **Select delivery location:**
    - Use Google Maps to set location
    - Enter delivery address
-6. **Choose payment method:**
-   - **Cash on Delivery**: Pay when you receive
-   - **PayFast Online**: Pay online via payment gateway
+6. **Confirm payment:**
+   - Checkout uses **Cash on Delivery** (pay when you receive)
 7. **Place order:**
    - Review order details
    - Add notes (optional)
@@ -424,16 +468,13 @@ Orders can have the following statuses:
 
 #### 4.3.4 Payment Methods
 
-**Cash on Delivery:**
+**Cash on Delivery (current checkout):**
 - Pay when you receive the order
-- No online payment required
+- No online payment required in the portal
 - Admin will contact you for delivery
+- A PDF invoice may be emailed when your order is placed
 
-**PayFast Online Payment:**
-- Secure online payment
-- Multiple payment options
-- Instant confirmation
-- Receipt sent via email
+> **Note:** PayFast online payment is implemented on the server for future use but is **not** offered in the portal checkout UI as of v3.5.6.
 
 ### 4.4 Research Papers
 
@@ -613,9 +654,13 @@ The appointment system allows regular users (patients) to connect with doctors f
 
 **Finding and Booking Doctors:**
 
-1. Navigate to **"Set Appointment with Doctors"** from the main menu
+1. Navigate to **Find Doctors** (`/doctors`) from the main menu
 2. Browse available doctors:
-   - View doctor profiles and specializations
+   - Open **Filters** for distance, **Available now**, and **appointment-based** options (v3.5.4)
+   - **Sort by**: most requests received, or most accepted appointments
+   - **Minimum received / accepted**: only show doctors above a threshold (click **Apply appointment filters**)
+   - Cards may show **`X requests · Y accepted`** when the doctor has appointment history
+   - Click **Doctor Profile** to open `/user/{id}` (full profile with Appointments and Comments tabs)
    - See **online status indicators**:
      - 🟢 **Online** - Doctor is currently active
      - 🟡 **Away** - Doctor is temporarily unavailable
@@ -681,6 +726,16 @@ You can also set your availability status:
   - Platform administrators (for oversight)
 - **No Other Doctors**: Other doctors cannot see your appointment requests
 - **Contact Info Protection**: Doctor's contact info is only shared after approval
+
+#### 4.9.4 Leaving a Comment on a Doctor Profile (v3.5.4)
+
+1. Sign in as a **patient** (regular user)
+2. Open the doctor's profile at **`/user/{doctor-id}`**
+3. Select the **Patient Comments** tab
+4. Write your comment and click **Post comment**
+5. Your comment appears in the list for other visitors to read
+
+> **Note:** Doctors cannot comment on other doctors' profiles. Administrators may remove comments that violate platform guidelines.
 
 ### 4.10 Location Services 🆕
 
@@ -863,7 +918,7 @@ A: Click "Forgot Password" on the login page and follow the instructions sent to
 #### 6.1.2 Order Questions
 
 **Q: What payment methods are accepted?**
-A: Cash on Delivery and PayFast Online Payment are supported.
+A: Cash on Delivery in the portal checkout. PayFast remains on the backend for future online payments but is not shown in the UI.
 
 **Q: How long does delivery take?**
 A: Delivery time depends on your location and product availability. Contact admin for specific timelines.

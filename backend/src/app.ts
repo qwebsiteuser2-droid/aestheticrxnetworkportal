@@ -714,92 +714,63 @@ app.get('/api/images/:path(*)', async (req, res): Promise<void> => {
 app.get('/api/product-images/:productId', async (req, res): Promise<void> => {
   try {
     const { productId } = req.params;
-    const view = String(req.query.view || 'main').toLowerCase();
-    
+    const viewRaw = String(req.query.view || 'main').toLowerCase();
+    const view =
+      viewRaw === 'front' || viewRaw === 'back' || viewRaw === 'side' ? viewRaw : 'main';
+
     if (!productId) {
       res.status(400).json({ error: 'Product ID is required' });
       return;
     }
-    
-    const productRepository = AppDataSource.getRepository(Product);
-    const product = await productRepository.findOne({
-      where: { id: productId },
-      select: [
-        'id',
-        'image_data',
-        'image_url',
-        'image_front_data',
-        'image_back_data',
-        'image_side_data',
-      ],
-    });
-    
-    if (!product) {
+
+    let row: Record<string, string | null | undefined> | null = null;
+
+    try {
+      const rows = await AppDataSource.query(
+        `SELECT image_data, image_url, image_front_data, image_back_data, image_side_data
+         FROM products WHERE id = $1`,
+        [productId]
+      );
+      row = rows[0] || null;
+    } catch (columnError) {
+      console.warn('Gallery columns missing, falling back to image_data only:', columnError);
+      const rows = await AppDataSource.query(
+        `SELECT image_data, image_url FROM products WHERE id = $1`,
+        [productId]
+      );
+      row = rows[0] || null;
+    }
+
+    if (!row) {
       res.status(404).json({ error: 'Product not found' });
       return;
     }
 
-    const viewToField: Record<string, keyof Product> = {
-      main: 'image_data',
-      front: 'image_front_data',
-      back: 'image_back_data',
-      side: 'image_side_data',
-    };
-    const field = viewToField[view] || 'image_data';
-    let imageData =
-      (product[field] as string | null | undefined) || product.image_data;
-    
+    const { pickProductImageDataUrl, parseDataUrlImage } = await import(
+      './utils/productImageServe'
+    );
+    const imageData = pickProductImageDataUrl(row, view);
+
     if (!imageData) {
-      // If no image_data in database, redirect to the file-based URL if exists
-      if (product.image_url) {
-        const backendUrl = getBackendUrl();
-        const imagePath = product.image_url.startsWith('/')
-          ? product.image_url.substring(1)
-          : product.image_url;
-        res.redirect(`${backendUrl}/api/images/${imagePath}`);
-        return;
-      }
       res.status(404).json({ error: 'Product image not found' });
       return;
     }
-    
-    // Parse base64 data URL
-    const matches = imageData.match(/^data:([^;]+);base64,(.+)$/);
-    if (!matches) {
-      console.error('Invalid image_data format for product:', productId);
+
+    const parsed = parseDataUrlImage(imageData);
+    if (!parsed) {
+      console.error('Invalid image_data format for product:', productId, 'view:', view);
       res.status(500).json({ error: 'Invalid image data format' });
       return;
     }
-    
-    const mimeType = matches[1];
-    const base64Data = matches[2];
-    const buffer = Buffer.from(base64Data, 'base64');
-    
-    // Set headers
-    res.setHeader('Content-Type', mimeType);
-    res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
-    res.setHeader('Content-Length', buffer.length);
+
+    res.setHeader('Content-Type', parsed.mimeType);
+    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+    res.setHeader('Content-Length', parsed.buffer.length);
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-    
-    // CORS headers
-    const origin = req.headers.origin;
-    const frontendUrls = getAllFrontendUrls();
-    if (origin) {
-      const isAllowed = frontendUrls.some(url => {
-        if (url.includes('*')) {
-          const pattern = url.replace(/\*/g, '.*');
-          return new RegExp(`^${pattern}$`).test(origin);
-        }
-        return url === origin;
-      });
-      if (isAllowed) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-      }
-    }
+    res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    
-    console.log(`✅ Serving product image from database: ${productId} (${buffer.length} bytes)`);
-    res.send(buffer);
+
+    res.send(parsed.buffer);
   } catch (error) {
     console.error('❌ Error serving product image:', error);
     res.status(500).json({ error: 'Error serving image' });

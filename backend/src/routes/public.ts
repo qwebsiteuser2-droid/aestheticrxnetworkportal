@@ -5,6 +5,12 @@ import { getPublicResearchBenefitConfigs } from '../controllers/adminController'
 import { getHallOfPrideEntries } from '../controllers/hallOfPrideController';
 import { checkMissingImages } from '../controllers/imageDiagnosticsController';
 import { getNearbyDoctors, searchDoctors, getDoctorProfile } from '../controllers/doctorSearchController';
+import { getDoctorAppointmentStats } from '../controllers/doctorAppointmentStatsController';
+import {
+  listDoctorComments,
+  createDoctorComment,
+} from '../controllers/doctorCommentController';
+import { authenticate } from '../middleware/auth';
 import { getFeaturedProducts, getFeaturedDoctors, getPublicProducts } from '../controllers/featuredItemsController';
 
 const router = Router();
@@ -26,6 +32,9 @@ router.get('/featured/doctors', getFeaturedDoctors);
 // Doctor search routes (public)
 router.get('/doctors/nearby', getNearbyDoctors);
 router.get('/doctors/search', searchDoctors);
+router.get('/doctors/:id/appointment-stats', getDoctorAppointmentStats);
+router.get('/doctors/:id/comments', listDoctorComments);
+router.post('/doctors/:id/comments', authenticate, createDoctorComment);
 router.get('/doctors/:id', getDoctorProfile);
 
 export default router;

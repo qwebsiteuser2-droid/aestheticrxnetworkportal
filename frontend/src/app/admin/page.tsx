@@ -204,6 +204,7 @@ export default function AdminPage() {
     { id: 'users', name: 'Manage Users', href: '/admin/users', color: 'bg-blue-600 hover:bg-blue-700', icon: '👥', feature: 'users' },
     { id: 'products', name: 'Manage Products', href: '/admin/products', color: 'bg-green-600 hover:bg-green-700', icon: '📦', feature: 'products' },
     { id: 'orders', name: 'Manage Order System', href: '/admin/order-management', color: 'bg-amber-600 hover:bg-amber-700', icon: '🛒', feature: 'orders' },
+    { id: 'invoices', name: 'Invoice Generator', href: '/admin/invoices', color: 'bg-sky-600 hover:bg-sky-700', icon: '🧾', feature: 'orders' },
     { id: 'employees', name: 'Employee Management', href: '/admin/employee-management', color: 'bg-teal-600 hover:bg-teal-700', icon: '👷', feature: 'employees' },
     { id: 'research', name: 'Manage Research Papers', href: '/admin/research-management', color: 'bg-indigo-600 hover:bg-indigo-700', icon: '📚', feature: 'research' },
     { id: 'tiers', name: 'Manage Tier Configurations', href: '/admin/tier-configs', color: 'bg-orange-600 hover:bg-orange-700', icon: '⭐', feature: 'tiers' },

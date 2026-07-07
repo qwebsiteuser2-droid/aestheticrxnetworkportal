@@ -33,6 +33,8 @@ RUN npm install && npm cache clean --force
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
+# Invoice PDF logo (required for challan generation)
+COPY --chown=nodejs:nodejs --from=builder /app/assets ./assets
 # Note: Migrations are compiled to dist/db/migrations/*.js
 # Do NOT copy src/db/migrations as TypeScript files can't run at runtime
 

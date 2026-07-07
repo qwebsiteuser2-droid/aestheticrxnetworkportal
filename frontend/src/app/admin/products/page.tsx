@@ -6,10 +6,16 @@ import { toast } from 'react-hot-toast';
 import { useAuth } from '@/app/providers';
 import { useAdminPermission } from '@/hooks/useAdminPermission';
 import { getAccessToken } from '@/lib/auth';
-import Image from 'next/image';
 import { TrashIcon, XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import api from '@/lib/api';
-import { getApiUrl, getApiBaseUrl as getApiBaseUrlFromLib } from '@/lib/getApiUrl';
+import { getProductImageSrc, type ProductImageView } from '@/lib/productImageUrl';
+
+interface ProductGalleryFlags {
+  main: boolean;
+  front: boolean;
+  back: boolean;
+  side: boolean;
+}
 
 interface Product {
   id: string;
@@ -25,7 +31,26 @@ interface Product {
   stock_quantity: number | null;
   created_at: string;
   updated_at: string;
+  gallery?: ProductGalleryFlags;
 }
+
+type GallerySlot = 'main' | 'front' | 'back' | 'side';
+
+type GalleryFiles = Record<GallerySlot, File | null>;
+
+const GALLERY_UPLOADS: { slot: GallerySlot; field: string; label: string; hint: string }[] = [
+  { slot: 'main', field: 'image', label: 'Catalog thumbnail', hint: 'Shown in product grids & search' },
+  { slot: 'front', field: 'image_front', label: 'Front view', hint: 'Product details — Front tab' },
+  { slot: 'back', field: 'image_back', label: 'Back view', hint: 'Product details — Back tab' },
+  { slot: 'side', field: 'image_side', label: 'Side view', hint: 'Product details — Side tab' },
+];
+
+const emptyGalleryFiles = (): GalleryFiles => ({
+  main: null,
+  front: null,
+  back: null,
+  side: null,
+});
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -42,7 +67,7 @@ export default function ProductsPage() {
     price: '',
     slot_index: '',
     stock_quantity: '',
-    image: null as File | null
+    images: emptyGalleryFiles(),
   });
 
   // Get admin permissions
@@ -123,24 +148,21 @@ export default function ProductsPage() {
       formDataToSend.append('slot_index', formData.slot_index);
       formDataToSend.append('stock_quantity', formData.stock_quantity);
       
-      if (formData.image) {
-        formDataToSend.append('image', formData.image);
-      }
+      GALLERY_UPLOADS.forEach(({ slot, field }) => {
+        const file = formData.images[slot];
+        if (file) formDataToSend.append(field, file);
+      });
+
+      const uploadHeaders = { Authorization: `Bearer ${token}` };
 
       let response;
       if (editingProduct) {
         response = await api.put(`/admin/products/${editingProduct.id}`, formDataToSend, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
-          },
+          headers: uploadHeaders,
         });
       } else {
         response = await api.post('/admin/products', formDataToSend, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
-          },
+          headers: uploadHeaders,
         });
       }
 
@@ -148,14 +170,24 @@ export default function ProductsPage() {
         toast.success(editingProduct ? 'Product updated successfully!' : 'Product created successfully!');
         setShowAddModal(false);
         setEditingProduct(null);
-        setFormData({ name: '', description: '', price: '', slot_index: '', stock_quantity: '', image: null });
+        setFormData({
+          name: '',
+          description: '',
+          price: '',
+          slot_index: '',
+          stock_quantity: '',
+          images: emptyGalleryFiles(),
+        });
         fetchProducts();
       } else {
         toast.error(response.data.message || 'Failed to save product');
       }
     } catch (error: unknown) {
       console.error('Error saving product:', error);
-      toast.error('Error saving product');
+      const message =
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Error saving product';
+      toast.error(message);
     }
   };
 
@@ -216,7 +248,7 @@ export default function ProductsPage() {
       price: product.price.toString(),
       slot_index: product.slot_index.toString(),
       stock_quantity: product.stock_quantity?.toString() || '0',
-      image: null
+      images: emptyGalleryFiles(),
     });
     setShowAddModal(true);
   };
@@ -224,25 +256,40 @@ export default function ProductsPage() {
   const closeModal = () => {
     setShowAddModal(false);
     setEditingProduct(null);
-    setFormData({ name: '', description: '', price: '', slot_index: '', stock_quantity: '', image: null });
+    setFormData({
+      name: '',
+      description: '',
+      price: '',
+      slot_index: '',
+      stock_quantity: '',
+      images: emptyGalleryFiles(),
+    });
   };
 
-  // Helper function to get image URL (same as order page)
-  const getImageUrl = (imageUrl: string | null | undefined): string => {
-    if (!imageUrl) {
-      return '';
-    }
-    
-    // If image_url already starts with http:// or https://, use it directly (backend now returns full URLs)
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return imageUrl;
-    }
+  const getProductImageById = (
+    productId: string,
+    view: ProductImageView = 'front',
+    cacheKey?: string
+  ): string => {
+    const src = getProductImageSrc(productId, view);
+    if (!cacheKey) return src;
+    return `${src}${src.includes('?') ? '&' : '?'}t=${encodeURIComponent(cacheKey)}`;
   };
 
-  // Get product image URL using the new database-backed endpoint (more reliable on Railway)
-  const getProductImageById = (productId: string): string => {
-    const baseUrl = getApiUrl();
-    return `${baseUrl}/api/product-images/${productId}`;
+  const slotHasStoredImage = (
+    product: Product | null,
+    slot: GallerySlot
+  ): boolean => {
+    if (!product?.gallery) return !!product?.image_url;
+    if (slot === 'main') return product.gallery.main;
+    return product.gallery[slot];
+  };
+
+  const setGalleryFile = (slot: GallerySlot, file: File | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: { ...prev.images, [slot]: file },
+    }));
   };
 
   // Create a grid of 100 slots
@@ -263,7 +310,7 @@ export default function ProductsPage() {
             <>
               <div className="w-full h-32 mb-3 rounded-lg overflow-hidden border-2 border-green-500 bg-green-100">
                 <img
-                  src={getProductImageById(product.id)}
+                  src={getProductImageById(product.id, 'front')}
                   alt={product.name}
                   width={200}
                   height={128}
@@ -407,8 +454,9 @@ export default function ProductsPage() {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 className="text-lg font-medium text-blue-900 mb-2">Product Slot System</h3>
             <p className="text-blue-700 text-sm">
-              Manage 100 product slots. Each slot can contain one product with image and price. 
-              Products will be displayed to users in the Product Ordering page.
+              Manage 100 product slots. Upload a <strong>catalog thumbnail</strong> plus separate{' '}
+              <strong>front</strong>, <strong>back</strong>, and <strong>side</strong> images for the
+              product detail gallery on the order page.
             </p>
           </div>
         </div>
@@ -421,7 +469,7 @@ export default function ProductsPage() {
       {/* Add/Edit Product Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               {editingProduct ? 'Edit Product' : 'Add New Product'}
             </h2>
@@ -505,35 +553,71 @@ export default function ProductsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Image
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Product images
                 </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.files?.[0] || null }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-                {formData.image && (
-                  <div className="mt-2">
-                    <p className="text-sm text-green-600 mb-2">Selected: {formData.image.name}</p>
-                    <img
-                      src={URL.createObjectURL(formData.image)}
-                      alt="Preview"
-                      className="w-20 h-20 object-cover rounded border"
-                    />
-                  </div>
-                )}
-                {editingProduct && editingProduct.id && !formData.image && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-600 mb-2">Current image:</p>
-                    <img
-                      src={getProductImageById(editingProduct.id)}
-                      alt="Current"
-                      className="w-20 h-20 object-cover rounded border"
-                    />
-                  </div>
-                )}
+                <p className="text-xs text-gray-500 mb-3">
+                  Upload up to four images. Front, back, and side appear in the customer product
+                  modal. Leave a field empty when editing to keep the existing image.
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  {GALLERY_UPLOADS.map(({ slot, field, label, hint }) => {
+                    const selected = formData.images[slot];
+                    const productId = editingProduct?.id;
+                    const hasStored = slotHasStoredImage(editingProduct, slot);
+                    const cacheKey = editingProduct?.updated_at;
+                    return (
+                      <div
+                        key={field}
+                        className="border border-gray-200 rounded-lg p-3 bg-gray-50"
+                      >
+                        <p className="text-sm font-medium text-gray-800">{label}</p>
+                        <p className="text-xs text-gray-500 mb-2">{hint}</p>
+                        {hasStored && !selected && (
+                          <p className="text-[10px] text-green-700 font-medium mb-1">
+                            ✓ Saved in database — choose a file below to replace
+                          </p>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            setGalleryFile(slot, e.target.files?.[0] || null)
+                          }
+                          className="w-full text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700"
+                        />
+                        <div className="mt-2 flex gap-2 items-start">
+                          {selected ? (
+                            <img
+                              src={URL.createObjectURL(selected)}
+                              alt={`${label} preview`}
+                              className="w-16 h-16 object-cover rounded border border-green-400"
+                            />
+                          ) : productId && hasStored ? (
+                            <img
+                              src={getProductImageById(
+                                productId,
+                                slot === 'main' ? 'main' : slot,
+                                cacheKey
+                              )}
+                              alt={`Current ${label}`}
+                              className="w-16 h-16 object-cover rounded border border-green-300"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded border border-dashed border-gray-300 bg-white flex items-center justify-center text-[10px] text-gray-400 text-center px-1">
+                              No image
+                            </div>
+                          )}
+                          {selected && (
+                            <p className="text-[10px] text-green-700 flex-1 break-all">
+                              New: {selected.name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="flex space-x-4 pt-4">

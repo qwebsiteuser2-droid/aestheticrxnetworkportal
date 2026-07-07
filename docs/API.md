@@ -6,8 +6,8 @@
 
 | Document Information | |
 |---------------------|--|
-| **Version** | 3.4.0 |
-| **Last Updated** | January 31, 2026 |
+| **Version** | 3.5.4 |
+| **Last Updated** | June 1, 2026 |
 | **Base URL (Development)** | `http://localhost:4000/api` |
 | **Base URL (Production)** | `https://aestheticrxnetworkdepolying-production.up.railway.app/api` |
 
@@ -266,12 +266,45 @@ Authorization: Bearer <access_token>
 | PUT | `/notifications/:id/read` | Mark notification as read | Yes |
 | PUT | `/notifications/read-all` | Mark all notifications as read | Yes |
 
-### Doctor Search
+### Doctor Search & Public Profiles
+
+Public routes are mounted under `/api/public/doctors/…`.
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/doctors/search` | Search doctors with filters | No |
-| GET | `/doctors/:id` | Get doctor profile | No |
+| GET | `/public/doctors/search` | Search doctors (see query params below) | No |
+| GET | `/public/doctors/nearby` | Nearby doctors by lat/lng | No |
+| GET | `/public/doctors/:id` | Public doctor profile (includes appointment counts) | No |
+| GET | `/public/doctors/:id/appointment-stats` | Appointment statistics for a doctor | No |
+| GET | `/public/doctors/:id/comments` | List patient comments on doctor profile | No |
+| POST | `/public/doctors/:id/comments` | Post a patient comment (`comment` in body) | Yes (patient) |
+| DELETE | `/admin/doctor-comments/:id` | Remove a comment | Admin |
+
+**`GET /public/doctors/search` query parameters**
+
+| Param | Description |
+|-------|-------------|
+| `q` | Search name, clinic, or tags |
+| `lat`, `lng` | Optional — distance calculation |
+| `page`, `limit` | Pagination |
+| `available_only` | `true` — online and `availability_status=available` |
+| `sort` | `appointments_received` \| `appointments_accepted` (default: distance/name order) |
+| `min_received` | Minimum total appointment requests |
+| `min_accepted` | Minimum accepted/active appointments |
+
+**`GET /public/doctors/:id/appointment-stats` query parameters**
+
+| Param | Description |
+|-------|-------------|
+| `year` | Filter to a calendar year (e.g. `2026`) |
+| `month` | Filter to one month (`YYYY-MM`) |
+| `from`, `to` | Custom date range (ISO dates) |
+| `groupBy` | `month` (default) \| `year` |
+
+**Response summary fields:** `received` (all conversations), `accepted` (status `accepted` or `active`), `pending`.
+
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
 | GET | `/doctors/current` | Get current user's doctor profile | Yes |
 
 ### Messages
@@ -509,6 +542,11 @@ Runtime debt enforcement for orders/payments uses active `tier_configs.debt_limi
 | GET | `/public/research-benefits` | Get research benefits | No |
 | GET | `/public/hall-of-pride` | Get hall of pride | No |
 | GET | `/public/image-diagnostics` | Check missing images | No |
+| GET | `/public/doctors/search` | Search doctors (appointment sort/filter) | No |
+| GET | `/public/doctors/nearby` | Nearby doctors | No |
+| GET | `/public/doctors/:id` | Public doctor profile | No |
+| GET | `/public/doctors/:id/appointment-stats` | Doctor appointment statistics | No |
+| GET | `/public/doctors/:id/comments` | Doctor profile patient comments | No |
 
 ### Backgrounds
 

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getPostLoginRedirect } from '@/lib/authRedirect';
 import { authApi } from '@/lib/api';
 import { setAuthData } from '@/lib/auth';
 import { useAuth } from '@/app/providers';
@@ -36,6 +37,8 @@ export default function LoginPage() {
   } | null>(null);
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get('redirect');
 
   // Clear any existing toast notifications when the page loads
   useEffect(() => {
@@ -98,16 +101,9 @@ export default function LoginPage() {
         const userType = user.user_type || (user as any).user_type || '';
         const isRegularUser = userType === 'regular' || userType === 'regular_user';
         
-        if (isRegularUser) {
-          console.log('🔑 Login - Regular user detected, redirecting to home page');
-          router.push('/');
-        } else if (!user.is_approved && !user.is_admin) {
-          console.log('🔑 Login - User not approved, redirecting to waiting-approval page');
-          router.push('/waiting-approval');
-        } else {
-          console.log('🔑 Login - User approved, redirecting to home page');
-          router.push('/');
-        }
+        const destination = getPostLoginRedirect(user, redirectParam);
+        console.log('🔑 Login - Redirecting to:', destination);
+        router.push(destination);
       } else if (
         response.data?.otpRequired &&
         process.env.NEXT_PUBLIC_ENABLE_LOGIN_OTP === 'true'
@@ -225,11 +221,7 @@ export default function LoginPage() {
         
         // Check if user is approved - redirect unapproved users to waiting-approval page
         // Regular users are auto-approved, so they won't see this page
-        if (!user.is_approved && !user.is_admin && user.user_type !== 'regular' && user.user_type !== 'regular_user') {
-          router.push('/waiting-approval');
-        } else {
-          router.push('/');
-        }
+        router.push(getPostLoginRedirect(user, redirectParam));
       } else {
         toast.error(response.message || 'Invalid OTP');
       }
@@ -367,6 +359,7 @@ export default function LoginPage() {
               <GoogleSignInButton 
                 mode="login" 
                 disabled={isLoading}
+                redirectAfterLogin={redirectParam}
               />
             </div>
           </form>

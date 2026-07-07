@@ -17,23 +17,45 @@ This folder contains the official branding assets for **AestheticRXNetwork**.
 
 The AestheticRXNetwork logo features:
 - **Dual intertwined profiles** representing connection and partnership
-- **Striking blue gradient** (#00C2FF → #1E66FF → #0837D7)
-- **Rich gold gradient** (#FFE38A → #F5C24C → #C98513)
+- **Striking blue gradient** (`#00C2FF` → `#1E66FF` → `#0837D7`)
+- **Rich gold gradient** (`#FFE38A` → `#F5C24C` → `#C98513`)
 - **Clean merged edges** for a professional aesthetic look
+
+## Wordmark (Web UI)
+
+The site uses `frontend/src/components/BrandTitle.tsx`, aligned with the `nameGrad` gradient in `logo.svg`:
+
+| Segment | Color | Hex / style |
+|---------|--------|----------------|
+| **Aesthetic** | Primary blue | `#1E6BFF` |
+| **R** | Primary blue | `#1E6BFF` |
+| **X** | Light blue (logo mid-tone) | `#35B7D6` |
+| **Ne** | Blue + gold blend | CSS gradient: blue → teal → gold |
+| **twork** | Gold | `#D59225` |
+
+Displayed as: **AestheticRX Network** (space before *Network*).
+
+### Marketing tagline (header & footer)
+
+**Professional B2B platform for clinics. Connect, order, research, and grow together.**
+
+Rendered in bold under the wordmark on large screens (`showTagline` on `BrandTitle`).
+
+### SVG subtitle (logo file only)
+
+**CONNECTED AESTHETIC CARE** — appears below the mark in `logo.svg`, not in the web header.
 
 ## Brand Colors
 
 | Color | Hex | Usage |
 |-------|-----|-------|
-| Primary Blue | `#1E66FF` | Main accent |
-| Light Blue | `#00C2FF` | Highlights |
-| Dark Blue | `#0837D7` | Deep accents |
+| Primary Blue | `#1E6BFF` | Wordmark, accents, theme |
+| Light Blue / Teal | `#35B7D6` | **X** in wordmark |
+| Dark Blue | `#0837D7` | Deep accents, buttons |
 | Gold | `#F5C24C` | Secondary accent |
-| Dark Gold | `#C98513` | Gold shadows |
+| Dark Gold | `#D59225` | **twork**, gradient end |
 
-## Tagline
-
-**"CONNECTED AESTHETIC CARE"**
+Shared constants: `frontend/src/lib/brandColors.ts`
 
 ## Usage in Website
 
@@ -45,7 +67,14 @@ The logo is deployed to:
 - `frontend/public/icon-*.png` - PWA icons
 - `frontend/public/assets/branding/` - All variants
 
+Components:
+- `BrandTitle` — wordmark + optional tagline
+- `PublicOrderCatalog` — homepage product grid
+- `ProductDetailsModal` — product gallery, reviews, cart actions
+
+Backend:
+- `backend/assets/invoice/logo.png` — copied from `frontend/public/logo.png` for **Invoices.pdf** challans
+
 ## Last Updated
 
-January 29, 2026
-
+June 1, 2026 (v3.5.6 — challan PDF + invoice email branding)

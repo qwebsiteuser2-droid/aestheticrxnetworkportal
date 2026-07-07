@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { useAuth } from '@/app/providers';
@@ -108,14 +108,32 @@ export default function MessagesPage() {
     }
   };
 
-  const filteredConversations = conversations.filter(conv => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      conv.other_party.name.toLowerCase().includes(query) ||
-      conv.other_party.clinic_name?.toLowerCase().includes(query)
-    );
-  });
+  const sortedConversations = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const filtered = conversations.filter((conv) => {
+      if (!query) return true;
+      return (
+        conv.other_party.name.toLowerCase().includes(query) ||
+        conv.other_party.clinic_name?.toLowerCase().includes(query)
+      );
+    });
+
+    const activityTime = (conv: Conversation) =>
+      new Date(conv.last_message_at || conv.last_message?.created_at || conv.created_at).getTime();
+
+    const isPriorityUnread = (conv: Conversation) => {
+      if ((conv.unread_count || 0) > 0) return true;
+      if (user?.user_type === 'doctor' && conv.status === 'pending') return true;
+      return false;
+    };
+
+    return [...filtered].sort((a, b) => {
+      const aUnread = isPriorityUnread(a);
+      const bUnread = isPriorityUnread(b);
+      if (aUnread !== bUnread) return aUnread ? -1 : 1;
+      return activityTime(b) - activityTime(a);
+    });
+  }, [conversations, searchQuery, user?.user_type]);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -149,52 +167,60 @@ export default function MessagesPage() {
         user={user}
       />
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header - Different for doctors vs users */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
+      <main className="w-full max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-6 overflow-x-hidden">
+        {/* Header — stacks on mobile */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4 sm:mb-6">
+          <div className="min-w-0">
             {user?.user_type === 'doctor' ? (
               <>
-                <h1 className="text-2xl font-bold text-gray-900">📋 Appointment Requests</h1>
-                <p className="text-gray-500 flex items-center">
-                  <span className="inline-flex items-center text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full mr-2">
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 leading-tight">
+                  📋 Appointment Requests
+                </h1>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center text-[10px] sm:text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full shrink-0">
                     🔒 Private
                   </span>
-                  Only you and each patient can see your conversations
+                  <span className="min-w-0">Only you and each patient can see your conversations</span>
                 </p>
               </>
             ) : (
               <>
-                <h1 className="text-2xl font-bold text-gray-900">📅 My Appointments</h1>
-                <p className="text-gray-500 flex items-center">
-                  <span className="inline-flex items-center text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full mr-2">
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 leading-tight">
+                  📅 My Appointments
+                </h1>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center text-[10px] sm:text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full shrink-0">
                     🔒 Private
                   </span>
-                  Only you and each doctor can see your conversations
+                  <span className="min-w-0">Only you and each doctor can see your conversations</span>
                 </p>
               </>
             )}
           </div>
           {user?.user_type !== 'doctor' && (
             <Link
-              href="/doctors"
-              className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-emerald-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-emerald-700 transition-all shadow-sm"
+              href="/doctors?focus=search"
+              className="flex w-full sm:w-auto shrink-0 items-center justify-center px-4 py-2.5 text-sm bg-gradient-to-r from-blue-600 to-emerald-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-emerald-700 transition-all shadow-sm"
             >
-              <ChatBubbleLeftRightIcon className="w-5 h-5 mr-2" />
+              <ChatBubbleLeftRightIcon className="w-5 h-5 mr-2 shrink-0" />
               Book New Appointment
             </Link>
           )}
         </div>
 
         {/* Search */}
-        <div className="relative mb-6">
-          <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <div className="relative mb-4 sm:mb-6">
+          <MagnifyingGlassIcon className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
           <input
-            type="text"
+            type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={user?.user_type === 'doctor' ? "Search requests by patient name..." : "Search by doctor name..."}
-            className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm"
+            placeholder={
+              user?.user_type === 'doctor'
+                ? 'Search requests by patient name...'
+                : 'Search by doctor name...'
+            }
+            className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm"
           />
         </div>
 
@@ -215,144 +241,155 @@ export default function MessagesPage() {
           </div>
         )}
 
-        {/* Conversations List */}
-        {!loading && filteredConversations.length > 0 && (
-          <div className="space-y-3">
-            {filteredConversations.map((conv) => (
-              <Link
-                key={conv.id}
-                href={`/messages/${conv.id}`}
-                className={`block bg-white rounded-xl p-4 border transition-all hover:shadow-md ${
-                  conv.status === 'pending' && user?.user_type === 'doctor'
-                    ? 'border-amber-300 bg-amber-50/50'
-                    : conv.unread_count > 0 
-                      ? 'border-blue-200 bg-blue-50/50' 
-                      : 'border-gray-200 hover:border-blue-200'
-                }`}
-              >
-                <div className="flex items-center space-x-4">
-                  {/* Avatar */}
-                  <div className="relative flex-shrink-0">
-                    <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-100">
-                      {getProfileImageUrl(conv.other_party.profile_photo_url) ? (
-                        <Image
-                          src={getProfileImageUrl(conv.other_party.profile_photo_url)!}
-                          alt={conv.other_party.name}
-                          width={56}
-                          height={56}
-                          className="w-full h-full object-cover"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xl font-bold bg-gradient-to-br from-blue-100 to-emerald-100">
-                          {conv.other_party.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="absolute -bottom-1 -right-1">
-                      <OnlineStatusDot
-                        isOnline={conv.other_party.is_online || false}
-                        availabilityStatus={conv.other_party.availability_status}
-                        size="md"
-                      />
-                    </div>
-                  </div>
+        {/* Conversations List — unread / new requests first, then by time */}
+        {!loading && sortedConversations.length > 0 && (
+          <div className="space-y-2 sm:space-y-3">
+            {sortedConversations.map((conv) => {
+              const hasUnread = (conv.unread_count || 0) > 0;
+              const isPendingDoctor =
+                conv.status === 'pending' && user?.user_type === 'doctor';
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <h3 className={`font-semibold truncate ${
-                          conv.unread_count > 0 ? 'text-gray-900' : 'text-gray-700'
-                        }`}>
+              return (
+                <Link
+                  key={conv.id}
+                  href={`/messages/${conv.id}`}
+                  className={`block bg-white rounded-xl p-3 sm:p-4 border transition-all hover:shadow-md overflow-hidden ${
+                    isPendingDoctor
+                      ? 'border-amber-300 bg-amber-50/50'
+                      : hasUnread
+                        ? 'border-blue-200 bg-blue-50/50'
+                        : 'border-gray-200 hover:border-blue-200'
+                  }`}
+                >
+                  <div className="flex gap-3 min-w-0">
+                    <div className="relative shrink-0">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden bg-gray-100">
+                        {getProfileImageUrl(conv.other_party.profile_photo_url) ? (
+                          <Image
+                            src={getProfileImageUrl(conv.other_party.profile_photo_url)!}
+                            alt={conv.other_party.name}
+                            width={56}
+                            height={56}
+                            className="w-full h-full object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-lg sm:text-xl font-bold bg-gradient-to-br from-blue-100 to-emerald-100">
+                            {conv.other_party.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="absolute -bottom-0.5 -right-0.5">
+                        <OnlineStatusDot
+                          isOnline={conv.other_party.is_online || false}
+                          availabilityStatus={conv.other_party.availability_status}
+                          size="sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3
+                          className={`font-semibold text-sm sm:text-base truncate min-w-0 flex-1 ${
+                            hasUnread ? 'text-gray-900' : 'text-gray-700'
+                          }`}
+                        >
                           {conv.other_party.name}
                         </h3>
-                        {/* Status Badge - Different labels for doctors vs users */}
+                        {conv.last_message_at && (
+                          <span className="text-[10px] sm:text-xs text-gray-400 shrink-0 whitespace-nowrap pt-0.5">
+                            {formatTime(conv.last_message_at)}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
                         {conv.status === 'pending' && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                            <ClockIcon className="w-3 h-3 mr-1" />
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-amber-100 text-amber-800">
+                            <ClockIcon className="w-3 h-3 mr-0.5 shrink-0" />
                             {user?.user_type === 'doctor' ? 'New Request' : 'Waiting'}
                           </span>
                         )}
                         {conv.status === 'accepted' && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <CheckCircleSolidIcon className="w-3 h-3 mr-1" />
-                            {user?.user_type === 'doctor' ? 'Accepted' : '✓ Confirmed'}
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-green-100 text-green-800">
+                            <CheckCircleSolidIcon className="w-3 h-3 mr-0.5 shrink-0" />
+                            {user?.user_type === 'doctor' ? 'Accepted' : 'Confirmed'}
+                          </span>
+                        )}
+                        {hasUnread && (
+                          <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 bg-blue-600 text-white text-[10px] font-bold rounded-full">
+                            {conv.unread_count > 9 ? '9+' : conv.unread_count}
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
-                        {conv.last_message_at && formatTime(conv.last_message_at)}
-                      </span>
-                    </div>
-                    {conv.other_party.clinic_name && (
-                      <p className="text-sm text-gray-500 truncate">{conv.other_party.clinic_name}</p>
-                    )}
-                    
-                    {/* Status hint for users - not doctors */}
-                    {user?.user_type !== 'doctor' && conv.status === 'pending' && !conv.last_message && (
-                      <p className="text-xs text-amber-600 mt-1">
-                        ⏳ Waiting for doctor to accept your request...
-                      </p>
-                    )}
-                    {user?.user_type !== 'doctor' && conv.status === 'accepted' && !conv.last_message && (
-                      <p className="text-xs text-green-600 mt-1">
-                        ✅ Doctor accepted! Check your notifications for contact info.
-                      </p>
-                    )}
-                    
-                    {conv.last_message && (
-                      <p className={`text-sm truncate mt-1 ${
-                        conv.unread_count > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'
-                      }`}>
-                        {conv.last_message.sender_id === user?.id ? 'You: ' : ''}
-                        {conv.last_message.content}
-                      </p>
-                    )}
-                  </div>
 
-                  {/* Action Buttons / Badges */}
-                  <div className="flex-shrink-0 flex items-center space-x-2">
-                    {/* Accept Button for Doctors - only show for pending requests */}
-                    {user?.user_type === 'doctor' && conv.status === 'pending' && (
-                      <button
-                        onClick={(e) => handleAccept(e, conv.id)}
-                        disabled={acceptingId === conv.id}
-                        className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                          acceptingId === conv.id
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-green-600 text-white hover:bg-green-700 shadow-sm hover:shadow'
-                        }`}
-                      >
-                        {acceptingId === conv.id ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mr-1.5" />
-                            Accepting...
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircleIcon className="w-4 h-4 mr-1.5" />
-                            Accept
-                          </>
+                      {conv.other_party.clinic_name && (
+                        <p className="text-xs sm:text-sm text-gray-500 truncate mt-0.5">
+                          {conv.other_party.clinic_name}
+                        </p>
+                      )}
+
+                      {user?.user_type !== 'doctor' &&
+                        conv.status === 'pending' &&
+                        !conv.last_message && (
+                          <p className="text-xs text-amber-600 mt-1">
+                            ⏳ Waiting for doctor to accept your request...
+                          </p>
                         )}
-                      </button>
-                    )}
-                    
-                    {/* Unread Badge */}
-                    {conv.unread_count > 0 && (
-                      <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-600 text-white text-xs font-bold rounded-full">
-                        {conv.unread_count > 9 ? '9+' : conv.unread_count}
-                      </span>
-                    )}
+                      {user?.user_type !== 'doctor' &&
+                        conv.status === 'accepted' &&
+                        !conv.last_message && (
+                          <p className="text-xs text-green-600 mt-1">
+                            ✅ Doctor accepted! Check your notifications for contact info.
+                          </p>
+                        )}
+
+                      {conv.last_message && (
+                        <p
+                          className={`text-xs sm:text-sm truncate mt-1 ${
+                            hasUnread ? 'text-gray-900 font-medium' : 'text-gray-500'
+                          }`}
+                        >
+                          {conv.last_message.sender_id === user?.id ? 'You: ' : ''}
+                          {conv.last_message.content}
+                        </p>
+                      )}
+
+                      {isPendingDoctor && (
+                        <button
+                          type="button"
+                          onClick={(e) => handleAccept(e, conv.id)}
+                          disabled={acceptingId === conv.id}
+                          className={`mt-2 w-full sm:w-auto inline-flex items-center justify-center px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                            acceptingId === conv.id
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'
+                          }`}
+                        >
+                          {acceptingId === conv.id ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mr-1.5" />
+                              Accepting...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircleIcon className="w-4 h-4 mr-1.5 shrink-0" />
+                              Accept
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
 
         {/* Empty State */}
-        {!loading && filteredConversations.length === 0 && (
+        {!loading && sortedConversations.length === 0 && (
           <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
             <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-100 to-emerald-100 rounded-full flex items-center justify-center">
               {user?.user_type === 'doctor' ? (

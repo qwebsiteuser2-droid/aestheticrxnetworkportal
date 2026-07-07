@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { ShoppingCartIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import api from '@/lib/api';
 import { useAuth } from '@/app/providers';
-import { getApiBaseUrl as getApiBaseUrlFromLib } from '@/lib/getApiUrl';
+import { getProductImageSrc } from '@/lib/productImageUrl';
 
 interface Product {
   id: string;
@@ -14,13 +14,6 @@ interface Product {
   price: string | number;
   image_url: string | null;
 }
-
-const getApiBaseUrl = () => {
-  if (typeof window !== 'undefined') {
-    return getApiBaseUrlFromLib();
-  }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-};
 
 const formatPrice = (price: string | number): string => {
   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
@@ -103,13 +96,12 @@ export default function HeroCards() {
                   ))
               : products.length > 0
                 ? products.slice(0, 4).map((product) => {
-                    const imageUrl = product.id
-                      ? `${getApiBaseUrl()}/api/product-images/${product.id}`
-                      : product.image_url
-                        ? product.image_url.startsWith('http')
-                          ? product.image_url
-                          : `${getApiBaseUrl()}${product.image_url}`
-                        : null;
+                    const imageUrl =
+                      product.image_url?.startsWith('http') || product.image_url?.startsWith('/')
+                        ? product.image_url
+                        : product.id
+                          ? getProductImageSrc(product.id, 'front')
+                          : null;
 
                     return (
                       <div

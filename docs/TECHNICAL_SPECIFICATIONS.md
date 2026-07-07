@@ -6,8 +6,8 @@
 
 | Document Information | |
 |---------------------|--|
-| **Version** | 3.5.0 |
-| **Last Updated** | January 31, 2026 |
+| **Version** | 3.5.4 |
+| **Last Updated** | June 1, 2026 |
 
 ---
 
@@ -236,16 +236,19 @@ frontend/src/app/not-found.tsx  # Custom 404 with quick links
 Heavy components loaded on-demand to reduce initial bundle:
 
 ```typescript
-// Homepage dynamic imports
+// Homepage dynamic imports (v3.5.2)
 const VideoAdvertisementModal = dynamic(
   () => import('@/components/VideoAdvertisementModal'),
   { ssr: false }
 );
 
-const HeroCards = dynamic(
-  () => import('@/components/HeroCards'),
-  { loading: () => <Skeleton /> }
+const PublicOrderCatalog = dynamic(
+  () => import('@/components/PublicOrderCatalog'),
+  { ssr: false, loading: () => <ProductGridSkeleton /> }
 );
+
+// Brand wordmark: frontend/src/components/BrandTitle.tsx
+// Colors from frontend/src/lib/brandColors.ts (aligned with logo.svg nameGrad)
 ```
 
 Impact: ~30% reduction in initial JavaScript bundle size
@@ -927,6 +930,49 @@ If email does not exist:
 - Doctors cannot set appointments with other doctors
 - Modal popup displayed when doctor attempts to set appointment
 - Feature is restricted to patient (regular user) role only
+
+---
+
+### 6.9 Doctor Profile Stats & Patient Comments (v3.5.4)
+
+### Appointment statistics
+
+Aggregated from the `conversations` table where `doctor_id` matches the profile doctor:
+
+| Metric | Definition |
+|--------|------------|
+| **received** | Count of all conversation rows (appointment requests) in the filter window |
+| **accepted** | Status `accepted` or `active` |
+| **pending** | Status `pending` |
+
+**Endpoint:** `GET /api/public/doctors/:id/appointment-stats`  
+**Filters:** `year`, `month` (`YYYY-MM`), `from`/`to`, `groupBy=month|year`
+
+### Doctor comments
+
+**Table:** `doctor_comments` (migration `1700000000029`)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | Primary key |
+| `doctor_id` | uuid | FK → `doctors.id` (CASCADE) |
+| `author_user_id` | uuid | Nullable; posting user |
+| `author_name` | varchar(255) | Display name |
+| `comment` | text | 3–2000 characters |
+| `created_at` | timestamp | Auto |
+
+**Endpoints:**
+- `GET /api/public/doctors/:id/comments` — public list (latest 100)
+- `POST /api/public/doctors/:id/comments` — authenticated `regular_user` only
+- `DELETE /api/admin/doctor-comments/:id` — admin moderation
+
+### Find Doctors search extensions
+
+`GET /api/public/doctors/search` adds optional query params:
+
+- `sort=appointments_received|appointments_accepted`
+- `min_received`, `min_accepted`
+- Response fields: `appointments_received`, `appointments_accepted` per doctor
 
 ---
 

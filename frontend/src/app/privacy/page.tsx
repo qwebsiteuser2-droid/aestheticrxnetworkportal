@@ -1,27 +1,33 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { LegalPageShell } from '@/components/layout/LegalPageShell';
+import { absoluteUrl } from '@/lib/siteUrl';
 
-// SEO Metadata - Static page, pre-rendered at build time
 export const metadata: Metadata = {
-  title: 'Privacy Policy | AestheticRxNetwork',
-  description: 'Learn how AestheticRxNetwork collects, uses, and protects your personal information. Read our comprehensive privacy policy.',
-  keywords: 'privacy policy, data protection, GDPR, personal information, AestheticRx',
+  title: 'Privacy Policy | AestheticRx Network',
+  description:
+    'Learn how AestheticRx Network collects, uses, and protects your personal information, including Google API Limited Use.',
+  keywords: 'privacy policy, data protection, GDPR, Google API, AestheticRx',
+  alternates: {
+    canonical: absoluteUrl('/privacy'),
+  },
   openGraph: {
-    title: 'Privacy Policy | AestheticRxNetwork',
-    description: 'Learn how AestheticRxNetwork protects your privacy and personal data.',
+    title: 'Privacy Policy | AestheticRx Network',
+    description: 'Learn how AestheticRx Network protects your privacy and personal data.',
     type: 'website',
+    url: absoluteUrl('/privacy'),
   },
 };
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
-        
+    <LegalPageShell title="Privacy Policy">
         <div className="prose prose-lg max-w-none">
           <p className="text-sm text-gray-600 mb-6">
-            <strong>Last Updated:</strong> December 17, 2025
+            <strong>Last Updated:</strong> June 1, 2026 ·{' '}
+            <Link href="/oauth-verification" className="text-blue-600 underline">
+              Google API disclosure
+            </Link>
           </p>
 
           <section className="mb-8">
@@ -202,8 +208,8 @@ export default function PrivacyPage() {
             </p>
           </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">14. Google API Services</h2>
+          <section className="mb-8" id="google-api-services">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">13. Google API Services</h2>
             <p className="text-gray-700 mb-4">
               AestheticRx Network's use of information received from Google APIs will adhere to the{' '}
               <a
@@ -245,7 +251,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">13. Contact Us</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">14. Contact Us</h2>
             <p className="text-gray-700 mb-4">
               If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
             </p>
@@ -259,15 +265,11 @@ export default function PrivacyPage() {
           </section>
 
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <Link 
-              href="/" 
-              className="text-blue-600 hover:text-blue-800 font-medium"
-            >
+            <Link href="/" className="text-blue-600 hover:text-blue-800 font-medium">
               ← Back to Home
             </Link>
           </div>
         </div>
-      </div>
-    </div>
+    </LegalPageShell>
   );
 }

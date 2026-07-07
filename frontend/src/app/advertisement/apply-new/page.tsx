@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/providers';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import DOMPurify from 'dompurify';
-import { ArrowLeftIcon, PhotoIcon, VideoCameraIcon, SparklesIcon, CreditCardIcon, BanknotesIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, PhotoIcon, VideoCameraIcon, SparklesIcon, BanknotesIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import AdvertisementAreaSelector from '@/components/AdvertisementAreaSelector';
 import AdvertisementPricingModal from '@/components/AdvertisementPricingModal';
 import { getAccessToken } from '@/lib/auth';
@@ -41,7 +40,7 @@ interface PricingData {
 }
 
 type AdvertisementType = 'video' | 'image' | 'animation';
-type PaymentMethod = 'payfast' | 'cash_on_delivery' | 'end_of_month';
+type PaymentMethod = 'cash_on_delivery' | 'end_of_month';
 
 export default function ApplyAdvertisementPageNew() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -64,7 +63,7 @@ export default function ApplyAdvertisementPageNew() {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   // Payment
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [paymentMethod] = useState<PaymentMethod>('cash_on_delivery');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -228,36 +227,8 @@ export default function ApplyAdvertisementPageNew() {
       console.log('✅ API Response:', result);
 
       if (result.success) {
-        if (paymentMethod === 'payfast' && result.data.payment) {
-          // PayFast payment - inject form and submit
-          if (result.data.payment.paymentForm) {
-            // Create a temporary form and submit it
-            // SECURITY: Sanitize HTML before injecting to prevent XSS attacks
-            const formDiv = document.createElement('div');
-            formDiv.innerHTML = typeof window !== 'undefined'
-              ? DOMPurify.sanitize(result.data.payment.paymentForm, {
-                  ALLOWED_TAGS: ['form', 'input', 'button'],
-                  ALLOWED_ATTR: ['name', 'value', 'type', 'action', 'method', 'id', 'class']
-                })
-              : result.data.payment.paymentForm;
-            const form = formDiv.querySelector('form') as HTMLFormElement;
-            if (form) {
-              document.body.appendChild(form);
-              form.submit();
-            } else {
-              toast.error('Payment form not available. Please contact support.');
-            }
-          } else if (result.data.payment_url) {
-            window.location.href = result.data.payment_url;
-          } else {
-            toast.success('Advertisement created successfully! Redirecting to payment...');
-            // Fallback: redirect to payment page
-            router.push(`/payment?adId=${result.data.id}`);
-          }
-        } else {
-          toast.success('Advertisement application submitted successfully! We will review and contact you for payment.');
-          router.push('/');
-        }
+        toast.success('Advertisement application submitted successfully! We will review and contact you for payment.');
+        router.push('/');
       } else {
         // Check if it's a time slot conflict error
         if (result.details && result.details.conflicts) {
@@ -581,55 +552,16 @@ export default function ApplyAdvertisementPageNew() {
         {/* Step 3: Payment */}
         {currentStep === 'payment' && pricingData && file && (
           <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 border border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Select Payment Method</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Review & Submit</h2>
 
-            {/* Payment Options */}
-            <div className="space-y-4 mb-6">
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('payfast')}
-                className={`w-full p-6 border-2 rounded-lg text-left transition-all ${
-                  paymentMethod === 'payfast'
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center">
-                  <CreditCardIcon className="w-8 h-8 text-gray-600 mr-4" />
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">PayFast Online Payment</div>
-                    <div className="text-sm text-gray-600 mt-1">Pay securely online with credit/debit card</div>
-                  </div>
-                  {paymentMethod === 'payfast' && (
-                    <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white"></div>
-                    </div>
-                  )}
+            <div className="mb-6 p-4 border-2 border-blue-600 bg-blue-50 rounded-lg">
+              <div className="flex items-center">
+                <BanknotesIcon className="w-8 h-8 text-gray-600 mr-4 flex-shrink-0" />
+                <div>
+                  <div className="font-semibold text-gray-900">Cash on Delivery / End of Month</div>
+                  <div className="text-sm text-gray-600 mt-1">Pay when your advertisement starts or at end of month</div>
                 </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('cash_on_delivery')}
-                className={`w-full p-6 border-2 rounded-lg text-left transition-all ${
-                  paymentMethod === 'cash_on_delivery'
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center">
-                  <BanknotesIcon className="w-8 h-8 text-gray-600 mr-4" />
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Cash on Delivery / End of Month</div>
-                    <div className="text-sm text-gray-600 mt-1">Pay when advertisement starts or at end of month</div>
-                  </div>
-                  {paymentMethod === 'cash_on_delivery' && (
-                    <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white"></div>
-                    </div>
-                  )}
-                </div>
-              </button>
+              </div>
             </div>
 
             {/* Final Summary */}
@@ -671,20 +603,16 @@ export default function ApplyAdvertisementPageNew() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  if (!paymentMethod) {
-                    toast.error('Please select a payment method');
-                    return;
-                  }
                   if (!file || !title) {
                     toast.error('Please complete all required fields');
                     return;
                   }
                   handleSubmit();
                 }}
-                disabled={!paymentMethod || submitting || !file || !title}
+                disabled={submitting || !file || !title}
                 className="flex-1 py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submitting ? 'Submitting...' : paymentMethod === 'payfast' ? 'Proceed to Payment' : 'Submit Application'}
+                {submitting ? 'Submitting...' : 'Submit Application'}
               </button>
             </div>
           </div>

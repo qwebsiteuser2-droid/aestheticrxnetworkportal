@@ -6,8 +6,8 @@
 
 | Document Information | |
 |---------------------|--|
-| **Version** | 3.2.0 |
-| **Last Updated** | January 27, 2026 |
+| **Version** | 3.5.4 |
+| **Last Updated** | June 1, 2026 |
 
 ---
 
@@ -84,6 +84,12 @@ AestheticRxNetwork is a full-stack B2B medical platform built with modern web te
 | Railway | Backend hosting & PostgreSQL |
 | GitHub Actions | CI/CD pipelines |
 
+### Homepage & ordering UI (v3.5.2)
+
+- **Home (`app/page.tsx`)**: Top Clinics sidebar (left) + `PublicOrderCatalog` (public browse)
+- **Order (`app/order/page.tsx`)**: Full catalog, cart modal; **Buy Now** opens cart
+- **Branding**: `BrandTitle` in header/footer — see `branding-assets/README.md`
+
 ---
 
 ## Component Architecture
@@ -98,11 +104,15 @@ frontend/
 │   ├── user/              # User pages
 │   └── api/               # API routes (proxies)
 ├── components/            # React components
-│   ├── layout/           # Layout components
-│   ├── modals/           # Modal components
-│   └── ui/               # UI components
-├── lib/                   # Utilities
+│   ├── layout/           # Header, Footer, MainLayout
+│   ├── modals/           # UserMessageModal, etc.
+│   ├── BrandTitle.tsx    # Wordmark + tagline (v3.5.2)
+│   ├── PublicOrderCatalog.tsx  # Homepage product grid
+│   ├── ProductDetailsModal.tsx # Gallery, reviews, cart actions
+│   └── ui/               # UI primitives
+├── lib/
 │   ├── api.ts            # API client
+│   ├── brandColors.ts    # Logo-aligned palette
 │   └── utils.ts          # Helper functions
 └── types/                 # TypeScript types
 ```
@@ -165,6 +175,7 @@ advertisements
 | Badges | Admin-assigned achievement badges |
 | Teams | Team formation for leaderboard |
 | Conversations | Doctor-patient appointment requests |
+| Doctor Comments | Patient-written comments on doctor public profiles |
 | Notifications | Real-time user notifications (appointments, messages) |
 
 ### Database Patterns
@@ -194,8 +205,9 @@ advertisements
 ├── /payfast       # Payment processing
 ├── /conversations # Doctor-patient appointments
 ├── /notifications # User notifications
-├── /doctors       # Doctor profiles & online status
-└── /admin         # Admin operations
+├── /public        # Public data (doctors search, stats, comments, leaderboard)
+├── /user-stats    # Doctor profile pages (leaderboard, medals, certificates)
+└── /admin         # Admin operations (includes doctor-comments moderation)
 ```
 
 ### Authentication Flow
@@ -295,12 +307,22 @@ Admin notification → Payment processing
 
 ### Payment Processing
 
+**Checkout (portal UI, v3.5.6+):**
+
 ```
-User selects PayFast → Payment form generated → 
-Redirect to PayFast → User completes payment → 
-PayFast ITN callback → Order status updated → 
-Tier recalculation → Success notification
+User confirms order → Cash on Delivery → 
+Orders created → Batch admin notification → 
+Invoice PDF emailed (COD) → Tier recalculation when applicable
 ```
+
+**PayFast (backend only — UI disabled):**
+
+```
+API initialize → Payment form (not shown in portal UI) → 
+Redirect to PayFast → ITN callback → Order status updated
+```
+
+See [PAYFAST_SETUP_GUIDE.md](PAYFAST_SETUP_GUIDE.md) and [INVOICE_GENERATOR.md](INVOICE_GENERATOR.md).
 
 ### Tier Progression
 

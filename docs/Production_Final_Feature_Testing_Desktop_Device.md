@@ -6,8 +6,8 @@
 
 | Document Information | |
 |---------------------|--|
-| **Version** | 3.4.0 |
-| **Last Updated** | January 31, 2026 |
+| **Version** | 3.5.4 |
+| **Last Updated** | June 1, 2026 |
 | **Environment** | Production |
 | **Device Type** | Desktop |
 | **Testing Status** | ✅ **PASSED - ALL SYSTEMS OPERATIONAL** |
@@ -326,7 +326,7 @@ All production features have been tested and verified on desktop devices. The pl
 | Doctor card display | ✅ Passed | Shows name, clinic, tier |
 | Doctor online status | ✅ Passed | 🟢 Online, 🟡 Away, ⚫ Offline |
 | Location-based filtering | ✅ Passed | "Use My Location" working |
-| Doctor profile navigation | ✅ Passed | Links to `/doctors/[id]` |
+| Doctor profile navigation | ✅ Passed | Links to `/user/[id]` (v3.5.4) |
 
 ### 11.2 Appointment Requests
 | Feature | Status | Notes |
@@ -345,6 +345,18 @@ All production features have been tested and verified on desktop devices. The pl
 | Appointment acceptance | ✅ Passed | Doctors can accept |
 | Email notifications | ✅ Passed | Sent on accept/request |
 | Contact info sharing | ✅ Passed | Shared upon acceptance |
+
+### 11.4 Doctor Profile Stats & Comments (v3.5.4)
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Appointments tab on `/user/[id]` | ⏳ Verify | Received / accepted / pending summary |
+| Year / month / date-range filters | ⏳ Verify | Stats API `appointment-stats` |
+| Patient Comments tab | ⏳ Verify | List + post (patient) |
+| Admin comment removal | ⏳ Verify | `DELETE /api/admin/doctor-comments/:id` |
+| Find Doctors sort by appointments | ⏳ Verify | `sort=appointments_received\|accepted` |
+| Find Doctors min received/accepted | ⏳ Verify | Filters in expanded panel |
+| Doctor card appointment counts | ⏳ Verify | `X requests · Y accepted` |
 
 ---
 

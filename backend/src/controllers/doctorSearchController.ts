@@ -2,6 +2,78 @@ import { Request, Response } from 'express';
 import { AppDataSource } from '../db/data-source';
 import { Doctor, UserType } from '../models/Doctor';
 
+const ACCEPTED_APPOINTMENT_STATUSES = ['accepted', 'active'];
+
+async function fetchAppointmentCountsByDoctorIds(
+  doctorIds: string[]
+): Promise<Map<string, { received: number; accepted: number }>> {
+  if (doctorIds.length === 0) return new Map();
+
+  const rows = await AppDataSource.query(
+    `
+    SELECT doctor_id,
+      COUNT(*)::int AS received,
+      COUNT(*) FILTER (WHERE status = ANY($2))::int AS accepted
+    FROM conversations
+    WHERE doctor_id = ANY($1::uuid[])
+    GROUP BY doctor_id
+    `,
+    [doctorIds, ACCEPTED_APPOINTMENT_STATUSES]
+  );
+
+  return new Map(
+    rows.map((row: { doctor_id: string; received: number; accepted: number }) => [
+      row.doctor_id,
+      { received: Number(row.received) || 0, accepted: Number(row.accepted) || 0 },
+    ])
+  );
+}
+
+function mapDoctorSearchResult(
+  doctor: Doctor,
+  counts: { received: number; accepted: number },
+  userLat?: number,
+  userLng?: number
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {
+    id: doctor.id,
+    doctor_name: doctor.doctor_name,
+    clinic_name: doctor.clinic_name,
+    profile_photo_url: doctor.profile_photo_url,
+    bio: doctor.bio,
+    tags: doctor.tags || [],
+    specialties: (doctor as { specialties?: string[] }).specialties || [],
+    google_location: doctor.google_location,
+    is_online: (doctor as { is_online?: boolean }).is_online ?? false,
+    availability_status: (doctor as { availability_status?: string }).availability_status || 'available',
+    last_active_at: (doctor as { last_active_at?: Date }).last_active_at,
+    appointments_received: counts.received,
+    appointments_accepted: counts.accepted,
+  };
+
+  const hasLocation =
+    userLat !== undefined &&
+    userLng !== undefined &&
+    !isNaN(userLat) &&
+    !isNaN(userLng) &&
+    doctor.google_location?.lat &&
+    doctor.google_location?.lng;
+
+  if (hasLocation) {
+    result.distance_km =
+      Math.round(
+        calculateDistance(
+          userLat,
+          userLng,
+          doctor.google_location!.lat,
+          doctor.google_location!.lng
+        ) * 10
+      ) / 10;
+  }
+
+  return result;
+}
+
 /**
  * Calculate distance between two coordinates using Haversine formula
  * @returns Distance in kilometers
@@ -148,16 +220,155 @@ export const getNearbyDoctors = async (req: Request, res: Response): Promise<voi
  */
 export const searchDoctors = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { q, lat, lng, page = 1, limit = 20 } = req.query;
+    const { q, lat, lng, page = 1, limit = 20, sort, available_only, min_received, min_accepted } =
+      req.query;
 
-    const searchQuery = (q as string || '').trim().toLowerCase();
+    const searchQuery = ((q as string) || '').trim().toLowerCase();
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
     const offset = (pageNum - 1) * limitNum;
+    const sortBy = typeof sort === 'string' ? sort : 'default';
+    const minReceived = Math.max(0, parseInt(String(min_received || 0), 10) || 0);
+    const minAccepted = Math.max(0, parseInt(String(min_accepted || 0), 10) || 0);
+    const onlineOnly = available_only === 'true' || available_only === '1';
+
+    const userLat = parseFloat(lat as string);
+    const userLng = parseFloat(lng as string);
+    const hasLocation = !isNaN(userLat) && !isNaN(userLng);
 
     const doctorRepository = AppDataSource.getRepository(Doctor);
+    const useAppointmentSort =
+      sortBy === 'appointments_received' || sortBy === 'appointments_accepted';
+    const useAppointmentFilter = minReceived > 0 || minAccepted > 0;
 
-    // Exclude admin accounts from doctor listing
+    if (useAppointmentSort || useAppointmentFilter) {
+      const params: unknown[] = [ACCEPTED_APPOINTMENT_STATUSES];
+      let paramIndex = 2;
+
+      let baseWhere = `
+        d.user_type = 'doctor'
+        AND d.is_approved = true
+        AND d.is_deactivated = false
+        AND d.is_admin = false
+      `;
+
+      if (onlineOnly) {
+        baseWhere += ` AND d.is_online = true AND d.availability_status = 'available'`;
+      }
+
+      if (searchQuery) {
+        baseWhere += ` AND (
+          LOWER(d.doctor_name) LIKE $${paramIndex}
+          OR LOWER(d.clinic_name) LIKE $${paramIndex}
+          OR $${paramIndex + 1} = ANY(d.tags)
+        )`;
+        params.push(`%${searchQuery}%`, searchQuery);
+        paramIndex += 2;
+      }
+
+      let havingClause = '';
+      if (minReceived > 0) {
+        havingClause += ` HAVING COUNT(c.id) >= $${paramIndex}`;
+        params.push(minReceived);
+        paramIndex++;
+      }
+      if (minAccepted > 0) {
+        havingClause += havingClause
+          ? ` AND COUNT(c.id) FILTER (WHERE c.status = ANY($1)) >= $${paramIndex}`
+          : ` HAVING COUNT(c.id) FILTER (WHERE c.status = ANY($1)) >= $${paramIndex}`;
+        params.push(minAccepted);
+        paramIndex++;
+      }
+
+      const orderColumn =
+        sortBy === 'appointments_accepted' ? 'appointments_accepted' : 'appointments_received';
+
+      const groupedSql = `
+        SELECT d.id,
+          COUNT(c.id)::int AS appointments_received,
+          COUNT(c.id) FILTER (WHERE c.status = ANY($1))::int AS appointments_accepted
+        FROM doctors d
+        LEFT JOIN conversations c ON c.doctor_id = d.id
+        WHERE ${baseWhere}
+        GROUP BY d.id
+        ${havingClause}
+      `;
+
+      const countRows = await AppDataSource.query(
+        `SELECT COUNT(*)::int AS total FROM (${groupedSql}) ranked`,
+        params
+      );
+      const total = Number(countRows[0]?.total) || 0;
+
+      const limitParam = paramIndex;
+      const offsetParam = paramIndex + 1;
+      params.push(limitNum, offset);
+
+      const idRows = await AppDataSource.query(
+        `
+        SELECT * FROM (${groupedSql}) ranked
+        ORDER BY ${orderColumn} DESC, id ASC
+        LIMIT $${limitParam} OFFSET $${offsetParam}
+        `,
+        params
+      );
+
+      const ids = idRows.map((row: { id: string }) => row.id);
+      const doctors =
+        ids.length > 0
+          ? await doctorRepository
+              .createQueryBuilder('doctor')
+              .whereInIds(ids)
+              .getMany()
+          : [];
+
+      const doctorById = new Map(doctors.map((d) => [d.id, d]));
+      const countsFromQuery = new Map(
+        idRows.map((row: { id: string; appointments_received: number; appointments_accepted: number }) => [
+          row.id,
+          {
+            received: Number(row.appointments_received) || 0,
+            accepted: Number(row.appointments_accepted) || 0,
+          },
+        ])
+      );
+
+      let doctorsWithMeta = ids
+        .map((id: string) => {
+          const doctor = doctorById.get(id);
+          if (!doctor) return null;
+          const counts = countsFromQuery.get(id) || { received: 0, accepted: 0 };
+          return mapDoctorSearchResult(
+            doctor,
+            counts,
+            hasLocation ? userLat : undefined,
+            hasLocation ? userLng : undefined
+          );
+        })
+        .filter(Boolean) as Record<string, unknown>[];
+
+      if (hasLocation && sortBy === 'default') {
+        doctorsWithMeta.sort(
+          (a, b) => ((a.distance_km as number) || 999) - ((b.distance_km as number) || 999)
+        );
+      }
+
+      res.json({
+        success: true,
+        data: {
+          doctors: doctorsWithMeta,
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            total_pages: Math.ceil(total / limitNum) || 0,
+          },
+        },
+      });
+      return;
+    }
+
+    // Default listing
     let query = doctorRepository
       .createQueryBuilder('doctor')
       .select([
@@ -179,7 +390,12 @@ export const searchDoctors = async (req: Request, res: Response): Promise<void> 
       .andWhere('doctor.is_deactivated = false')
       .andWhere('doctor.is_admin = false');
 
-    // Search by name, clinic, or tags
+    if (onlineOnly) {
+      query = query
+        .andWhere('doctor.is_online = true')
+        .andWhere("doctor.availability_status = 'available'");
+    }
+
     if (searchQuery) {
       query = query.andWhere(
         '(LOWER(doctor.doctor_name) LIKE :search OR LOWER(doctor.clinic_name) LIKE :search OR :searchExact = ANY(doctor.tags))',
@@ -187,53 +403,29 @@ export const searchDoctors = async (req: Request, res: Response): Promise<void> 
       );
     }
 
-    // Get total count
     const total = await query.getCount();
+    const doctors = await query.skip(offset).take(limitNum).getMany();
+    const countsMap = await fetchAppointmentCountsByDoctorIds(doctors.map((d) => d.id));
 
-    // Get paginated results
-    const doctors = await query
-      .skip(offset)
-      .take(limitNum)
-      .getMany();
+    let doctorsWithMeta = doctors.map((doctor) =>
+      mapDoctorSearchResult(
+        doctor,
+        countsMap.get(doctor.id) || { received: 0, accepted: 0 },
+        hasLocation ? userLat : undefined,
+        hasLocation ? userLng : undefined
+      )
+    );
 
-    // Calculate distances if coordinates provided
-    const userLat = parseFloat(lat as string);
-    const userLng = parseFloat(lng as string);
-    const hasLocation = !isNaN(userLat) && !isNaN(userLng);
-
-    const doctorsWithDistance = doctors.map((doctor) => {
-      const result: any = {
-        id: doctor.id,
-        doctor_name: doctor.doctor_name,
-        clinic_name: doctor.clinic_name,
-        profile_photo_url: doctor.profile_photo_url,
-        bio: doctor.bio,
-        tags: doctor.tags || [],
-        specialties: (doctor as any).specialties || [],
-        google_location: doctor.google_location,
-        is_online: (doctor as any).is_online ?? false,
-        availability_status: (doctor as any).availability_status || 'available',
-        last_active_at: (doctor as any).last_active_at,
-      };
-
-      if (hasLocation && doctor.google_location?.lat && doctor.google_location?.lng) {
-        result.distance_km = Math.round(
-          calculateDistance(userLat, userLng, doctor.google_location.lat, doctor.google_location.lng) * 10
-        ) / 10;
-      }
-
-      return result;
-    });
-
-    // Sort by distance if location provided
     if (hasLocation) {
-      doctorsWithDistance.sort((a, b) => (a.distance_km || 999) - (b.distance_km || 999));
+      doctorsWithMeta.sort(
+        (a, b) => ((a.distance_km as number) || 999) - ((b.distance_km as number) || 999)
+      );
     }
 
     res.json({
       success: true,
       data: {
-        doctors: doctorsWithDistance,
+        doctors: doctorsWithMeta,
         pagination: {
           page: pageNum,
           limit: limitNum,
@@ -291,6 +483,9 @@ export const getDoctorProfile = async (req: Request, res: Response): Promise<voi
       return;
     }
 
+    const countsMap = await fetchAppointmentCountsByDoctorIds([doctor.id]);
+    const counts = countsMap.get(doctor.id) || { received: 0, accepted: 0 };
+
     res.json({
       success: true,
       data: {
@@ -307,6 +502,8 @@ export const getDoctorProfile = async (req: Request, res: Response): Promise<voi
         last_active_at: doctor.last_active_at || null,
         tier: doctor.tier,
         created_at: doctor.created_at,
+        appointments_received: counts.received,
+        appointments_accepted: counts.accepted,
       },
     });
   } catch (error) {

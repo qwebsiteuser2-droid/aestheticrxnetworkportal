@@ -2,7 +2,7 @@
 
 import { Product } from '@/types';
 import { formatCurrency } from '@/lib/auth';
-import { getApiBaseUrl } from '@/lib/apiConfig';
+import { getProductImageSrc } from '@/lib/productImageUrl';
 
 interface ProductGridProps {
   products: Product[];
@@ -12,7 +12,7 @@ interface ProductGridProps {
 // Helper function to get product image URL - uses database-backed endpoint
 const getProductImageUrl = (product: Product): string | null => {
   if (!product.id) return null;
-  return `${getApiBaseUrl()}/api/product-images/${product.id}`;
+  return getProductImageSrc(product.id, 'front');
 };
 
 export function ProductGrid({ products, onProductClick }: ProductGridProps) {

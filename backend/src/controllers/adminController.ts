@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, Express } from 'express';
 import { AppDataSource } from '../db/data-source';
 import { IsNull } from 'typeorm';
 import { ResearchReport } from '../models/ResearchReport';
@@ -21,6 +21,98 @@ import gmailService from '../services/gmailService';
 import fs from 'fs';
 import path from 'path';
 import { PRODUCTS_PICS_DIR } from '../config/uploadConfig';
+import { parseProductImageUploads, applyGalleryToProduct, ProductGalleryData } from '../utils/productImageStorage';
+import { productGalleryColumnsExist } from '../utils/productGalleryColumns';
+
+type ProductGalleryFlags = {
+  main: boolean;
+  front: boolean;
+  back: boolean;
+  side: boolean;
+};
+
+async function fetchProductGalleryFlags(
+  productIds: string[]
+): Promise<Record<string, ProductGalleryFlags>> {
+  const flags: Record<string, ProductGalleryFlags> = {};
+  if (productIds.length === 0) return flags;
+
+  const hasGallery = await productGalleryColumnsExist();
+
+  try {
+    if (hasGallery) {
+      const rows = await AppDataSource.query(
+        `
+        SELECT id,
+          (image_data IS NOT NULL AND length(image_data) > 32) AS has_main,
+          (image_front_data IS NOT NULL AND length(image_front_data) > 32) AS has_front,
+          (image_back_data IS NOT NULL AND length(image_back_data) > 32) AS has_back,
+          (image_side_data IS NOT NULL AND length(image_side_data) > 32) AS has_side
+        FROM products
+        WHERE id = ANY($1::uuid[])
+        `,
+        [productIds]
+      );
+      for (const row of rows) {
+        flags[row.id] = {
+          main: Boolean(row.has_main),
+          front: Boolean(row.has_front),
+          back: Boolean(row.has_back),
+          side: Boolean(row.has_side),
+        };
+      }
+    } else {
+      const rows = await AppDataSource.query(
+        `
+        SELECT id,
+          (
+            (image_data IS NOT NULL AND length(image_data) > 32)
+            OR (image_url IS NOT NULL AND image_url <> '')
+          ) AS has_main
+        FROM products
+        WHERE id = ANY($1::uuid[])
+        `,
+        [productIds]
+      );
+      for (const row of rows) {
+        flags[row.id] = {
+          main: Boolean(row.has_main),
+          front: false,
+          back: false,
+          side: false,
+        };
+      }
+    }
+  } catch (error) {
+    console.error('fetchProductGalleryFlags error:', error);
+  }
+
+  return flags;
+}
+
+function stripGalleryFieldsIfNeeded(
+  data: Record<string, unknown>,
+  hasGallery: boolean
+): void {
+  if (hasGallery) return;
+  delete data.image_front_data;
+  delete data.image_back_data;
+  delete data.image_side_data;
+}
+
+function countGalleryImagesStored(gallery: ProductGalleryData): number {
+  return [
+    gallery.image_data,
+    gallery.image_front_data,
+    gallery.image_back_data,
+    gallery.image_side_data,
+  ].filter(Boolean).length;
+}
+
+function countUploadedFiles(files: Record<string, Express.Multer.File[]> | undefined): number {
+  if (!files) return 0;
+  return Object.values(files).reduce((sum, arr) => sum + (arr?.length || 0), 0);
+}
 
 /**
  * Get all research reports (admin only)
@@ -857,14 +949,39 @@ export const updateUserProfile = async (req: AuthenticatedRequest, res: Response
 export const getProducts = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const productRepository = AppDataSource.getRepository(Product);
-    
+
     const products = await productRepository.find({
-      order: { created_at: 'DESC' }
+      select: [
+        'id',
+        'slot_index',
+        'image_url',
+        'name',
+        'description',
+        'price',
+        'is_visible',
+        'category',
+        'unit',
+        'stock_quantity',
+        'is_featured',
+        'created_at',
+        'updated_at',
+      ],
+      order: { created_at: 'DESC' },
     });
+
+    const galleryFlags = await fetchProductGalleryFlags(products.map((p) => p.id));
 
     res.json({
       success: true,
-      data: products.map(product => product.toJSON())
+      data: products.map((product) => ({
+        ...product.toJSON(),
+        gallery: galleryFlags[product.id] || {
+          main: false,
+          front: false,
+          back: false,
+          side: false,
+        },
+      })),
     });
   } catch (error: unknown) {
     console.error('Get products error:', error);
@@ -901,41 +1018,31 @@ export const createProduct = async (req: AuthenticatedRequest, res: Response): P
       is_visible 
     } = req.body;
 
-    // Handle uploaded image - store in /products_pics/ AND database for persistence
-    let image_url: string | null = null;
-    let image_data: string | null = null;
-    
-    if (req.file) {
-      console.log('📤 File uploaded:', req.file.filename, 'Size:', req.file.size, 'bytes');
-      image_url = `/products_pics/${req.file.filename}`;
-      
-      // Store image data in database as base64 for persistence on Railway
-      try {
-        // Multer saves to req.file.path (full path) or we can construct it
-        const filePath = req.file.path || path.join(PRODUCTS_PICS_DIR, req.file.filename);
-        console.log('📂 Reading file from:', filePath);
-        
-        if (!fs.existsSync(filePath)) {
-          console.warn('⚠️ File not found at path, trying alternative:', filePath);
-          // Try alternative path
-          const altPath = path.join(PRODUCTS_PICS_DIR, req.file.filename);
-          if (fs.existsSync(altPath)) {
-            const fileBuffer = fs.readFileSync(altPath);
-            image_data = `data:${req.file.mimetype};base64,${fileBuffer.toString('base64')}`;
-            console.log('✅ Image data stored in database (base64), size:', image_data.length, 'chars');
-          } else {
-            throw new Error(`File not found at ${filePath} or ${altPath}`);
-          }
-        } else {
-          const fileBuffer = fs.readFileSync(filePath);
-          image_data = `data:${req.file.mimetype};base64,${fileBuffer.toString('base64')}`;
-          console.log('✅ Image data stored in database (base64), size:', image_data.length, 'chars');
-        }
-      } catch (error) {
-        console.error('❌ Error reading file for database storage:', error);
-        console.error('File path attempted:', req.file.path, 'Filename:', req.file.filename);
-        // Don't fail the request, just log the error - image_url will still work
-      }
+    const files = req.files as Record<string, Express.Multer.File[]> | undefined;
+    const galleryUploads = parseProductImageUploads(files);
+    const hasGallery = await productGalleryColumnsExist();
+
+    const filesUploaded = countUploadedFiles(files);
+    const imagesStored = countGalleryImagesStored(galleryUploads);
+    if (filesUploaded > 0 && imagesStored === 0) {
+      res.status(400).json({
+        success: false,
+        message:
+          'Image upload could not be saved. Use JPG/PNG/WebP under 5MB and try again.',
+      });
+      return;
+    }
+
+    if (
+      !hasGallery &&
+      (files?.image_front?.length || files?.image_back?.length || files?.image_side?.length)
+    ) {
+      res.status(503).json({
+        success: false,
+        message:
+          'Front/back/side images need a database update. Restart the backend (migrations run on startup) and try again.',
+      });
+      return;
     }
 
     // Validate required fields
@@ -971,7 +1078,7 @@ export const createProduct = async (req: AuthenticatedRequest, res: Response): P
       return;
     }
 
-    const productData: any = {
+    const productData: Record<string, unknown> = {
       name,
       description: description || '',
       price: price ? parseFloat(price) : null,
@@ -980,23 +1087,38 @@ export const createProduct = async (req: AuthenticatedRequest, res: Response): P
       stock_quantity: stock_quantity ? parseInt(stock_quantity) : 0,
       is_featured: is_featured === true || is_featured === 'true',
       is_visible: is_visible !== false && is_visible !== 'false',
-      image_url: image_url || null,
-      image_data: image_data || null
+      image_url: galleryUploads.image_url || null,
+      image_data: galleryUploads.image_data || null,
+      image_front_data: galleryUploads.image_front_data || null,
+      image_back_data: galleryUploads.image_back_data || null,
+      image_side_data: galleryUploads.image_side_data || null,
     };
-    
-    // Add slot_index if it exists (for legacy support)
+
+    stripGalleryFieldsIfNeeded(productData, hasGallery);
+
     if (slot_index) {
-      (productData as any).slot_index = parseInt(slot_index);
+      productData.slot_index = parseInt(slot_index, 10);
     }
 
     const product = productRepository.create(productData);
     const savedProduct = await productRepository.save(product);
 
     const productResponse = Array.isArray(savedProduct) ? savedProduct[0] : savedProduct;
+    const savedId = productResponse?.id;
+    const gallery =
+      savedId != null
+        ? (await fetchProductGalleryFlags([savedId]))[savedId]
+        : { main: false, front: false, back: false, side: false };
+
     res.status(201).json({
       success: true,
       message: 'Product created successfully',
-      data: productResponse ? (productResponse.toJSON ? productResponse.toJSON() : productResponse) : null
+      data: productResponse
+        ? {
+            ...(productResponse.toJSON ? productResponse.toJSON() : productResponse),
+            gallery,
+          }
+        : null,
     });
   } catch (error: unknown) {
     console.error('Create product error:', error);
@@ -1043,46 +1165,38 @@ export const updateProduct = async (req: AuthenticatedRequest, res: Response): P
       is_visible 
     } = req.body;
 
-    // Handle uploaded image
-    // Product images are now stored in /products_pics/ instead of /uploads/
-    // This ensures they persist like other product images
+    const files = req.files as Record<string, Express.Multer.File[]> | undefined;
+    const galleryUploads = parseProductImageUploads(files);
+    const hasGallery = await productGalleryColumnsExist();
+
+    const filesUploaded = countUploadedFiles(files);
+    const imagesStored = countGalleryImagesStored(galleryUploads);
+    if (filesUploaded > 0 && imagesStored === 0) {
+      res.status(400).json({
+        success: false,
+        message:
+          'Image upload could not be saved. Use JPG/PNG/WebP under 5MB and try again.',
+      });
+      return;
+    }
+
+    if (
+      !hasGallery &&
+      (files?.image_front?.length || files?.image_back?.length || files?.image_side?.length)
+    ) {
+      res.status(503).json({
+        success: false,
+        message:
+          'Front/back/side images need a database update. Restart the backend (migrations run on startup) and try again.',
+      });
+      return;
+    }
+
     let image_url: string | undefined = undefined;
-    let image_data: string | null = null;
-    
-    if (req.file) {
-      console.log('📤 File uploaded:', req.file.filename, 'Size:', req.file.size, 'bytes');
-      
-      // Store image data in database as base64 for persistence
-      try {
-        // Multer saves to req.file.path (full path) or we can construct it
-        const filePath = req.file.path || path.join(PRODUCTS_PICS_DIR, req.file.filename);
-        console.log('📂 Reading file from:', filePath);
-        
-        if (!fs.existsSync(filePath)) {
-          console.warn('⚠️ File not found at path, trying alternative:', filePath);
-          // Try alternative path
-          const altPath = path.join(PRODUCTS_PICS_DIR, req.file.filename);
-          if (fs.existsSync(altPath)) {
-            const fileBuffer = fs.readFileSync(altPath);
-            image_data = `data:${req.file.mimetype};base64,${fileBuffer.toString('base64')}`;
-            console.log('✅ Image data stored in database (base64), size:', image_data.length, 'chars');
-          } else {
-            throw new Error(`File not found at ${filePath} or ${altPath}`);
-          }
-        } else {
-          const fileBuffer = fs.readFileSync(filePath);
-          image_data = `data:${req.file.mimetype};base64,${fileBuffer.toString('base64')}`;
-          console.log('✅ Image data stored in database (base64), size:', image_data.length, 'chars');
-        }
-      } catch (error) {
-        console.error('❌ Error reading file for database storage:', error);
-        console.error('File path attempted:', req.file.path, 'Filename:', req.file.filename);
-        // Don't fail the request, just log the error - image_url will still work
-      }
-      
-      // Also store file path for backward compatibility
-      image_url = `/products_pics/${req.file.filename}`;
-      console.log('✅ Image URL set to:', image_url);
+
+    if (galleryUploads.image_url) {
+      image_url = galleryUploads.image_url;
+      console.log('✅ Product image URL set to:', image_url);
     } else if (req.body.image_url !== undefined) {
       console.log('📤 Image URL from body:', req.body.image_url);
       // If image_url is provided in body, use it (could be full URL or relative path)
@@ -1149,25 +1263,39 @@ export const updateProduct = async (req: AuthenticatedRequest, res: Response): P
     if (is_featured !== undefined) product.is_featured = is_featured === true || is_featured === 'true';
     if (is_visible !== undefined) product.is_visible = is_visible !== false && is_visible !== 'false';
     if (image_url !== undefined) {
-      // Only update image_url if a new file was uploaded
-      // If image_url is explicitly set to null/empty, allow that too
       product.image_url = image_url || null;
     }
-    
-    // Update image_data if new image was uploaded
-    if (image_data !== null) {
-      product.image_data = image_data;
-      console.log('💾 Image data updated in database, size:', image_data.length, 'chars');
+
+    if (hasGallery) {
+      applyGalleryToProduct(product, galleryUploads);
+    } else {
+      applyGalleryToProduct(product, {
+        image_data: galleryUploads.image_data,
+        image_url: galleryUploads.image_url,
+        image_front_data: null,
+        image_back_data: null,
+        image_side_data: null,
+      });
     }
 
     console.log('💾 Saving product with image_url:', product.image_url);
     const savedProduct = await productRepository.save(product);
     console.log('✅ Product saved successfully:', savedProduct.id);
 
+    const gallery = (await fetchProductGalleryFlags([savedProduct.id]))[savedProduct.id] || {
+      main: false,
+      front: false,
+      back: false,
+      side: false,
+    };
+
     res.json({
       success: true,
       message: 'Product updated successfully',
-      data: savedProduct.toJSON()
+      data: {
+        ...savedProduct.toJSON(),
+        gallery,
+      },
     });
   } catch (error: unknown) {
     console.error('❌ Update product error:', error);
@@ -1188,12 +1316,7 @@ export const updateProduct = async (req: AuthenticatedRequest, res: Response): P
     // Log request details for debugging
     console.error('❌ Request details:', {
       productId: req.params.id,
-      hasFile: !!req.file,
-      fileInfo: req.file ? {
-        filename: req.file.filename,
-        size: req.file.size,
-        mimetype: req.file.mimetype
-      } : null,
+      uploadedFields: req.files ? Object.keys(req.files as object) : [],
       bodyFields: Object.keys(req.body),
       imageUrl: req.body.image_url
     });

@@ -10,8 +10,9 @@ import { useAuth } from '@/app/providers';
 import { ordersApi } from '@/lib/api';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '@/lib/auth';
-import { getApiUrl } from '@/lib/getApiUrl';
+import { getProductImageSrc } from '@/lib/productImageUrl';
 import DebtRestrictionModal from '@/components/DebtRestrictionModal';
+import { parseDebtLimitFromError } from '@/lib/debtLimitError';
 
 const orderSchema = z.object({
   qty: z.number().min(1, 'Quantity must be at least 1'),
@@ -96,23 +97,13 @@ export function OrderModal({ product, isOpen, onClose, onSuccess }: OrderModalPr
         setStep(1);
         onSuccess();
       }
-    } catch (error: any) {
-      const data = error.response?.data;
-      if (data?.debtStatus) {
-        setDebtStatus(data.debtStatus);
-        setShowDebtModal(true);
-      } else if (
-        data?.message?.toLowerCase().includes('debt limit') ||
-        data?.message?.toLowerCase().includes('debt restriction')
-      ) {
-        setDebtStatus({
-          currentDebt: data?.currentDebt ?? 0,
-          debtLimit: data?.debtLimit ?? 0,
-          tierName: data?.tierName ?? 'Unknown',
-          remainingLimit: data?.remainingLimit ?? 0,
-        });
+    } catch (error: unknown) {
+      const debtStatusFromError = parseDebtLimitFromError(error);
+      if (debtStatusFromError) {
+        setDebtStatus(debtStatusFromError);
         setShowDebtModal(true);
       } else {
+        const data = (error as { response?: { data?: { message?: string } } })?.response?.data;
         toast.error(data?.message || 'Failed to place order');
       }
     } finally {
@@ -204,7 +195,7 @@ export function OrderModal({ product, isOpen, onClose, onSuccess }: OrderModalPr
               <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
                 {product.id ? (
                   <img
-                    src={`${getApiUrl().replace('/api', '')}/api/product-images/${product.id}`}
+                    src={getProductImageSrc(product.id, 'front')}
                     alt={product.name}
                     className="w-16 h-16 rounded-lg object-cover"
                     onError={(e) => {
