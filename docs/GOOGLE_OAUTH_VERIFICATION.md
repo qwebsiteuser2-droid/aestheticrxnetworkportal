@@ -1,6 +1,6 @@
 # Google OAuth App Verification Guide
 
-This guide covers everything required to pass Google's OAuth app verification for AestheticRx Network (Cloud project **244788420362**). Follow all steps in order.
+This guide covers everything required to pass Google's OAuth app verification for AestheticRxNetwork (Cloud project **244788420362**). Follow all steps in order.
 
 ---
 
@@ -124,7 +124,7 @@ Fill in every field exactly as follows:
 
 | Field | Value |
 |-------|-------|
-| App name | `AestheticRx Network` |
+| App name | `AestheticRxNetwork` |
 | User support email | `muhammadqasimshabbir3@gmail.com` |
 | App logo | Upload `branding-assets/icon-512.png` |
 | App homepage | `https://aestheticrxnetworkportal.vercel.app` |
@@ -179,7 +179,7 @@ If the current `GMAIL_API_REFRESH_TOKEN` in Railway was generated with the `http
 1. In Google Cloud Console → OAuth consent screen, click **"Publish App"** (moves from Testing to Production)
 2. Click **"Prepare for verification"**
 3. For the `gmail.send` scope, provide:
-   - A **short explanation**: "We use the Gmail API solely to send transactional emails (order confirmations, OTP codes, and account notifications) to registered users of the AestheticRx Network platform. We do not read, access, or store any Gmail messages."
+   - A **short explanation**: "We use the Gmail API solely to send transactional emails (order confirmations, OTP codes, and account notifications) to registered users of the AestheticRxNetwork platform. We do not read, access, or store any Gmail messages."
    - A **demo video** (screen recording showing the email sending flow — required by Google)
    - Your **privacy policy URL**: `https://aestheticrxnetworkportal.vercel.app/privacy`
 4. Submit

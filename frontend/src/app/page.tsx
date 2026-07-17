@@ -1531,7 +1531,7 @@ export default function Home() {
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-6">
-              <img src="/logo.png" alt="AestheticRx Network" className="w-60 h-60 sm:w-72 sm:h-72 object-contain" />
+              <img src="/logo.png" alt="AestheticRxNetwork" className="w-60 h-60 sm:w-72 sm:h-72 object-contain" />
               <BrandTitle size="lg" />
             </div>
             <p className="text-gray-600 text-lg mb-8">
@@ -1735,7 +1735,7 @@ export default function Home() {
           <div className="text-center">
             <div className="flex flex-col items-center mb-4">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-                <img src="/logo.png" alt="AestheticRx Network" className="w-11 h-11 sm:w-12 sm:h-12 object-contain shadow-md rounded-lg shrink-0" />
+                <img src="/logo.png" alt="AestheticRxNetwork" className="w-11 h-11 sm:w-12 sm:h-12 object-contain shadow-md rounded-lg shrink-0" />
                 <BrandTitle
                   size="md"
                   variant="onDark"
@@ -1752,7 +1752,7 @@ export default function Home() {
               <a href="/oauth-verification" className="text-gray-400 hover:text-white text-sm transition-colors underline">Google API Disclosure</a>
             </div>
             <p className="text-gray-400 text-xs sm:text-sm">
-              © {new Date().getFullYear()} AestheticRx Network. All rights reserved.
+              © {new Date().getFullYear()} AESTHETICRXNETWORK (PRIVATE LIMITED). All rights reserved.
             </p>
           </div>
         </div>

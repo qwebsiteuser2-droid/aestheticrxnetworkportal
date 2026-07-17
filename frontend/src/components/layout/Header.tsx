@@ -165,7 +165,7 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
             <Link href="/" className="flex items-center gap-2.5 pl-0">
               <img 
                 src="/logo.png" 
-                alt="AestheticRx Network" 
+                alt="AestheticRxNetwork" 
                 className="w-[4.5rem] h-[4.5rem] lg:w-20 lg:h-20 object-contain drop-shadow-sm shrink-0"
               />
               <div className="hidden lg:block">

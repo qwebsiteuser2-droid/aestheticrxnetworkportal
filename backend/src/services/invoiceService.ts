@@ -295,7 +295,7 @@ class InvoiceService {
           .font('Helvetica-Oblique')
           .fontSize(9)
           .fillColor(INVOICE_BRAND.muted)
-          .text('Payable to AestheticRXNetwork', pageLeft, y, { width: tableWidth, align: 'center' });
+          .text('Payable to AESTHETICRXNETWORK (PRIVATE LIMITED)', pageLeft, y, { width: tableWidth, align: 'center' });
         doc.text('Thank you for your connection with us!', pageLeft, y + 14, {
           width: tableWidth,
           align: 'center',
@@ -398,12 +398,12 @@ class InvoiceService {
     const pdf = await this.invoicePdfBuffer(invoice);
 
     const fileName = 'Invoices.pdf';
-    const subject = `Invoice ${invoice.invoice_number} — AestheticRx Network`;
+    const subject = `Invoice ${invoice.invoice_number} — AestheticRxNetwork`;
     const html = `
       <p>Dear ${invoice.doctor_name || 'Customer'},</p>
-      <p>Thank you for your order with <strong>AestheticRx Network</strong>.</p>
+      <p>Thank you for your order with <strong>AestheticRxNetwork</strong>.</p>
       <p>Please find your invoice <strong>${invoice.invoice_number}</strong> attached (Grand Total: PKR ${fmtNum(Number(invoice.grand_total))}).</p>
-      <p>Payable to AestheticRx Network.</p>
+      <p>Payable to AESTHETICRXNETWORK (PRIVATE LIMITED).</p>
       <p>Thank you for your connection with us!</p>
     `;
 

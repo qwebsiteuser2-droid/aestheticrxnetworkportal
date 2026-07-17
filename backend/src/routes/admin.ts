@@ -194,7 +194,7 @@ router.post('/featured/doctors', setFeaturedDoctors);
 
 router.delete('/doctor-comments/:id', deleteDoctorComment);
 
-// Invoice generation (AestheticRx Network)
+// Invoice generation (AestheticRxNetwork)
 router.get('/invoices', listInvoices);
 router.get('/invoices/next-number', getNextInvoiceNumber);
 router.post('/invoices/totals', getInvoiceTotals);

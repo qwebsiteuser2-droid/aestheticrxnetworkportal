@@ -3,7 +3,7 @@
 Use these in **Google Cloud Console** → **OAuth consent screen** → **Scopes** → justification fields, and in your reply to the verification team.
 
 **Project:** aestheticrxnetworkportal (244788420362)  
-**App:** AestheticRx Network  
+**App:** AestheticRxNetwork  
 **Homepage:** https://aestheticrxnetworkportal.vercel.app  
 **Privacy policy:** https://aestheticrxnetworkportal.vercel.app/privacy  
 **Demo video:** [paste your YouTube Unlisted URL]
@@ -12,7 +12,7 @@ Use these in **Google Cloud Console** → **OAuth consent screen** → **Scopes*
 
 ## Application summary (optional intro field)
 
-AestheticRx Network is a B2B web platform for aesthetic clinics and licensed medical professionals. Doctors use it to order medical supplies, manage appointments, share research, and receive tier-based benefits. The app uses Google OAuth for sign-in and the Gmail API only to send transactional emails from our platform mailbox (order confirmations, OTP codes, and account notifications). We do not read users’ Gmail inboxes, sell Google user data, or use Google data for advertising or AI model training.
+AestheticRxNetwork is a B2B web platform for aesthetic clinics and licensed medical professionals. Doctors use it to order medical supplies, manage appointments, share research, and receive tier-based benefits. The app uses Google OAuth for sign-in and the Gmail API only to send transactional emails from our platform mailbox (order confirmations, OTP codes, and account notifications). We do not read users’ Gmail inboxes, sell Google user data, or use Google data for advertising or AI model training.
 
 ---
 

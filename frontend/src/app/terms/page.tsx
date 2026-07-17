@@ -4,16 +4,16 @@ import { LegalPageShell } from '@/components/layout/LegalPageShell';
 import { absoluteUrl } from '@/lib/siteUrl';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | AestheticRx Network',
+  title: 'Terms of Service | AestheticRxNetwork',
   description:
-    'Terms of Service for AestheticRx Network B2B medical platform.',
-  keywords: 'terms of service, user agreement, AestheticRx, medical platform',
+    'Terms of Service for AestheticRxNetwork B2B medical platform.',
+  keywords: 'terms of service, user agreement, AestheticRxNetwork, medical platform',
   alternates: {
     canonical: absoluteUrl('/terms'),
   },
   openGraph: {
-    title: 'Terms of Service | AestheticRx Network',
-    description: 'Terms and conditions for using AestheticRx Network.',
+    title: 'Terms of Service | AestheticRxNetwork',
+    description: 'Terms and conditions for using AestheticRxNetwork.',
     type: 'website',
     url: absoluteUrl('/terms'),
   },
@@ -30,7 +30,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
             <p className="text-gray-700 mb-4">
-              By accessing and using AestheticRxNetwork (&quot;the Platform&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), you accept and agree to be bound by the terms and provision of this agreement. 
+              By accessing and using AESTHETICRXNETWORK (PRIVATE LIMITED) (&quot;the Company&quot;, &quot;the Platform&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), you accept and agree to be bound by the terms and provision of this agreement. 
               If you do not agree to abide by the above, please do not use this service.
             </p>
             <p className="text-gray-700">
@@ -42,7 +42,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Description of Service</h2>
             <p className="text-gray-700 mb-4">
-              AestheticRxNetwork is a platform that provides:
+              The Company is a platform that provides:
             </p>
             <ul className="list-disc pl-6 mb-4 text-gray-700">
               <li>Product ordering and management services</li>
@@ -170,7 +170,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">7. Intellectual Property</h2>
             <p className="text-gray-700 mb-4">
-              The platform and its original content, features, and functionality are owned by AestheticRxNetwork and are protected by international 
+              The platform and its original content, features, and functionality are owned by the Company and are protected by international 
               copyright, trademark, patent, trade secret, and other intellectual property laws.
             </p>
             <p className="text-gray-700">
@@ -292,7 +292,7 @@ export default function TermsPage() {
 
             <h3 className="text-xl font-semibold text-gray-800 mb-3">11.2 Limitation of Liability</h3>
             <p className="text-gray-700">
-              To the maximum extent permitted by law, AestheticRxNetwork shall not be liable for any indirect, incidental, special, consequential, 
+              To the maximum extent permitted by law, the Company shall not be liable for any indirect, incidental, special, consequential, 
               or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, 
               or other intangible losses resulting from your use of the platform.
             </p>
@@ -301,7 +301,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">12. Indemnification</h2>
             <p className="text-gray-700">
-              You agree to indemnify, defend, and hold harmless AestheticRxNetwork, its officers, directors, employees, and agents from and against 
+              You agree to indemnify, defend, and hold harmless the Company, its officers, directors, employees, and agents from and against 
               any claims, liabilities, damages, losses, and expenses, including reasonable attorney&apos;s fees, arising out of or in any way connected 
               with your access to or use of the platform, your violation of these Terms, or your violation of any rights of another.
             </p>
@@ -322,7 +322,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">14. Governing Law and Dispute Resolution</h2>
             <p className="text-gray-700 mb-4">
-              These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which AestheticRxNetwork operates, 
+              These Terms shall be governed by and construed in accordance with the laws of Pakistan, 
               without regard to its conflict of law provisions.
             </p>
             <p className="text-gray-700">
@@ -364,7 +364,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">18. Entire Agreement</h2>
             <p className="text-gray-700">
-              These Terms, together with our Privacy Policy, constitute the entire agreement between you and AestheticRxNetwork regarding the use of the platform 
+              These Terms, together with our Privacy Policy, constitute the entire agreement between you and the Company regarding the use of the platform 
               and supersede all prior agreements and understandings.
             </p>
           </section>

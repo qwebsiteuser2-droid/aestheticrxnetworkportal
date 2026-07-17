@@ -9,16 +9,16 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   metadataBase: new URL(PRODUCTION_SITE_URL),
-  title: 'AestheticRx Network - Connected Aesthetic Care',
+  title: 'AestheticRxNetwork - Connected Aesthetic Care',
   description: 'Professional B2B platform for aesthetic clinics and medical professionals, featuring product ordering, leaderboards, research papers, and comprehensive admin management.',
-  applicationName: 'AestheticRXNetwork',
+  applicationName: 'AestheticRxNetwork',
   appleWebApp: {
     capable: true,
-    title: 'AestheticRXNetwork',
+    title: 'AestheticRxNetwork',
     statusBarStyle: 'default',
   },
   keywords: ['aesthetic', 'clinics', 'B2B', 'medical', 'doctors', 'healthcare', 'platform', 'beauty', 'cosmetic'],
-  authors: [{ name: 'AestheticRxNetwork Team' }],
+  authors: [{ name: 'AESTHETICRXNETWORK (PRIVATE LIMITED)' }],
   robots: 'index, follow',
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,

@@ -387,7 +387,7 @@ export default function InvoiceGenerator() {
               <img src="/logo.png" alt="" className="w-16 h-16 object-contain" />
               <div>
                 <p className="text-xl font-bold" style={{ color: BRAND.blue }}>
-                  AestheticRXNetwork
+                  AESTHETICRXNETWORK (PRIVATE LIMITED)
                 </p>
                 <p className="text-xs font-bold" style={{ color: BRAND.gold }}>
                   Connected Aesthetic Care
@@ -440,7 +440,7 @@ export default function InvoiceGenerator() {
               <p className="text-center text-xs mt-3 font-semibold text-blue-900">{customFooter}</p>
             )}
             <p className="text-center text-xs text-gray-500 mt-2 italic">
-              Payable to AestheticRXNetwork · Thank you for your connection with us!
+              Payable to AESTHETICRXNETWORK (PRIVATE LIMITED) · Thank you for your connection with us!
             </p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 /**
- * Records Google OAuth verification demo for AestheticRx Network portal.
+ * Records Google OAuth verification demo for AestheticRxNetwork portal.
  * Run: DEMO_SITE_URL=https://aestheticrxnetworkportal.vercel.app node scripts/record-oauth-demo.mjs
  */
 import { chromium } from 'playwright';

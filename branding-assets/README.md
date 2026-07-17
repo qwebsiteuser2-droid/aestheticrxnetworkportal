@@ -1,6 +1,6 @@
-# AestheticRXNetwork - Branding Assets
+# AestheticRxNetwork - Branding Assets
 
-This folder contains the official branding assets for **AestheticRXNetwork**.
+This folder contains the official branding assets for **AestheticRxNetwork** (registered entity: **AESTHETICRXNETWORK (PRIVATE LIMITED)**).
 
 ## Logo Files
 
@@ -15,7 +15,7 @@ This folder contains the official branding assets for **AestheticRXNetwork**.
 
 ## Logo Description
 
-The AestheticRXNetwork logo features:
+The AestheticRxNetwork logo features:
 - **Dual intertwined profiles** representing connection and partnership
 - **Striking blue gradient** (`#00C2FF` → `#1E66FF` → `#0837D7`)
 - **Rich gold gradient** (`#FFE38A` → `#F5C24C` → `#C98513`)
@@ -33,7 +33,7 @@ The site uses `frontend/src/components/BrandTitle.tsx`, aligned with the `nameGr
 | **Ne** | Blue + gold blend | CSS gradient: blue → teal → gold |
 | **twork** | Gold | `#D59225` |
 
-Displayed as: **AestheticRX Network** (space before *Network*).
+Displayed as: **AestheticRxNetwork** (stylized wordmark; the visible letters keep the R/X color treatment).
 
 ### Marketing tagline (header & footer)
 

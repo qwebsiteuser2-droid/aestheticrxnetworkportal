@@ -623,8 +623,8 @@ class GmailService {
 
     const subject =
       orders.length === 1
-        ? `Your order #${firstOrder.order_number} — AestheticRx Network`
-        : `Your order confirmation (${orders.length} items) — AestheticRx Network`;
+        ? `Your order #${firstOrder.order_number} — AestheticRxNetwork`
+        : `Your order confirmation (${orders.length} items) — AestheticRxNetwork`;
 
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
@@ -658,7 +658,7 @@ class GmailService {
           <p style="color: #374151;">Our team will process your order shortly. If you have questions, reply to this email.</p>
         </div>
         <div style="background: #f9fafb; padding: 16px; text-align: center; color: #6b7280; font-size: 12px; border-radius: 0 0 10px 10px;">
-          Payable to AestheticRx Network. Thank you for your connection with us!
+          Payable to AESTHETICRXNETWORK (PRIVATE LIMITED). Thank you for your connection with us!
         </div>
       </div>
     `;

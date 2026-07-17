@@ -38,7 +38,7 @@ If you use **Google Sign-In**, also show:
 
 ## Example title
 
-`AestheticRx Network — Gmail API transactional email demo`
+`AestheticRxNetwork — Gmail API transactional email demo`
 
 ## Do not
 

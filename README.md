@@ -1,16 +1,19 @@
 # AestheticRxNetwork - B2B Medical Platform
 
-**Version:** 3.5.7  
-**Last Updated:**jul 7, 2026  
-**Status:** Production Ready ✅
+**Version:** 3.6.0  
+**Last Updated:** July 17, 2026  
+**Status:** Production Ready ✅  
+**Registered entity:** AESTHETICRXNETWORK (PRIVATE LIMITED)
 
 A comprehensive B2B platform designed for medical clinics and doctors to manage orders, share research papers, track performance, collaborate within a medical community, book appointments with doctors, and manage advertisements.
+
+> **v3.6.0 — Brand consolidation:** The product is now formally incorporated. UI, titles, and metadata use the display name **AestheticRxNetwork**; legal, invoice, and copyright text use the registered entity **AESTHETICRXNETWORK (PRIVATE LIMITED)**. The canonical site URL is `aestheticrxnetwork.vercel.app`.
 
 ### Production stack
 
 | Layer | Hosting | Notes |
 |-------|---------|--------|
-| **Frontend** | [Vercel](https://vercel.com) (Next.js 14) | e.g. `aestheticrxnetworkportal.vercel.app` |
+| **Frontend** | [Vercel](https://vercel.com) (Next.js 14) | e.g. `aestheticrxnetwork.vercel.app` |
 | **Backend API** | [Railway](https://railway.app) (Node.js / Express) | REST + Socket.io |
 | **Database** | PostgreSQL 15 | TypeORM migrations on deploy |
 | **Email** | Gmail API | Orders, invoices, appointments, tiers |
@@ -190,7 +193,7 @@ Configure via root [`env.example`](env.example) — see [docs/ENVIRONMENT_VARIAB
 
 ### Progressive Web App (PWA) (v3.5.1+)
 - **Installable App**: Add to home screen on mobile and desktop
-- **Consistent App Name**: Installed app displays as **AestheticRXNetwork**
+- **Consistent App Name**: Installed app displays as **AestheticRxNetwork**
 - **Manifest**: `frontend/public/manifest.json` — `display: standalone`, theme `#1E66FF`
 - **iOS Title**: `appleWebApp.title` in `frontend/src/app/layout.tsx`
 
@@ -225,7 +228,7 @@ Configure via root [`env.example`](env.example) — see [docs/ENVIRONMENT_VARIAB
 - **Icons**: Heroicons, Lucide React
 - **Notifications**: React Hot Toast
 - **Charts**: Recharts
-- **PWA**: Installable Progressive Web App via `frontend/public/manifest.json` (app name **AestheticRXNetwork**)
+- **PWA**: Installable Progressive Web App via `frontend/public/manifest.json` (app name **AestheticRxNetwork**)
 
 ### Backend
 - **Runtime**: Node.js 20.x

@@ -35,7 +35,7 @@ export function MobileHeaderChrome({ onLoginClick, onRegisterClick }: MobileHead
           <Link href="/" className="flex items-center gap-1.5 min-w-0 flex-1">
             <img
               src="/logo.png"
-              alt="AestheticRx Network"
+              alt="AestheticRxNetwork"
               className="w-9 h-9 object-contain shrink-0"
             />
             <BrandTitle size="xs" className="min-w-0" />

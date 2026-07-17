@@ -4,16 +4,16 @@ import { LegalPageShell } from '@/components/layout/LegalPageShell';
 import { absoluteUrl } from '@/lib/siteUrl';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | AestheticRx Network',
+  title: 'Privacy Policy | AestheticRxNetwork',
   description:
-    'Learn how AestheticRx Network collects, uses, and protects your personal information, including Google API Limited Use.',
-  keywords: 'privacy policy, data protection, GDPR, Google API, AestheticRx',
+    'Learn how AestheticRxNetwork collects, uses, and protects your personal information, including Google API Limited Use.',
+  keywords: 'privacy policy, data protection, GDPR, Google API, AestheticRxNetwork',
   alternates: {
     canonical: absoluteUrl('/privacy'),
   },
   openGraph: {
-    title: 'Privacy Policy | AestheticRx Network',
-    description: 'Learn how AestheticRx Network protects your privacy and personal data.',
+    title: 'Privacy Policy | AestheticRxNetwork',
+    description: 'Learn how AestheticRxNetwork protects your privacy and personal data.',
     type: 'website',
     url: absoluteUrl('/privacy'),
   },
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
             <p className="text-gray-700 mb-4">
-              Welcome to AestheticRxNetwork. We are committed to protecting your privacy and ensuring the security of your personal information. 
+              Welcome to AESTHETICRXNETWORK (PRIVATE LIMITED) (&quot;the Company&quot;). We are committed to protecting your privacy and ensuring the security of your personal information. 
               This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform.
             </p>
             <p className="text-gray-700">
@@ -211,7 +211,7 @@ export default function PrivacyPage() {
           <section className="mb-8" id="google-api-services">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">13. Google API Services</h2>
             <p className="text-gray-700 mb-4">
-              AestheticRx Network's use of information received from Google APIs will adhere to the{' '}
+              AestheticRxNetwork's use of information received from Google APIs will adhere to the{' '}
               <a
                 href="https://developers.google.com/terms/api-services-user-data-policy"
                 target="_blank"
@@ -240,13 +240,13 @@ export default function PrivacyPage() {
                 <strong>Google Drive API:</strong> We use the Google Drive API only to store data export
                 files that you or an administrator explicitly generates within this application. We do
                 not access, read, or modify any pre-existing files in your Google Drive. Only files
-                created by AestheticRx Network are accessible to us.
+                created by AestheticRxNetwork are accessible to us.
               </li>
             </ul>
             <p className="text-gray-700">
               We do not transfer, sell, or use Google user data for any purpose beyond those explicitly
               stated above. Our use of Google API data is limited to providing and improving the
-              AestheticRx Network platform features described in this policy.
+              AestheticRxNetwork platform features described in this policy.
             </p>
           </section>
 

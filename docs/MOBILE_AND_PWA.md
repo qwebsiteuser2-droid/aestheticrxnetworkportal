@@ -1,6 +1,6 @@
 # Mobile UI and installing as an app (PWA)
 
-Most users visit **AestheticRXNetwork** on phones. This document describes the mobile layout, navigation, and how to install the site as an app.
+Most users visit **AestheticRxNetwork** on phones. This document describes the mobile layout, navigation, and how to install the site as an app.
 
 | | |
 |--|--|
@@ -14,7 +14,7 @@ Most users visit **AestheticRXNetwork** on phones. This document describes the m
 
 At the top of every page (except full-screen admin flows that omit the shared header):
 
-1. **Row 1:** Small logo + **AestheticRXNetwork** wordmark · **Sign In / Register** (guests) or **bell** + **profile menu** (signed in)
+1. **Row 1:** Small logo + **AestheticRxNetwork** wordmark · **Sign In / Register** (guests) or **bell** + **profile menu** (signed in)
 2. **Row 2:** Horizontal **tab bar** (scrolls on very narrow screens)
 
 ### Tab bar (left → right)

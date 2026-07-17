@@ -14,7 +14,7 @@ export function LegalPageShell({
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="AestheticRx Network" className="w-10 h-10 object-contain rounded-lg" />
+            <img src="/logo.png" alt="AestheticRxNetwork" className="w-10 h-10 object-contain rounded-lg" />
             <BrandTitle size="sm" />
           </Link>
           <nav className="flex items-center gap-4 text-sm" aria-label="Legal navigation">
@@ -64,7 +64,7 @@ export function LegalPageShell({
             </Link>
           </div>
           <p className="text-gray-400 text-sm">
-            © {new Date().getFullYear()} AestheticRx Network ·{' '}
+            © {new Date().getFullYear()} AESTHETICRXNETWORK (PRIVATE LIMITED) ·{' '}
             <a href={absoluteUrl('/privacy')} className="underline">
               {absoluteUrl('/privacy')}
             </a>

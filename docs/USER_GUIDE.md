@@ -81,7 +81,7 @@ AestheticRxNetwork is a B2B platform designed for medical clinics and doctors. I
 1. Open your web browser
 2. Navigate to the website URL (provided by your administrator)
 3. You'll see the **homepage** with:
-   - **AestheticRX Network** branding in the header
+   - **AestheticRxNetwork** branding in the header
    - **Top Clinics of the Month** (expanded automatically on mobile when signed in)
    - A **product catalog** when **not signed in** (browse, search, prices, stock)
 4. **Signed-in users on mobile:** use the **Order** tab to shop — the home page does not show the product grid on small screens

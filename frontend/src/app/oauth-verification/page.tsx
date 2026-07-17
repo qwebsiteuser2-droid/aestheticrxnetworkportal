@@ -4,9 +4,9 @@ import { LegalPageShell } from '@/components/layout/LegalPageShell';
 import { absoluteUrl, PRODUCTION_SITE_URL } from '@/lib/siteUrl';
 
 export const metadata: Metadata = {
-  title: 'Google API & OAuth Disclosure | AestheticRx Network',
+  title: 'Google API & OAuth Disclosure | AestheticRxNetwork',
   description:
-    'How AestheticRx Network uses Google Sign-In, Gmail API, and Google Drive API. For OAuth app verification reviewers.',
+    'How AestheticRxNetwork uses Google Sign-In, Gmail API, and Google Drive API. For OAuth app verification reviewers.',
   alternates: {
     canonical: absoluteUrl('/oauth-verification'),
   },
@@ -17,7 +17,7 @@ export default function OAuthVerificationPage() {
     <LegalPageShell title="Google API & OAuth Disclosure">
       <div className="prose prose-lg max-w-none text-gray-700 space-y-6">
         <p>
-          This page summarizes how <strong>AestheticRx Network</strong> uses Google APIs. Full details are in
+          This page summarizes how <strong>AestheticRxNetwork</strong> uses Google APIs. Full details are in
           our{' '}
           <Link href="/privacy" className="text-blue-600 underline">
             Privacy Policy
@@ -29,7 +29,7 @@ export default function OAuthVerificationPage() {
           <h2 className="text-2xl font-semibold text-gray-900">Application identity</h2>
           <ul className="list-disc pl-6 space-y-1">
             <li>
-              <strong>App name:</strong> AestheticRx Network
+              <strong>App name:</strong> AestheticRxNetwork
             </li>
             <li>
               <strong>Homepage:</strong>{' '}

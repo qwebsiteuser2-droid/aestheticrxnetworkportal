@@ -98,7 +98,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             <Link href="/" className="flex items-center space-x-2">
               <img 
                 src="/logo.png" 
-                alt="AestheticRx Network" 
+                alt="AestheticRxNetwork" 
                 className="w-12 h-12 object-contain"
               />
               <BrandTitle size="md" />
