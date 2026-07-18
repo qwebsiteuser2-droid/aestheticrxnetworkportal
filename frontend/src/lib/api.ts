@@ -312,10 +312,28 @@ export const authApi = {
     return response.data;
   },
 
-  googleAuth: async (idToken: string, userType: string = 'regular_user') => {
-    const response = await api.post('/auth/google', { idToken, userType }, {
-      timeout: 30000 // 30 seconds for Google auth operations
-    });
+  googleAuth: async (
+    idToken: string,
+    options: {
+      mode?: 'login' | 'signup';
+      userType?: string;
+      signup_id?: string;
+      clinic_name?: string;
+      consent?: boolean;
+    } = {}
+  ) => {
+    const {
+      mode = 'login',
+      userType = 'regular_user',
+      signup_id,
+      clinic_name,
+      consent = true,
+    } = options;
+    const response = await api.post(
+      '/auth/google',
+      { idToken, mode, userType, signup_id, clinic_name, consent },
+      { timeout: 30000 }
+    );
     return response.data;
   },
 

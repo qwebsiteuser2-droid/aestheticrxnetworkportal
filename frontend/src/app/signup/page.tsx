@@ -47,7 +47,7 @@ function SignupContent() {
     signup_id: '',
     whatsapp: '',
     address: '',
-    consent: false,
+    consent: true,
     user_type: userTypeParam || 'doctor'
   });
 
@@ -289,6 +289,33 @@ function SignupContent() {
               </div>
             )}
 
+            {/* Fast path: Continue with Google (doctors need signup ID only; name/email from Google) */}
+            {(userType === 'regular_user' || userType === 'doctor') && (
+              <div className="space-y-2">
+                {userType === 'doctor' && (
+                  <p className="text-xs text-gray-500">
+                    With Google, you only need your Sign-up ID. Name and email come from your Google account.
+                  </p>
+                )}
+                <GoogleSignInButton
+                  mode="signup"
+                  userType={userType}
+                  signupId={formData.signup_id}
+                  clinicName={formData.clinic_name}
+                  consent={formData.consent}
+                  disabled={loading}
+                />
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-gray-50 text-gray-500">Or register with email</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email Address *
@@ -459,26 +486,6 @@ function SignupContent() {
               {loading ? 'Registering...' : `Register as ${userType === 'doctor' ? 'Doctor' : userType === 'regular_user' ? 'User' : 'Employee'}`}
             </button>
           </div>
-
-          {/* Google Sign-In - Only for regular users (doctors need signup ID verification) */}
-          {userType === 'regular_user' && (
-            <>
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-gray-50 text-gray-500">Or sign up with</span>
-                </div>
-              </div>
-
-              <GoogleSignInButton 
-                mode="signup" 
-                userType="regular_user"
-                disabled={loading}
-              />
-            </>
-          )}
 
           <div className="text-center">
             <p className="text-sm text-gray-600">

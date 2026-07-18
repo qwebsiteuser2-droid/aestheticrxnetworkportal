@@ -21,6 +21,10 @@ const GoogleLogin = dynamic(
 interface GoogleSignInButtonProps {
   mode?: 'login' | 'signup';
   userType?: 'regular_user' | 'doctor' | 'employee';
+  /** Required for doctor Google signup */
+  signupId?: string;
+  clinicName?: string;
+  consent?: boolean;
   onSuccess?: () => void;
   onError?: (error: string) => void;
   className?: string;
@@ -32,6 +36,9 @@ interface GoogleSignInButtonProps {
 export default function GoogleSignInButton({
   mode = 'login',
   userType = 'regular_user',
+  signupId,
+  clinicName,
+  consent = true,
   onSuccess,
   onError,
   className = '',
@@ -65,6 +72,9 @@ export default function GoogleSignInButton({
     checkGoogleReady();
   }, []);
 
+  const doctorSignupBlocked =
+    mode === 'signup' && userType === 'doctor' && !(signupId && signupId.trim());
+
   const handleGoogleSuccess = async (credentialResponse: any) => {
     if (!credentialResponse.credential) {
       const errorMsg = 'No credential received from Google';
@@ -74,58 +84,82 @@ export default function GoogleSignInButton({
       return;
     }
 
+    if (mode === 'signup' && userType === 'doctor' && !(signupId && signupId.trim())) {
+      const errorMsg = 'Please enter your signup ID before continuing with Google';
+      toast.error(errorMsg);
+      onError?.(errorMsg);
+      return;
+    }
+
+    if (mode === 'signup' && !consent) {
+      const errorMsg = 'Please accept the privacy policy and terms to continue';
+      toast.error(errorMsg);
+      onError?.(errorMsg);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      console.log('🔑 Google Sign-In - Sending credential to backend...');
+      console.log('🔑 Google Auth - Sending credential to backend...', { mode, userType });
       
-      const response = await authApi.googleAuth(credentialResponse.credential, userType);
+      const response = await authApi.googleAuth(credentialResponse.credential, {
+        mode,
+        userType,
+        signup_id: signupId?.trim() || undefined,
+        clinic_name: clinicName?.trim() || undefined,
+        consent,
+      });
 
-      // Backend returns redirectToSignup when no account exists for this Google email
+      // Backend returns redirectToSignup when no account exists (login mode)
       if (!response.success && response.redirectToSignup) {
         toast.error('No account found for this Google email. Please sign up first.');
         onError?.('No account found. Please sign up.');
-        setTimeout(() => router.push('/signup'), 1500);
+        setTimeout(() => router.push('/signup/select-type'), 1500);
         return;
       }
 
       if (response.success && response.data) {
-        const { user, accessToken, refreshToken } = response.data;
+        const { user, accessToken, refreshToken, isNewUser } = response.data;
 
-        // Set auth data in cookies/localStorage (wrap in AuthResponse format)
         setAuthData({
           success: true,
+          message: isNewUser ? 'Account created via Google' : 'Login successful via Google',
           data: { accessToken, refreshToken, user }
         });
         
-        // Update auth context
         login(user);
 
-        toast.success('Signed in with Google successfully!');
+        if (isNewUser) {
+          toast.success(
+            user.is_approved
+              ? 'Account created with Google!'
+              : 'Registration successful! Please wait for admin approval.'
+          );
+        } else {
+          toast.success('Signed in with Google successfully!');
+        }
 
-        // Set fromLogin flag to allow auto-login (skip OTP for Google users)
         sessionStorage.setItem('fromLogin', 'true');
         sessionStorage.setItem('google_auth', 'true');
 
-        // Call onSuccess callback
         onSuccess?.();
 
         router.push(getPostLoginRedirect(user, redirectAfterLogin));
       } else {
         const errorMsg = response.message || 'Google Sign-In failed';
-        console.error('❌ Google Sign-In failed:', errorMsg);
+        console.error('❌ Google Auth failed:', errorMsg);
         onError?.(errorMsg);
         toast.error(errorMsg);
       }
     } catch (error: any) {
-      console.error('❌ Google Sign-In error:', error);
+      console.error('❌ Google Auth error:', error);
 
-      // axios wraps the response body under error.response.data
       const data = error.response?.data;
       if (data?.redirectToSignup) {
         toast.error('No account found for this Google email. Please sign up first.');
         onError?.('No account found. Please sign up.');
-        setTimeout(() => router.push('/signup'), 1500);
+        setTimeout(() => router.push('/signup/select-type'), 1500);
         return;
       }
 
@@ -155,14 +189,19 @@ export default function GoogleSignInButton({
 
   return (
     <div className={`w-full ${className}`}>
-      <div className="relative">
+      {doctorSignupBlocked && (
+        <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-2">
+          Enter your Doctor Sign-up ID above, then continue with Google.
+        </p>
+      )}
+
+      <div className={`relative ${disabled || doctorSignupBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-lg z-10">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
           </div>
         )}
         
-        {/* Wrap in try-catch at runtime to prevent crashes if provider not ready */}
         <GoogleLogin
           onSuccess={handleGoogleSuccess}
           onError={handleGoogleError}
@@ -184,4 +223,3 @@ export default function GoogleSignInButton({
     </div>
   );
 }
-

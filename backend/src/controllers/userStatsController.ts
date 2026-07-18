@@ -249,10 +249,21 @@ export const getUserStats = async (req: Request, res: Response): Promise<void> =
       totalDoctors,
       doctorsWithSales
     ] = await Promise.all([
-      // Get research papers statistics
+      // Get research papers statistics (select only columns used in the response
+      // so optional schema fields like pdf_file_url cannot break this endpoint)
       researchPaperRepository.find({
         where: { doctor_id: id, is_approved: true },
-        order: { created_at: 'DESC' }
+        order: { created_at: 'DESC' },
+        select: [
+          'id',
+          'title',
+          'abstract',
+          'tags',
+          'view_count',
+          'upvote_count',
+          'is_approved',
+          'created_at',
+        ],
       }),
       
       // Get total doctors count (exclude admin users)

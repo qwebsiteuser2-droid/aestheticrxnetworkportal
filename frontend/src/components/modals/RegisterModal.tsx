@@ -53,6 +53,9 @@ export function RegisterModal({ isOpen, onClose, onSwitchToLogin }: RegisterModa
     watch,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      consent: true,
+    },
   });
 
   const password = watch('password');

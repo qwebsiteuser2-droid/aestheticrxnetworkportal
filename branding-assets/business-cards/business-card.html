@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AestheticRxNetwork - Business Cards</title>
+<style>
+  /*
+    AESTHETICRXNETWORK (PRIVATE LIMITED) - Exclusive business card
+    Two editions, each ONE card with a front + back (two sides):
+      1) Signature edition (navy / brand gradient)
+      2) Black edition (pure black, white logo)
+    Both list the President and the CEO.
+    Card size: 85mm x 55mm. The DOCTOR SIGN-UP ID is unique per card - change it before printing.
+  */
+
+  :root {
+    --blue-bright: #00C2FF;
+    --blue: #1E66FF;
+    --blue-deep: #0837D7;
+    --navy: #060B1A;
+    --navy-2: #0C1730;
+    --gold-light: #FFE38A;
+    --gold: #F5C24C;
+    --gold-deep: #C98513;
+    --ink: #EAF1FF;
+    --muted: #9DB2D6;
+    --card-w: 85mm;
+    --card-h: 55mm;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    background: #1a1d24;
+    color: var(--ink);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 26px;
+  }
+
+  .screen-note {
+    max-width: 660px;
+    text-align: center;
+    color: #c7ced9;
+    font-size: 13px;
+    line-height: 1.6;
+    background: #23262e;
+    border: 1px solid #343842;
+    border-radius: 10px;
+    padding: 14px 18px;
+  }
+  .screen-note strong { color: var(--gold); }
+
+  .set-label {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    color: #8b93a1;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: -12px;
+  }
+
+  .card-set {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* ---------- Card frame ---------- */
+  .card {
+    position: relative;
+    width: var(--card-w);
+    height: var(--card-h);
+    border-radius: 4mm;
+    overflow: hidden;
+    color: var(--ink);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+    background:
+      radial-gradient(120% 140% at 12% 0%, rgba(30,102,255,0.30) 0%, rgba(6,11,26,0) 55%),
+      radial-gradient(120% 160% at 100% 100%, rgba(201,133,19,0.20) 0%, rgba(6,11,26,0) 50%),
+      linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 60%, #060B1A 100%);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* thin double gold frame — must sit above content so text never paints over it */
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 2.2mm;
+    border: 0.35mm solid rgba(245,194,76,0.55);
+    border-radius: 2.6mm;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 2.9mm;
+    border: 0.18mm solid rgba(245,194,76,0.22);
+    border-radius: 2.2mm;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  /* faint guilloche-style texture for the exclusive feel */
+  .texture {
+    position: absolute;
+    inset: 0;
+    opacity: 0.10;
+    background-image:
+      repeating-linear-gradient(60deg, rgba(255,255,255,0.5) 0 0.15mm, transparent 0.15mm 2.2mm),
+      repeating-linear-gradient(-60deg, rgba(255,255,255,0.4) 0 0.15mm, transparent 0.15mm 2.6mm);
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  /* ---------- Background watermark (logo silhouette + naming wordmark) ---------- */
+  .watermark {
+    position: absolute;
+    inset: 2.9mm;                 /* stays inside the gold frame / box */
+    border-radius: 2.2mm;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .wm-logo {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    transform: translate(-50%, -50%);
+    width: 48mm;
+    height: auto;
+    object-fit: contain;
+    opacity: 0.08;               /* faint logo silhouette — centered */
+  }
+  .card.dark-black .wm-logo { opacity: 0.12; }
+  /* Naming watermark — FRONT (contact side) only, just under the legal entity line */
+  .wm-word {
+    display: none;
+  }
+  .card.front .wm-word {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 3.8mm;               /* slightly lower under the entity line */
+    text-align: center;
+    font-size: 5mm;
+    font-weight: 800;
+    letter-spacing: 0.2mm;
+    color: rgba(255, 255, 255, 0.09);
+    white-space: nowrap;
+    line-height: 1;
+  }
+  .card.front.dark-black .wm-word { color: rgba(255, 255, 255, 0.12); }
+
+  .inner {
+    position: absolute;
+    inset: 4.4mm;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- Shared brand bits ---------- */
+  .top { display: flex; align-items: center; gap: 2.4mm; }
+  .emblem {
+    width: 11mm;
+    height: 11mm;
+    object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+  }
+  .brand-block { display: flex; flex-direction: column; line-height: 1; }
+  .wordmark {
+    font-size: 4.2mm;
+    font-weight: 800;
+    letter-spacing: 0.1mm;
+    background: linear-gradient(90deg, #4FA2FF 0%, #35B7D6 45%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .wordmark .rx { color: #7CC4FF; -webkit-text-fill-color: initial; }
+  .tagline {
+    margin-top: 1mm;
+    font-size: 1.85mm;
+    letter-spacing: 1.2mm;
+    color: var(--blue-bright);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .divider {
+    height: 0.3mm;
+    margin: 2.6mm 0 2.4mm;
+    background: linear-gradient(90deg, transparent, rgba(245,194,76,0.75), transparent);
+  }
+
+  /* ---------- FRONT: contact / company info ---------- */
+  .card.front .inner {
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    inset: 3.6mm 4.2mm 7.5mm 4.2mm;
+    overflow: hidden;
+  }
+  .front .emblem-lg {
+    width: 10mm;
+    height: 10mm;
+    object-fit: contain;
+    margin: 0 auto 0.7mm;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.45));
+  }
+  .front .wordmark { font-size: 4.5mm; line-height: 1.1; }
+  .front .tagline { margin-top: 0.7mm; font-size: 1.85mm; letter-spacing: 1.1mm; }
+  .front .contacts {
+    margin-top: 1.8mm;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65mm;
+    align-items: center;
+  }
+  .contact {
+    display: flex;
+    align-items: center;
+    gap: 1.4mm;
+    font-size: 2.15mm;
+    color: var(--muted);
+    line-height: 1.25;
+  }
+  .contact svg { width: 2.5mm; height: 2.5mm; flex: none; }
+  .contact .path-blue { fill: var(--blue-bright); }
+  .front .address {
+    margin-top: 1.2mm;
+    font-size: 1.85mm;
+    line-height: 1.35;
+    color: var(--muted);
+    max-width: 66mm;
+  }
+  .front .entity {
+    margin-top: 1.5mm;
+    font-size: 1.95mm;
+    letter-spacing: 0.25mm;
+    color: var(--gold);
+    font-weight: 700;
+    line-height: 1.15;
+    flex-shrink: 0;
+  }
+
+  /* ---------- BACK: leadership + doctor sign-up ID ---------- */
+  .leaders { display: flex; flex-direction: column; gap: 2.2mm; }
+  .leader { display: flex; flex-direction: column; }
+  .lname {
+    font-size: 3.9mm;
+    font-weight: 700;
+    letter-spacing: 0.1mm;
+    background: linear-gradient(92deg, var(--gold-light) 0%, var(--gold) 45%, var(--gold-deep) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .lrole {
+    font-size: 1.95mm;
+    letter-spacing: 1.1mm;
+    text-transform: uppercase;
+    color: var(--ink);
+    font-weight: 600;
+    margin-top: 0.4mm;
+  }
+
+  .signup-id {
+    margin-top: auto;
+    align-self: flex-start;
+    border: 0.3mm solid rgba(245,194,76,0.55);
+    border-radius: 1.6mm;
+    padding: 1.3mm 2.4mm;
+    background: linear-gradient(135deg, rgba(245,194,76,0.14), rgba(30,102,255,0.10));
+    display: flex;
+    align-items: baseline;
+    gap: 2mm;
+  }
+  .signup-id .label {
+    font-size: 1.55mm;
+    letter-spacing: 0.6mm;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    font-weight: 700;
+  }
+  .signup-id .code {
+    font-family: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+    font-size: 3mm;
+    font-weight: 700;
+    letter-spacing: 0.4mm;
+    color: #FFFFFF;
+  }
+
+  /* ================= BLACK EDITION ================= */
+  .card.dark-black {
+    background:
+      radial-gradient(120% 130% at 12% 0%, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 55%),
+      #000000;
+  }
+  .card.dark-black .texture { opacity: 0.06; }
+
+  /* ---------- Print ---------- */
+  @media print {
+    @page { size: auto; margin: 8mm; }
+    body { background: #fff; padding: 0; gap: 6mm; }
+    .screen-note, .set-label { display: none; }
+    .card { box-shadow: none; page-break-inside: avoid; break-inside: avoid; }
+    .card-set { gap: 6mm; page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="screen-note">
+    <strong>AESTHETICRXNETWORK (PRIVATE LIMITED)</strong> — two editions.
+    <strong>Front</strong> = logo, contacts, address, company name + naming watermark below it.
+    <strong>Back</strong> = President, CEO, Doctor Sign-up ID (no naming watermark).
+    Print at 85&times;55&nbsp;mm via <strong>Print &rarr; Save as PDF</strong> with "Background graphics" enabled.
+  </div>
+
+  <!-- =====================================================================
+       SIGNATURE EDITION  (navy / brand gradient)
+  ====================================================================== -->
+  <div class="set-label">Signature Edition</div>
+  <div class="card-set">
+
+    <!-- FRONT: contact / company info + naming watermark under entity -->
+    <div class="card front">
+      <div class="watermark">
+        <img class="wm-logo" src="logo-transparent.svg" alt="" />
+        <div class="wm-word">AestheticRXNetwork</div>
+      </div>
+      <div class="texture"></div>
+      <div class="inner">
+        <img class="emblem-lg" src="logo-transparent.svg" alt="AestheticRxNetwork logo" />
+        <div class="wordmark">Aesthetic<span class="rx">RX</span>Network</div>
+        <div class="tagline">Connected Aesthetic Care</div>
+
+        <div class="contacts">
+          <div class="contact">
+            <svg viewBox="0 0 24 24"><path class="path-blue" d="M2 4h20v16H2V4zm2 2v.5l8 5 8-5V6H4zm16 3.2-8 5-8-5V18h16V9.2z"/></svg>
+            <span>aestheticrxnetwork@gmail.com</span>
+          </div>
+          <div class="contact">
+            <svg viewBox="0 0 24 24"><path class="path-blue" d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1l-2.2 2.2z"/></svg>
+            <span>+92 322 5690149</span>
+          </div>
+          <div class="contact">
+            <svg viewBox="0 0 24 24"><path class="path-blue" d="M12 2a10 10 0 100 20 10 10 0 000-20zm6.9 9h-2.5a15.6 15.6 0 00-1-4.6A8 8 0 0118.9 11zM12 4c.8 1.1 1.6 2.9 1.8 5h-3.6C10.4 6.9 11.2 5.1 12 4zM4.3 13h2.5c.2 1.7.6 3.3 1 4.6A8 8 0 014.3 13zm2.5-2H4.3a8 8 0 013.5-4.6c-.4 1.3-.8 2.9-1 4.6zM12 20c-.8-1.1-1.6-2.9-1.8-5h3.6c-.2 2.1-1 3.9-1.8 5zm2.2-1.4c.4-1.3.8-2.9 1-4.6h2.5a8 8 0 01-3.5 4.6z"/></svg>
+            <span>aestheticrxnetwork.vercel.app</span>
+          </div>
+        </div>
+
+        <div class="address">
+          <div class="contact" style="justify-content:center;">
+            <svg viewBox="0 0 24 24"><path class="path-blue" d="M12 2a7 7 0 00-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 00-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z"/></svg>
+            <span>Plot No. GP-1, ES4, Machi Para, Upper Gizri,</span>
+          </div>
+          <div>Saddar Town, Karachi South, Sindh, Pakistan</div>
+        </div>
+
+        <div class="entity">AESTHETICRXNETWORK (PRIVATE LIMITED)</div>
+      </div>
+    </div>
+
+    <!-- BACK: leadership + doctor sign-up ID (no naming watermark) -->
+    <div class="card back">
+      <div class="watermark">
+        <img class="wm-logo" src="logo-transparent.svg" alt="" />
+      </div>
+      <div class="texture"></div>
+      <div class="inner">
+        <div class="top">
+          <img class="emblem" src="logo-transparent.svg" alt="AestheticRxNetwork logo" />
+          <div class="brand-block">
+            <div class="wordmark">Aesthetic<span class="rx">RX</span>Network</div>
+            <div class="tagline">Connected Aesthetic Care</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="leaders">
+          <div class="leader">
+            <div class="lname">Muhammad Asim Shabbir</div>
+            <div class="lrole">President</div>
+          </div>
+          <div class="leader">
+            <div class="lname">Muhammad Qasim Shabbir</div>
+            <div class="lrole">Chief Executive Officer</div>
+          </div>
+        </div>
+
+        <div class="signup-id">
+          <span class="label">Doctor Sign-up ID</span>
+          <!-- CHANGE THIS CODE PER CARD -->
+          <span class="code">ARX-0001</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =====================================================================
+       BLACK EDITION
+  ====================================================================== -->
+  <div class="set-label">Black Edition</div>
+  <div class="card-set">
+
+    <!-- FRONT: contact / company info + naming watermark under entity -->
+    <div class="card front dark-black">
+      <div class="watermark">
+        <img class="wm-logo" src="logo-transparent.svg" alt="" />
+        <div class="wm-word">AestheticRXNetwork</div>
+      </div>
+      <div class="texture"></div>
+      <div class="inner">
+        <img class="emblem-lg" src="logo-transparent.svg" alt="AestheticRxNetwork logo" />
+        <div class="wordmark">Aesthetic<span class="rx">RX</span>Network</div>
+        <div class="tagline">Connected Aesthetic Care</div>
+
+        <div class="contacts">
+          <div class="contact">
+            <svg viewBox="0 0 24 24"><path class="path-blue" d="M2 4h20v16H2V4zm2 2v.5l8 5 8-5V6H4zm16 3.2-8 5-8-5V18h16V9.2z"/></svg>
+            <span>aestheticrxnetwork@gmail.com</span>
+          </div>
+          <div class="contact">
+            <svg viewBox="0 0 24 24"><path class="path-blue" d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1l-2.2 2.2z"/></svg>
+            <span>+92 322 5690149</span>
+          </div>
+          <div class="contact">
+            <svg viewBox="0 0 24 24"><path class="path-blue" d="M12 2a10 10 0 100 20 10 10 0 000-20zm6.9 9h-2.5a15.6 15.6 0 00-1-4.6A8 8 0 0118.9 11zM12 4c.8 1.1 1.6 2.9 1.8 5h-3.6C10.4 6.9 11.2 5.1 12 4zM4.3 13h2.5c.2 1.7.6 3.3 1 4.6A8 8 0 014.3 13zm2.5-2H4.3a8 8 0 013.5-4.6c-.4 1.3-.8 2.9-1 4.6zM12 20c-.8-1.1-1.6-2.9-1.8-5h3.6c-.2 2.1-1 3.9-1.8 5zm2.2-1.4c.4-1.3.8-2.9 1-4.6h2.5a8 8 0 01-3.5 4.6z"/></svg>
+            <span>aestheticrxnetwork.vercel.app</span>
+          </div>
+        </div>
+
+        <div class="address">
+          <div class="contact" style="justify-content:center;">
+            <svg viewBox="0 0 24 24"><path class="path-blue" d="M12 2a7 7 0 00-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 00-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z"/></svg>
+            <span>Plot No. GP-1, ES4, Machi Para, Upper Gizri,</span>
+          </div>
+          <div>Saddar Town, Karachi South, Sindh, Pakistan</div>
+        </div>
+
+        <div class="entity">AESTHETICRXNETWORK (PRIVATE LIMITED)</div>
+      </div>
+    </div>
+
+    <!-- BACK: leadership + doctor sign-up ID (no naming watermark) -->
+    <div class="card back dark-black">
+      <div class="watermark">
+        <img class="wm-logo" src="logo-transparent.svg" alt="" />
+      </div>
+      <div class="texture"></div>
+      <div class="inner">
+        <div class="top">
+          <img class="emblem" src="logo-transparent.svg" alt="AestheticRxNetwork logo" />
+          <div class="brand-block">
+            <div class="wordmark">Aesthetic<span class="rx">RX</span>Network</div>
+            <div class="tagline">Connected Aesthetic Care</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="leaders">
+          <div class="leader">
+            <div class="lname">Muhammad Asim Shabbir</div>
+            <div class="lrole">President</div>
+          </div>
+          <div class="leader">
+            <div class="lname">Muhammad Qasim Shabbir</div>
+            <div class="lrole">Chief Executive Officer</div>
+          </div>
+        </div>
+
+        <div class="signup-id">
+          <span class="label">Doctor Sign-up ID</span>
+          <!-- CHANGE THIS CODE PER CARD -->
+          <span class="code">ARX-0001</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

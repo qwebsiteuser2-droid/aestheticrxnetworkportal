@@ -1,8 +1,13 @@
 import { Request, Response } from 'express';
 import { OAuth2Client } from 'google-auth-library';
 import { AppDataSource } from '../db/data-source';
-import { Doctor } from '../models/Doctor';
+import { Doctor, UserType } from '../models/Doctor';
+import { AllowedSignupId } from '../models/AllowedSignupId';
+import { Notification } from '../models/Notification';
 import { generateTokenPair } from '../utils/jwt';
+import { hashPassword, generateRandomPassword } from '../utils/password';
+import gmailService from '../services/gmailService';
+import { whatsappService } from '../services/whatsappService';
 
 // Initialize Google OAuth client
 const GOOGLE_CLIENT_ID = process.env.CLIENT_ID_GOOGLESIGNIN;
@@ -50,17 +55,35 @@ async function verifyGoogleToken(idToken: string): Promise<GoogleTokenPayload | 
   }
 }
 
+function normalizeUserType(userTypeRaw: unknown): UserType {
+  const userTypeStr = String(userTypeRaw || 'regular_user').toLowerCase();
+  if (userTypeStr === 'regular_user' || userTypeStr === 'regular') {
+    return UserType.REGULAR;
+  }
+  if (userTypeStr === 'employee') {
+    return UserType.EMPLOYEE;
+  }
+  return UserType.DOCTOR;
+}
+
 /**
- * Google Sign-In (login only)
+ * Google Sign-In / Sign-Up
  *
- * Google Sign-In is restricted to existing accounts only.
- * - If user exists: logs them in (skips OTP since Google verified email)
- * - If user does NOT exist: returns redirectToSignup so the frontend
- *   can redirect them to the regular signup page
+ * Login (default): existing accounts only; missing account → redirectToSignup
+ * Signup (mode=signup): creates account with Google profile
+ *   - regular_user: auto-approved
+ *   - doctor: requires signup_id; waits for admin approval
  */
 export const googleAuth = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { idToken } = req.body;
+    const {
+      idToken,
+      mode = 'login',
+      userType: userTypeRaw,
+      signup_id,
+      clinic_name,
+      consent,
+    } = req.body;
 
     if (!idToken) {
       res.status(400).json({
@@ -92,33 +115,167 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
     console.log('✅ Google token verified for:', googleUser.email);
 
     const doctorRepository = AppDataSource.getRepository(Doctor);
+    const normalizedEmail = googleUser.email.toLowerCase().trim();
 
     // Check if user already exists (by email or Google ID)
     let user = await doctorRepository.findOne({
       where: [
-        { email: googleUser.email.toLowerCase() },
+        { email: normalizedEmail },
         { google_id: googleUser.sub },
       ],
     });
 
-    if (!user) {
-      // No account found — Google Sign-In is for existing users only
-      console.log('❌ Google Sign-In - No account found for:', googleUser.email);
-      res.status(404).json({
-        success: false,
-        message: 'No account found for this Google email. Please sign up first.',
-        redirectToSignup: true,
-      });
-      return;
-    }
+    let isNewUser = false;
 
-    // Existing user — link Google ID if not already linked
-    if (!user.google_id) {
-      user.google_id = googleUser.sub;
-      user.is_google_user = true;
-      user.google_email_verified = true;
-      await doctorRepository.save(user);
-      console.log('🔗 Linked Google account to existing user:', user.email);
+    if (!user) {
+      if (mode !== 'signup') {
+        console.log('❌ Google Sign-In - No account found for:', googleUser.email);
+        res.status(404).json({
+          success: false,
+          message: 'No account found for this Google email. Please sign up first.',
+          redirectToSignup: true,
+        });
+        return;
+      }
+
+      // --- Sign up with Google ---
+      const userType = normalizeUserType(userTypeRaw);
+
+      if (userType === UserType.EMPLOYEE) {
+        res.status(400).json({
+          success: false,
+          message: 'Employee accounts cannot be created with Google. Please use email signup.',
+        });
+        return;
+      }
+
+      // Consent defaults to true for Google (user chose Continue with Google)
+      const hasConsent = consent !== false && consent !== 'false';
+      if (!hasConsent) {
+        res.status(400).json({
+          success: false,
+          message: 'Consent is required to register',
+        });
+        return;
+      }
+
+      let allowedSignupId: AllowedSignupId | null = null;
+      const signupId = typeof signup_id === 'string' ? signup_id.trim() : '';
+
+      if (userType === UserType.DOCTOR) {
+        if (!signupId) {
+          res.status(400).json({
+            success: false,
+            message: 'Signup ID is required for doctor registration with Google',
+          });
+          return;
+        }
+
+        const signupIdRepository = AppDataSource.getRepository(AllowedSignupId);
+        allowedSignupId = await signupIdRepository.findOne({
+          where: { signup_id: signupId, is_used: false },
+        });
+
+        if (!allowedSignupId) {
+          res.status(400).json({
+            success: false,
+            message: 'Invalid or already used signup ID',
+          });
+          return;
+        }
+      }
+
+      // Unusable random password — Google users sign in via Google
+      const passwordHash = await hashPassword(generateRandomPassword(24));
+
+      let doctorId: number | undefined;
+      if (userType === UserType.DOCTOR) {
+        const lastDoctor = await doctorRepository
+          .createQueryBuilder('doctor')
+          .where('doctor.doctor_id IS NOT NULL')
+          .orderBy('doctor.doctor_id', 'DESC')
+          .getOne();
+        doctorId = lastDoctor?.doctor_id ? lastDoctor.doctor_id + 1 : 42001;
+      }
+
+      const isAutoApproved = userType === UserType.REGULAR;
+      const doctorName = (googleUser.name || googleUser.given_name || 'Google User').trim();
+      const clinicName =
+        typeof clinic_name === 'string' && clinic_name.trim()
+          ? clinic_name.trim()
+          : undefined;
+
+      user = doctorRepository.create({
+        doctor_id: doctorId,
+        email: normalizedEmail,
+        password_hash: passwordHash,
+        clinic_name: clinicName,
+        doctor_name: doctorName,
+        signup_id: userType === UserType.DOCTOR ? signupId : undefined,
+        user_type: userType,
+        consent_flag: true,
+        consent_at: new Date(),
+        is_approved: isAutoApproved,
+        is_admin: false,
+        approved_at: isAutoApproved ? new Date() : undefined,
+        google_id: googleUser.sub,
+        is_google_user: true,
+        google_email_verified: true,
+        profile_photo_url: googleUser.picture || undefined,
+      });
+
+      user = await doctorRepository.save(user);
+      isNewUser = true;
+      console.log('✅ Google Sign-Up - Created user:', user.email, user.user_type);
+
+      if (allowedSignupId) {
+        allowedSignupId.markAsUsed(normalizedEmail);
+        await AppDataSource.getRepository(AllowedSignupId).save(allowedSignupId);
+      }
+
+      if (userType === UserType.DOCTOR) {
+        const notificationRepository = AppDataSource.getRepository(Notification);
+        const adminNotification = notificationRepository.create({
+          recipient_id: user.id,
+          type: 'admin_alert',
+          payload: {
+            title: 'New Doctor Registration (Google)',
+            message: `New doctor registration via Google from ${doctorName}`,
+            data: {
+              doctorId: user.id,
+              clinicName: clinicName,
+              doctorName,
+              email: normalizedEmail,
+              signupId,
+            },
+          },
+        });
+        await notificationRepository.save(adminNotification);
+
+        try {
+          await gmailService.sendNewRegistrationAlert(user);
+          await whatsappService.sendNewRegistrationAlert(user);
+        } catch (error: unknown) {
+          console.error('Failed to send admin notifications:', error);
+        }
+      }
+    } else {
+      // Existing user — link Google ID if not already linked
+      if (!user.google_id) {
+        user.google_id = googleUser.sub;
+        user.is_google_user = true;
+        user.google_email_verified = true;
+        if (!user.profile_photo_url && googleUser.picture) {
+          user.profile_photo_url = googleUser.picture;
+        }
+        await doctorRepository.save(user);
+        console.log('🔗 Linked Google account to existing user:', user.email);
+      }
+
+      // If they tried signup but already have an account, continue as login
+      if (mode === 'signup') {
+        console.log('ℹ️ Google Sign-Up - Account already exists, signing in:', user.email);
+      }
     }
 
     // Check if user is deactivated
@@ -131,11 +288,8 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    console.log('🔑 Google Sign-In - Existing user:', user.email);
+    console.log('🔑 Google Auth - User:', user.email, isNewUser ? '(new)' : '(existing)');
 
-    const isNewUser = false;
-
-    // Generate JWT tokens (skip OTP since Google verified the email)
     const { accessToken, refreshToken } = generateTokenPair({
       userId: user.id,
       email: user.email,
@@ -144,10 +298,13 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
       isApproved: user.is_approved,
     });
 
-    // Return success response
-    res.status(200).json({
+    res.status(isNewUser ? 201 : 200).json({
       success: true,
-      message: isNewUser ? 'Account created successfully via Google' : 'Login successful via Google',
+      message: isNewUser
+        ? user.is_approved
+          ? 'Account created successfully via Google'
+          : 'Registration successful. Please wait for admin approval.'
+        : 'Login successful via Google',
       data: {
         user: {
           id: user.id,
@@ -164,15 +321,20 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
         accessToken,
         refreshToken,
         isNewUser,
-        // Skip OTP for Google users
         requiresOTP: false,
       },
     });
   } catch (error) {
     console.error('❌ Google auth error:', error);
+    let message = 'An error occurred during Google authentication';
+    if (error instanceof Error) {
+      if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+        message = 'You can make only one type of account';
+      }
+    }
     res.status(500).json({
       success: false,
-      message: 'An error occurred during Google authentication',
+      message,
     });
   }
 };
