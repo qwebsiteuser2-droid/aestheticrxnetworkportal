@@ -742,19 +742,40 @@ export const getUsers = async (req: AuthenticatedRequest, res: Response): Promis
       order: { created_at: 'DESC' }
     });
 
-    // Map user_type to match frontend expectations
-    // Backend uses: 'doctor', 'regular_user', 'employee'
-    // Frontend expects: 'doctor', 'regular_user', 'employee'
-    // No conversion needed - both use 'regular_user'
+    const statusFilter = String(req.query.status || req.query.approved || '').toLowerCase();
+
+    // Normalize so admin Pending tab never misses unapproved doctors
     const mappedUsers = users.map(user => {
-      const publicJSON = user.toPublicJSON();
-      // No conversion needed - enum already uses 'regular_user'
-      return publicJSON;
+      const publicJSON = user.toPublicJSON() as Record<string, unknown>;
+      const rawType = String(user.user_type || '').toLowerCase();
+      let userType = rawType;
+      if (rawType === 'regular' || rawType === 'regular_user') userType = 'regular_user';
+      else if (rawType === 'employee') userType = 'employee';
+      else if (rawType === 'doctor' || user.doctor_id != null) userType = 'doctor';
+      else if (!userType && user.doctor_id != null) userType = 'doctor';
+
+      return {
+        ...publicJSON,
+        user_type: userType || user.user_type,
+        is_approved: user.is_approved === true,
+        is_deactivated: user.is_deactivated === true,
+        is_google_user: user.is_google_user === true,
+        signup_id: user.signup_id || null,
+      };
     });
+
+    let filtered = mappedUsers;
+    if (statusFilter === 'pending' || statusFilter === 'false') {
+      filtered = mappedUsers.filter(
+        (u) => u.is_approved !== true && u.user_type !== 'regular_user'
+      );
+    } else if (statusFilter === 'approved' || statusFilter === 'true') {
+      filtered = mappedUsers.filter((u) => u.is_approved === true);
+    }
 
     res.json({
       success: true,
-      data: mappedUsers
+      data: filtered
     });
   } catch (error: unknown) {
     console.error('Get users error:', error);

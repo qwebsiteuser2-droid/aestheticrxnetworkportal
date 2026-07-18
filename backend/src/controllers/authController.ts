@@ -154,8 +154,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       doctorId = await getNextDoctorId();
     }
 
-    // Auto-approve only regular users (doctors and employees need admin approval)
-    const isAutoApproved = userType === UserType.REGULAR;
+    // Auto-approve doctors and regular users (approval gate deferred for launch friction)
+    // Employees still need admin approval
+    const isAutoApproved = userType === UserType.REGULAR || userType === UserType.DOCTOR;
 
     // Create user (using Doctor entity for all user types)
     console.log('🔍 Registration - Creating user with data:', {
@@ -198,7 +199,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       console.log('✅ Registration - Signup ID marked as used:', saved.signup_id, 'is_used:', saved.is_used, 'used_by_email:', saved.used_by_email);
     }
 
-    // Create notification for admins (only for doctors, regular users and employees are auto-approved)
+    // Create notification for admins when a doctor registers (even if auto-approved)
     if (userType === UserType.DOCTOR) {
       const notificationRepository = AppDataSource.getRepository(Notification);
       const adminNotification = notificationRepository.create({

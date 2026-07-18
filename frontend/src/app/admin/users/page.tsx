@@ -95,16 +95,24 @@ export default function UsersPage() {
           all: usersData.length
         });
         
-        // Ensure user_type is set correctly - if missing, infer from other fields
+        // Ensure user_type / is_approved are normalized for Pending tab
         const processedUsers = usersData.map((user: User) => {
-          // If user_type is missing, try to infer it
-          if (!user.user_type) {
-            // Employees typically have a specific pattern or field
-            // Regular users might not have doctor_id
-            // For now, we'll keep it as is and let the backend handle it
-            console.warn('👥 User missing user_type:', user.email, user);
-          }
-          return user;
+          const normalizedType = (() => {
+            const raw = String(user.user_type || '').toLowerCase().trim();
+            if (raw === 'regular' || raw === 'regular_user') return 'regular_user' as const;
+            if (raw === 'employee') return 'employee' as const;
+            if (raw === 'doctor' || raw === 'doctors' || user.doctor_id != null) return 'doctor' as const;
+            if (!user.user_type) {
+              console.warn('👥 User missing user_type:', user.email, user);
+            }
+            return (user.user_type || 'doctor') as User['user_type'];
+          })();
+          const approvedRaw = user.is_approved as unknown;
+          return {
+            ...user,
+            user_type: normalizedType,
+            is_approved: approvedRaw === true || approvedRaw === 'true' || approvedRaw === 1,
+          };
         });
         
         // Filter out the specific user from UI (keep in database, just hide from display)
@@ -400,30 +408,48 @@ export default function UsersPage() {
     }
   };
 
+  const normalizeType = (type?: string | null, doctorId?: number): string => {
+    const raw = String(type || '').toLowerCase().trim();
+    if (raw === 'regular' || raw === 'regular_user') return 'regular_user';
+    if (raw === 'employee') return 'employee';
+    if (raw === 'doctor' || raw === 'doctors') return 'doctor';
+    if (doctorId != null) return 'doctor';
+    return raw;
+  };
+
+  const isUserApproved = (user: User): boolean => {
+    const value = user.is_approved as unknown;
+    return value === true || value === 'true' || value === 1;
+  };
+
   const filteredUsers = (users || []).filter(user => {
-    // Filter by user type based on active tab
-    // Handle case where user_type might be null/undefined
-    // Backend uses 'regular', frontend expects 'regular_user' - handle both
-    const userType: string = user.user_type || '';
-    const matchesUserType = 
-      (activeTab === 'doctors' && userType === 'doctor') ||
-      (activeTab === 'regular_users' && (userType === 'regular_user' || userType === 'regular')) ||
-      (activeTab === 'employees' && userType === 'employee');
-    
-    // Regular users are always auto-approved, so exclude them from pending filter
-    const isRegularUser = userType === 'regular_user' || userType === 'regular';
-    const matchesFilter = filter === 'all' || 
-      (filter === 'pending' && !user.is_approved && !isRegularUser) || // Only doctors and employees can be pending
-      (filter === 'approved' && user.is_approved && !user.is_deactivated) ||
+    const userType = normalizeType(user.user_type, user.doctor_id);
+    const approved = isUserApproved(user);
+    const isRegularUser = userType === 'regular_user';
+
+    // Pending filter shows ALL pending doctors/employees across tabs
+    // (badge count was global; table used to hide them when wrong tab was selected)
+    const matchesUserType =
+      filter === 'pending'
+        ? userType === 'doctor' || userType === 'employee'
+        : (activeTab === 'doctors' && userType === 'doctor') ||
+          (activeTab === 'regular_users' && userType === 'regular_user') ||
+          (activeTab === 'employees' && userType === 'employee');
+
+    const matchesFilter =
+      filter === 'all' ||
+      (filter === 'pending' && !approved && !isRegularUser) ||
+      (filter === 'approved' && approved && !user.is_deactivated) ||
       (filter === 'deactivated' && user.is_deactivated);
-    
-    const matchesSearch = searchTerm === '' ||
+
+    const matchesSearch =
+      searchTerm === '' ||
       user.doctor_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (user.clinic_name && user.clinic_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (user.doctor_id && user.doctor_id.toString().includes(searchTerm)) ||
       (user.whatsapp && user.whatsapp.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     return matchesUserType && matchesFilter && matchesSearch;
   });
 
@@ -431,17 +457,18 @@ export default function UsersPage() {
   // Backend uses 'regular', frontend expects 'regular_user' - handle both
   // Also exclude the hidden user from counts
   const doctors = (users || []).filter(u => {
-    const type: string = u.user_type || '';
-    return type === 'doctor' && u.email !== hiddenUserEmail;
+    return normalizeType(u.user_type, u.doctor_id) === 'doctor' && u.email !== hiddenUserEmail;
   });
   const regularUsers = (users || []).filter(u => {
-    const type: string = u.user_type || '';
-    return (type === 'regular_user' || type === 'regular') && u.email !== hiddenUserEmail;
+    return normalizeType(u.user_type, u.doctor_id) === 'regular_user' && u.email !== hiddenUserEmail;
   });
   const employees = (users || []).filter(u => {
-    const type: string = u.user_type || '';
-    return type === 'employee' && u.email !== hiddenUserEmail;
+    return normalizeType(u.user_type, u.doctor_id) === 'employee' && u.email !== hiddenUserEmail;
   });
+  const pendingCount = (users || []).filter(u => {
+    const type = normalizeType(u.user_type, u.doctor_id);
+    return !isUserApproved(u) && type !== 'regular_user' && u.email !== hiddenUserEmail;
+  }).length;
 
   if (authLoading || loading) {
     return (
@@ -534,11 +561,7 @@ export default function UsersPage() {
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                Pending ({(users || []).filter(u => {
-                  const type: string = u.user_type || '';
-                  const isRegular = type === 'regular_user' || type === 'regular';
-                  return !u.is_approved && !isRegular && u.email !== hiddenUserEmail; // Only count doctors and employees, exclude hidden user
-                }).length})
+                Pending ({pendingCount})
               </button>
               <button
                 onClick={() => setFilter('approved')}

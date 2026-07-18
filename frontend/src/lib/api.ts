@@ -324,14 +324,28 @@ export const authApi = {
   ) => {
     const {
       mode = 'login',
-      userType = 'regular_user',
       signup_id,
       clinic_name,
       consent = true,
     } = options;
+    // Never default signup to regular_user — that auto-approves and hides from Pending
+    const userType =
+      options.userType ||
+      (mode === 'signup' ? undefined : 'regular_user');
+    if (mode === 'signup' && !userType) {
+      throw new Error('userType is required for Google signup');
+    }
     const response = await api.post(
       '/auth/google',
-      { idToken, mode, userType, signup_id, clinic_name, consent },
+      {
+        idToken,
+        mode,
+        userType,
+        user_type: userType,
+        signup_id,
+        clinic_name,
+        consent,
+      },
       { timeout: 30000 }
     );
     return response.data;

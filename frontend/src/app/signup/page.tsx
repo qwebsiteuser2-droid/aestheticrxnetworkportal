@@ -136,35 +136,25 @@ function SignupContent() {
         // Check user type from response (backend may return 'regular' instead of 'regular_user')
         const responseUserType = data.data?.user?.user_type || userType;
         const isRegularUser = responseUserType === 'regular_user' || responseUserType === 'regular';
+        const isDoctor = responseUserType === 'doctor';
         
         if (data.data?.accessToken) {
-          // Auto-approved user (only regular users are auto-approved)
+          // Auto-approved (doctors and regular users)
           toast.success(data.message || 'Registration successful!');
-          // Store tokens and redirect
           localStorage.setItem('accessToken', data.data.accessToken);
           if (data.data.refreshToken) {
             localStorage.setItem('refreshToken', data.data.refreshToken);
           }
           
-          // Regular users go directly to home page (no dashboard)
-          if (isRegularUser) {
-            console.log('✅ Registration - Regular user auto-approved, redirecting to home page');
-            router.push('/');
-            return;
-          } else {
-            // Doctors and employees are not auto-approved, redirect to waiting-approval page
-            console.log('⏳ Registration - Doctor/Employee needs approval, redirecting to waiting-approval');
-            router.push('/waiting-approval');
-            return;
-          }
+          console.log('✅ Registration - Auto-approved, redirecting to home');
+          router.push('/');
+          return;
         } else {
-          // This should only happen for doctors/employees (regular users always get tokens)
-          if (isRegularUser) {
-            // Regular user should always have tokens, but if somehow they don't, still redirect to home page
-            console.log('⚠️ Registration - Regular user but no tokens, redirecting to home page anyway');
+          // Employees (and any non-auto-approved types) wait for approval
+          if (isRegularUser || isDoctor) {
+            console.log('⚠️ Registration - Expected tokens for auto-approved user, going home anyway');
             router.push('/');
           } else {
-            // Doctor or Employee needs approval - redirect to waiting-approval page
             toast.success('Registration successful! Please wait for admin approval.');
             router.push('/waiting-approval');
           }
@@ -494,9 +484,9 @@ function SignupContent() {
                 Sign in here
               </Link>
             </p>
-            {userType === 'doctor' && (
+            {userType === 'employee' && (
               <p className="text-xs text-gray-500 mt-2">
-                If you've already registered, you may be waiting for admin approval. Check your email for updates.
+                Employee accounts need admin approval before you can access delivery tools.
               </p>
             )}
             <p className="text-xs text-gray-500 mt-2">

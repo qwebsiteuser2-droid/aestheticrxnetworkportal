@@ -19,7 +19,7 @@
  */
 const sanitizeUrl = (url: string): string => {
   if (!url || typeof url !== 'string') {
-    return 'https://aestheticrxdepolying-production.up.railway.app/api';
+    return 'https://aestheticrxnetworkportal-production-f8ab.up.railway.app/api';
   }
 
   let sanitized = url.trim();
@@ -88,7 +88,7 @@ const sanitizeUrl = (url: string): string => {
       sanitized = `https://${domain}/api`;
     } else {
       console.error('❌ URL sanitization failed, using default:', sanitized);
-      sanitized = 'https://aestheticrxdepolying-production.up.railway.app/api';
+      sanitized = 'https://aestheticrxnetworkportal-production-f8ab.up.railway.app/api';
     }
   }
   
@@ -128,7 +128,7 @@ export const getApiUrl = (): string => {
       // Try to get from env variable first, otherwise use default Railway URL
       const defaultRailwayUrl = process.env.NEXT_PUBLIC_API_URL || 
         process.env.NEXT_PUBLIC_RAILWAY_URL || 
-        'https://aestheticrxdepolying-production.up.railway.app/api';
+        'https://aestheticrxnetworkportal-production-f8ab.up.railway.app/api';
       
       const railwayUrl = sanitizeUrl(defaultRailwayUrl);
       

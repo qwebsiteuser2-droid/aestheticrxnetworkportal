@@ -55,15 +55,21 @@ async function verifyGoogleToken(idToken: string): Promise<GoogleTokenPayload | 
   }
 }
 
-function normalizeUserType(userTypeRaw: unknown): UserType {
-  const userTypeStr = String(userTypeRaw || 'regular_user').toLowerCase();
+function normalizeUserType(userTypeRaw: unknown): UserType | null {
+  if (userTypeRaw == null || String(userTypeRaw).trim() === '') {
+    return null;
+  }
+  const userTypeStr = String(userTypeRaw).toLowerCase().trim();
   if (userTypeStr === 'regular_user' || userTypeStr === 'regular') {
     return UserType.REGULAR;
   }
   if (userTypeStr === 'employee') {
     return UserType.EMPLOYEE;
   }
-  return UserType.DOCTOR;
+  if (userTypeStr === 'doctor' || userTypeStr === 'doctors') {
+    return UserType.DOCTOR;
+  }
+  return null;
 }
 
 /**
@@ -71,19 +77,22 @@ function normalizeUserType(userTypeRaw: unknown): UserType {
  *
  * Login (default): existing accounts only; missing account → redirectToSignup
  * Signup (mode=signup): creates account with Google profile
- *   - regular_user: auto-approved
- *   - doctor: requires signup_id; waits for admin approval
+ *   - regular_user and doctor: auto-approved
+ *   - doctor: requires signup_id
+ *   - employee: not supported via Google
  */
 export const googleAuth = async (req: Request, res: Response): Promise<void> => {
   try {
     const {
       idToken,
       mode = 'login',
-      userType: userTypeRaw,
+      userType: userTypeCamel,
+      user_type: userTypeSnake,
       signup_id,
       clinic_name,
       consent,
     } = req.body;
+    const userTypeRaw = userTypeCamel ?? userTypeSnake;
 
     if (!idToken) {
       res.status(400).json({
@@ -140,6 +149,13 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
 
       // --- Sign up with Google ---
       const userType = normalizeUserType(userTypeRaw);
+      if (!userType) {
+        res.status(400).json({
+          success: false,
+          message: 'userType is required for Google signup (doctor or regular_user)',
+        });
+        return;
+      }
 
       if (userType === UserType.EMPLOYEE) {
         res.status(400).json({
@@ -198,7 +214,9 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
         doctorId = lastDoctor?.doctor_id ? lastDoctor.doctor_id + 1 : 42001;
       }
 
-      const isAutoApproved = userType === UserType.REGULAR;
+      // Doctors and regular users are auto-approved (approval gate deferred)
+      // Employees still need admin approval
+      const isAutoApproved = userType === UserType.REGULAR || userType === UserType.DOCTOR;
       const doctorName = (googleUser.name || googleUser.given_name || 'Google User').trim();
       const clinicName =
         typeof clinic_name === 'string' && clinic_name.trim()
@@ -225,8 +243,16 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
       });
 
       user = await doctorRepository.save(user);
+
       isNewUser = true;
-      console.log('✅ Google Sign-Up - Created user:', user.email, user.user_type);
+      console.log(
+        '✅ Google Sign-Up - Created user:',
+        user.email,
+        'type=',
+        user.user_type,
+        'approved=',
+        user.is_approved
+      );
 
       if (allowedSignupId) {
         allowedSignupId.markAsUsed(normalizedEmail);
@@ -261,6 +287,18 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
       }
     } else {
       // Existing user — link Google ID if not already linked
+      if (mode === 'signup' && userTypeRaw) {
+        const requestedType = normalizeUserType(userTypeRaw);
+        if (requestedType && user.user_type !== requestedType) {
+          res.status(409).json({
+            success: false,
+            message:
+              'An account already exists for this Google email with a different account type. Please sign in, or use a different Google account.',
+          });
+          return;
+        }
+      }
+
       if (!user.google_id) {
         user.google_id = googleUser.sub;
         user.is_google_user = true;
