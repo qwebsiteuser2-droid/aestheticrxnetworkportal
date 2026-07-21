@@ -1106,7 +1106,9 @@ export default function OrderPage() {
                     {/* Price and Stock */}
                     <div className="flex items-center justify-between">
                       <span className="text-sm sm:text-base font-semibold text-blue-600">
-                        ₨{formatPrice(product.price)}
+                        {product.price != null && Number(product.price) > 0
+                          ? `₨${formatPrice(product.price)}`
+                          : 'Price on request'}
                       </span>
                       <span className={`text-xs px-2 py-1 rounded-full ${
                         (() => {
@@ -1215,7 +1217,9 @@ export default function OrderPage() {
                         {/* Price and Stock */}
                         <div className="flex items-center justify-between">
                           <span className="text-sm sm:text-base font-semibold text-blue-600">
-                            ₨{formatPrice(product.price)}
+                            {product.price != null && Number(product.price) > 0
+                              ? `₨${formatPrice(product.price)}`
+                              : 'Price on request'}
                           </span>
                           <span className={`text-xs px-2 py-1 rounded-full ${
                             (() => {
@@ -1313,7 +1317,11 @@ export default function OrderPage() {
                       <div key={productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex-1">
                           <div className="font-medium text-gray-900">{product.name}</div>
-                          <div className="text-sm text-gray-600">Rs {product.price.toLocaleString()} each</div>
+                          <div className="text-sm text-gray-600">
+                            {product.price != null && Number(product.price) > 0
+                              ? `Rs ${Number(product.price).toLocaleString()} each`
+                              : 'Price on request'}
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button

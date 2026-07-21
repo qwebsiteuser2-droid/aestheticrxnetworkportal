@@ -179,9 +179,11 @@ export default function PublicOrderCatalog() {
                   <ProductCatalogImage productId={product.id} alt={product.name} view="front" />
                 </div>
                 <h4 className="font-medium text-gray-900 text-sm sm:text-base line-clamp-2 flex-1">{product.name}</h4>
-                <p className="text-sm font-semibold mt-1" style={{ color: BRAND.blue }}>
-                  ₨{formatPrice(product.price)}
-                </p>
+                {product.price != null && product.price !== '' && !Number.isNaN(Number(product.price)) && Number(product.price) > 0 && (
+                  <p className="text-sm font-semibold mt-1" style={{ color: BRAND.blue }}>
+                    ₨{formatPrice(product.price)}
+                  </p>
+                )}
                 <span
                   className={`text-xs mt-1 inline-block px-2 py-0.5 rounded-full w-fit ${
                     inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'

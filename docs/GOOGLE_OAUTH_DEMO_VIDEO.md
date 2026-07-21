@@ -1,47 +1,76 @@
 # OAuth verification demo video
 
-Google requires a **publicly accessible** screen recording showing how your app uses each sensitive/restricted scope. A broken Drive link, private video, or login-walled file is the most common reason for rejection.
+Google requires a **publicly accessible** screen recording showing:
 
-## Requirements
+1. The **complete OAuth consent workflow** (this is what failed review on Jul 20, 2026)
+2. The **OAuth Consent Screen** with the **same scopes** you request (language = **English**)
+3. How the app **uses each scope** in real functionality
 
-- **Length:** 2–5 minutes
-- **Format:** MP4 uploaded to **YouTube (Unlisted)** recommended
-- **Access:** Anyone with the link can watch **without signing in to Google**
-- **Audio:** Optional; add short on-screen captions if no narration
-- **Show:** Real production or staging UI at `https://aestheticrxnetworkportal.vercel.app`
+Official checklist: [Demo Video — Google Cloud Help](https://support.google.com/cloud/answer/13804565)
 
-## What to record (gmail.send scope)
+## Record (updated script)
 
-Record this flow in order:
+```bash
+cd /home/engmatix/qasim_ai/aestheticrxnetworkportal
 
-1. **Homepage** — Show footer with **Privacy Policy** and **Terms of Service** links (`/`).
-2. **Privacy policy** — Open `/privacy`, scroll to **Section 13 — Google API Services** (Gmail API limited use).
-3. **Login** — Sign in as a test user (doctor or admin).
-4. **Trigger transactional email** (pick one):
-   - **OTP:** Log out → Log in → enter phone/email OTP (show email received), or
-   - **Order:** Place a test order → show order confirmation email, or
-   - **Admin:** Admin → send test notification if available
-5. **State clearly (text slide or voice):**  
-   *“We only use Gmail API to send transactional emails. We do not read the user’s inbox.”*
+DEMO_SITE_URL=https://aestheticrxnetwork.vercel.app \
+DEMO_SITE_EMAIL='YOUR_SITE_USER@email.com' \
+DEMO_SITE_PASSWORD='YOUR_SITE_PASSWORD' \
+DEMO_GMAIL_EMAIL='aestheticrxnetwork@gmail.com' \
+DEMO_GMAIL_PASSWORD='YOUR_GMAIL_PASSWORD' \
+DEMO_GMAIL_CLIENT_ID='YOUR_GMAIL_API_CLIENT_ID.apps.googleusercontent.com' \
+DEMO_HEADED=1 \
+node scripts/record-oauth-demo.mjs
+```
 
-If you use **Google Sign-In**, also show:
+`DEMO_GMAIL_CLIENT_ID` = Railway `GMAIL_API_CLIENT_ID` (the OAuth client that holds `gmail.send`).
 
-- Login with Google → account created/logged in
-- Mention only `openid`, `email`, `profile` are used
+Output:
+
+- `docs/oauth-demo-output/oauth-demo-portal-verification.mp4`
+- stamped copy `oauth-demo-consent-flow-*.mp4`
+
+## What the new recording includes (in order)
+
+1. Caption — purpose of the demo / Google requirements  
+2. Homepage — app name & branding  
+3. Privacy policy — Google API Limited Use section  
+4. `/oauth-verification` disclosure page  
+5. Terms of Service  
+6. **★ Google OAuth consent screen** opened with  
+   `https://www.googleapis.com/auth/gmail.send`  
+   (hold on screen so reviewers can read scopes; language English)  
+7. In-app **Continue with Google** (openid / email / profile)  
+8. Site login → OTP / transactional email = **how gmail.send is used**  
+9. Closing summary captions  
 
 ## Upload checklist
 
-- [ ] YouTube visibility = **Unlisted** (not Private)
-- [ ] Open the link in **Incognito** — video plays
-- [ ] Paste the same URL in Cloud Console → Verification → Demo video
-- [ ] Paste the same URL in your **reply email** to Google
+- [ ] Consent screen is **clearly visible** with **gmail.send** listed  
+- [ ] Consent screen language = **English**  
+- [ ] YouTube = **Unlisted** (not Private)  
+- [ ] Link plays in **Incognito** without login  
+- [ ] Reply to the OAuth Verification email with the **new** YouTube URL  
 
-## Example title
+## Reply email snippet
 
-`AestheticRxNetwork — Gmail API transactional email demo`
+```text
+Hello Google OAuth Verification Team,
+
+We have updated our demo video to show the complete OAuth consent
+workflow, including the Google OAuth Consent Screen with the
+gmail.send scope (English), and how AestheticRxNetwork uses that
+scope to send transactional email only (OTP / notifications).
+
+Updated demo video (YouTube Unlisted):
+<PASTE_YOUTUBE_LINK>
+
+Thank you,
+AestheticRxNetwork
+```
 
 ## Do not
 
-- Use Google Sites, Instagram, or Facebook as the “homepage” in the console
-- Use a Restricted scope demo for `mail.google.com` if you only request `gmail.send`
-- Submit a Google Drive link set to “Restricted” or “Organization only”
+- Submit a video that only shows the website without opening Google’s consent UI  
+- Use Private YouTube / restricted Drive links  
+- Demo `mail.google.com` if you only request `gmail.send`

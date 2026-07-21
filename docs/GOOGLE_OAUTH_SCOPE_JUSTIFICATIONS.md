@@ -1,11 +1,9 @@
-# Google OAuth scope justifications (copy-paste)
-
 Use these in **Google Cloud Console** → **OAuth consent screen** → **Scopes** → justification fields, and in your reply to the verification team.
 
 **Project:** aestheticrxnetworkportal (244788420362)  
 **App:** AestheticRxNetwork  
-**Homepage:** https://aestheticrxnetworkportal.vercel.app  
-**Privacy policy:** https://aestheticrxnetworkportal.vercel.app/privacy  
+**Homepage:** https://aestheticrxnetwork.vercel.app  
+**Privacy policy:** https://aestheticrxnetwork.vercel.app/privacy  
 **Demo video:** [paste your YouTube Unlisted URL]
 
 ---
@@ -73,7 +71,7 @@ Admins can securely archive or share exports they explicitly generate.
 - We do **not** read users’ Gmail inboxes.
 - We do **not** use Google data for advertising or resale.
 - We do **not** use Google user data to train general-purpose AI/ML models.
-- We do **not** host the privacy policy or homepage on Google Sites or social media; they are on https://aestheticrxnetworkportal.vercel.app
+- We do **not** host the privacy policy or homepage on Google Sites or social media; they are on https://aestheticrxnetwork.vercel.app
 
 ---
 
@@ -89,5 +87,5 @@ Scope justifications:
 3) drive.file — Admin-initiated data exports are saved only to Drive files created by our app.
 
 Privacy: https://aestheticrxnetworkportal.vercel.app/privacy (Section 13 — Google API Services)
-Demo video: [YOUR YOUTUBE URL]
+Demo video: https://www.youtube.com/watch?v=xNq1gIwWEJ4
 ```

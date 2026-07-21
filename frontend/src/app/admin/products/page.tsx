@@ -21,7 +21,7 @@ interface Product {
   id: string;
   name: string;
   description: string;
-  price: number;
+  price: number | null;
   image_url: string | null;
   slot_index: number;
   is_visible: boolean;
@@ -122,8 +122,8 @@ export default function ProductsPage() {
       return;
     }
     
-    if (!formData.name || !formData.price || !formData.slot_index || !formData.stock_quantity) {
-      toast.error('Please fill in all required fields');
+    if (!formData.name || !formData.slot_index || !formData.stock_quantity) {
+      toast.error('Please fill in all required fields (name, stock, slot). Price is optional.');
       return;
     }
 
@@ -144,7 +144,12 @@ export default function ProductsPage() {
       const formDataToSend = new FormData();
       formDataToSend.append('name', formData.name);
       formDataToSend.append('description', formData.description);
-      formDataToSend.append('price', formData.price);
+      if (formData.price !== '' && formData.price != null) {
+        formDataToSend.append('price', formData.price);
+      } else if (editingProduct) {
+        // Explicitly clear price when admin leaves the optional field blank
+        formDataToSend.append('price', '');
+      }
       formDataToSend.append('slot_index', formData.slot_index);
       formDataToSend.append('stock_quantity', formData.stock_quantity);
       
@@ -245,7 +250,7 @@ export default function ProductsPage() {
     setFormData({
       name: product.name,
       description: product.description,
-      price: product.price.toString(),
+      price: product.price != null && product.price !== undefined ? String(product.price) : '',
       slot_index: product.slot_index.toString(),
       stock_quantity: product.stock_quantity?.toString() || '0',
       images: emptyGalleryFiles(),
@@ -337,7 +342,7 @@ export default function ProductsPage() {
                   </div>
                 )}
                 <div className="text-sm text-green-600 font-bold">
-                  PKR {product.price.toLocaleString()}
+                  PKR {product.price != null && product.price !== '' ? Number(product.price).toLocaleString() : '— (hidden)'}
                 </div>
                 <div className={`text-xs font-medium ${product.stock_quantity === 0 ? 'text-red-600' : 'text-blue-600'}`}>
                   Stock: {product.stock_quantity || 0}
@@ -504,18 +509,20 @@ export default function ProductsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price (PKR) *
+                  Price (PKR) <span className="text-gray-400 font-normal">(optional)</span>
                 </label>
                 <input
                   type="number"
                   value={formData.price}
                   onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter price"
+                  placeholder="Leave blank to hide price on catalogue"
                   min="0"
                   step="0.01"
-                  required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Optional — if empty, price is not shown on the storefront catalogue.
+                </p>
               </div>
 
               <div>
@@ -681,7 +688,11 @@ export default function ProductsPage() {
                   <p className="text-sm font-medium text-gray-700 mb-1">Product Name:</p>
                   <p className="text-sm text-gray-900 break-words mb-2">{productToDelete.name}</p>
                   <p className="text-sm font-medium text-gray-700 mb-1">Price:</p>
-                  <p className="text-sm text-gray-900">PKR {productToDelete.price.toLocaleString()}</p>
+                  <p className="text-sm text-gray-900">
+                    {productToDelete.price != null
+                      ? `PKR ${Number(productToDelete.price).toLocaleString()}`
+                      : 'Price not set'}
+                  </p>
                   {productToDelete.description && (
                     <>
                       <p className="text-sm font-medium text-gray-700 mb-1 mt-2">Description:</p>

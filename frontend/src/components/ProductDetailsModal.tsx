@@ -348,10 +348,17 @@ export function ProductDetailsModal({
 
                 <div className="flex items-baseline justify-between border-t border-gray-100 pt-4">
                   <span className="text-sm text-gray-600">Unit price</span>
-                  <span className="text-2xl font-bold text-blue-600">
-                    ₨{formatPrice(product.price)}
-                    {product.unit ? ` / ${product.unit}` : ''}
-                  </span>
+                  {product.price != null &&
+                  product.price !== '' &&
+                  !Number.isNaN(Number(product.price)) &&
+                  Number(product.price) > 0 ? (
+                    <span className="text-2xl font-bold text-blue-600">
+                      ₨{formatPrice(product.price)}
+                      {product.unit ? ` / ${product.unit}` : ''}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-gray-500">Price on request</span>
+                  )}
                 </div>
 
                 <div

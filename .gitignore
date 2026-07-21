@@ -48,6 +48,17 @@ coverage/
 *.swo
 .vscode/settings.json
 
+# OAuth verification demo recordings (do not commit videos)
+docs/oauth-demo-output/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+
 # Uploads (uploaded at runtime, not tracked)
 backend/uploads/
 
