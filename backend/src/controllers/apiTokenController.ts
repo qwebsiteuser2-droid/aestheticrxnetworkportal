@@ -359,6 +359,13 @@ export class APITokenController {
    * Validate API token (admin only)
    */
   static async validateToken(req: AuthenticatedRequest, res: Response): Promise<void> {
+    // Hugging Face validation disabled — third-party AI integration removed for Limited Use compliance.
+    res.status(503).json({
+      success: false,
+      message: 'AI Research Assistant is coming soon. Third-party AI token validation is disabled.',
+    });
+    return;
+
     try {
       const { id } = req.params;
       const apiTokenRepository = AppDataSource.getRepository(APIToken);

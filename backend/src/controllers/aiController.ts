@@ -11,6 +11,13 @@ interface AIRequest {
 }
 
 export const generateAIContent = async (req: Request, res: Response): Promise<void> => {
+  // Third-party AI (Hugging Face / LLaMA) disabled for Google OAuth Limited Use compliance.
+  res.status(503).json({
+    success: false,
+    error: 'AI Research Assistant is coming soon. Third-party AI generation is currently disabled.',
+  });
+  return;
+
   try {
     const { prompt, contentType, researchType }: AIRequest = req.body;
 

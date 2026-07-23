@@ -2,11 +2,13 @@
 
 This guide covers everything required to pass Google's OAuth app verification for AestheticRxNetwork (Cloud project **244788420362**). Follow all steps in order.
 
+> **July 2026 update:** Google rejected `*.vercel.app` as homepage/privacy host and flagged Hugging Face AI. See **[GOOGLE_OAUTH_JUL2026_REPLY.md](./GOOGLE_OAUTH_JUL2026_REPLY.md)** for the current action list, reply template, and custom-domain requirement.
+
 ---
 
-## Google rejection (May 2026) — what to fix
+## Google rejection (May 2026) — historical notes
 
-Google flagged two items:
+Google previously flagged:
 
 1. **Homepage / privacy policy on third-party hosts** (e.g. Google Sites, social networks) — **Do not** use Google Sites or Facebook URLs in Cloud Console. Use only URLs on your deployed app:
    - Homepage: `https://aestheticrxnetworkportal.vercel.app`

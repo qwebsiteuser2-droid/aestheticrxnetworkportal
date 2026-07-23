@@ -20,7 +20,6 @@ import {
   ArrowLeftIcon,
   SparklesIcon
 } from '@heroicons/react/24/outline';
-import SideBySideAIAssistant from '@/components/SideBySideAIAssistant';
 import MermaidDiagram from '@/components/MermaidDiagram';
 import { extractMermaidDiagrams } from '@/utils/markdownUtils';
 import { getAccessToken } from '@/lib/auth';
@@ -54,7 +53,6 @@ export default function ResearchLabPage() {
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [showPdfUpload, setShowPdfUpload] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [showMonthlyLimitModal, setShowMonthlyLimitModal] = useState(false);
   const [monthlyLimitMessage, setMonthlyLimitMessage] = useState('');
 
@@ -765,29 +763,6 @@ Summarize your key findings and recommendations...
     toast.success('Upvoted!');
   };
 
-  const handleAIContentInsert = (content: string) => {
-    if (!currentNotebook || !isEditing) {
-      toast.error('Please select a notebook and enter edit mode first');
-      return;
-    }
-
-    const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
-    if (textarea) {
-      const cursorPos = textarea.selectionStart;
-      const newContent = currentNotebook.content.slice(0, cursorPos) + '\n\n' + content + '\n\n' + currentNotebook.content.slice(cursorPos);
-      setCurrentNotebook(prev => prev ? { ...prev, content: newContent } : null);
-      
-      // Set cursor position after the inserted content
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(cursorPos + content.length + 4, cursorPos + content.length + 4);
-      }, 0);
-      
-      toast.success(`AI-generated content inserted successfully!`);
-    }
-  };
-
-
   // Research Preview Component with Mermaid support
   const ResearchPreview = ({ content }: { content: string }) => {
     const diagrams = extractMermaidDiagrams(content);
@@ -1003,13 +978,15 @@ Summarize your key findings and recommendations...
 
                   {isEditing ? (
                     <div>
-                      <div className="mb-4 flex items-center space-x-2">
+                      <div className="mb-4 flex items-center space-x-2 flex-wrap gap-y-2">
                         <button
-                          onClick={() => setShowAIAssistant(true)}
-                          className="inline-flex items-center px-3 py-2 text-sm bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all shadow-md"
+                          type="button"
+                          disabled
+                          title="AI Research Assistant is coming soon"
+                          className="inline-flex items-center px-3 py-2 text-sm bg-gray-200 text-gray-500 rounded-lg cursor-not-allowed"
                         >
                           <SparklesIcon className="w-4 h-4 mr-2" />
-                          AI Assistant
+                          AI Assistant — Coming soon
                         </button>
                         <button
                           onClick={() => setShowImageUpload(true)}
@@ -1025,7 +1002,9 @@ Summarize your key findings and recommendations...
                           <DocumentTextIcon className="w-4 h-4 mr-2" />
                           Upload PDF
                         </button>
-                        <span className="text-sm text-gray-500">Get AI assistance for research questions, content generation, and paper enhancement</span>
+                        <span className="text-sm text-gray-500">
+                          AI Research Assistant is coming soon — not available for this release
+                        </span>
                       </div>
 
                       <div 
@@ -1278,12 +1257,6 @@ Summarize your key findings and recommendations...
           </div>
         )}
 
-        {/* AI Research Assistant */}
-        <SideBySideAIAssistant
-          isOpen={showAIAssistant}
-          onClose={() => setShowAIAssistant(false)}
-          onInsertContent={handleAIContentInsert}
-        />
       </div>
     </div>
   );

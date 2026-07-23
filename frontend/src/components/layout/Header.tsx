@@ -136,22 +136,15 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
     <>
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 relative pl-0 overflow-visible md:overflow-visible">
       <MobileHeaderChrome onLoginClick={onLoginClick} onRegisterClick={onRegisterClick} />
-      {/* Desktop Meta Attribution Banner - Hidden on mobile */}
-      <div className="hidden md:block bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100">
+      {/* Desktop attribution banner — Hidden on mobile */}
+      <div className="hidden md:block bg-gradient-to-r from-blue-50 to-slate-50 border-b border-gray-100">
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-center">
             <p className="text-xs text-gray-600 flex items-center space-x-2">
               <span>🤖</span>
-              <span>AI Research Assistant powered by</span>
-              <a 
-                href="https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800 font-medium underline"
-              >
-                LLaMA 3.1 by Meta
-              </a>
-              <span>via Hugging Face</span>
+              <span>
+                AI Research Assistant is <strong className="font-semibold text-gray-800">coming soon</strong>
+              </span>
             </p>
           </div>
         </div>

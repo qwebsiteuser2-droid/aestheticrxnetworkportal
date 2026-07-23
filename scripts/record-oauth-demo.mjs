@@ -5,7 +5,7 @@
  * Requirements: https://support.google.com/cloud/answer/13804565
  *
  * Usage (never commit passwords):
- *   DEMO_SITE_URL=https://aestheticrxnetwork.vercel.app \
+ *   DEMO_SITE_URL=https://YOUR-CUSTOM-DOMAIN \
  *   DEMO_SITE_EMAIL='user@example.com' \
  *   DEMO_SITE_PASSWORD='...' \
  *   DEMO_GMAIL_EMAIL='aestheticrxnetwork@gmail.com' \
@@ -14,6 +14,9 @@
  *   DEMO_HEADED=1 \
  *   node scripts/record-oauth-demo.mjs
  *
+ * DEMO_SITE_URL must be your verified custom domain for OAuth verification
+ * (Google rejects *.vercel.app as homepage). On the consent screen, expand
+ * all scopes ("Show all services") so every scope is readable; language=English.
  * DEMO_GMAIL_CLIENT_ID should be the same OAuth client used for gmail.send
  * (GMAIL_API_CLIENT_ID in Railway). If unset, the script still records Google
  * Sign-In consent on the site (openid/email/profile) plus captions for gmail.send.

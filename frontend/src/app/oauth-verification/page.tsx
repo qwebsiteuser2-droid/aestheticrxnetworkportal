@@ -105,6 +105,13 @@ export default function OAuthVerificationPage() {
             , including Limited Use requirements. Data is not sold, used for ads, or used to train general AI
             models.
           </p>
+          <p className="mt-3">
+            <strong>Affirmative Limited Use statement:</strong> The use of raw or derived user data received
+            from Workspace APIs will adhere to the Google User Data Policy, including the Limited Use
+            requirements. AestheticRxNetwork does not transfer Google Workspace or Photos user data to
+            third-party AI/ML services (including Hugging Face). The AI Research Assistant feature is
+            currently marked &quot;coming soon&quot; and is not active.
+          </p>
         </section>
 
         <p>

@@ -24,7 +24,7 @@ export default function PrivacyPage() {
     <LegalPageShell title="Privacy Policy">
         <div className="prose prose-lg max-w-none">
           <p className="text-sm text-gray-600 mb-6">
-            <strong>Last Updated:</strong> June 1, 2026 ·{' '}
+            <strong>Last Updated:</strong> July 23, 2026 ·{' '}
             <Link href="/oauth-verification" className="text-blue-600 underline">
               Google API disclosure
             </Link>
@@ -222,6 +222,13 @@ export default function PrivacyPage() {
               </a>
               , including the Limited Use requirements.
             </p>
+            <p className="text-gray-700 mb-4 font-medium">
+              Limited Use compliance statement: The use of raw or derived user data received from
+              Workspace APIs will adhere to the Google User Data Policy, including the Limited Use
+              requirements. We do not use Google user data to create, train, or improve generalized
+              AI/ML models, and we do not transfer Google user data to third-party AI services for
+              model training.
+            </p>
             <ul className="list-disc pl-6 mb-4 text-gray-700 space-y-3">
               <li>
                 <strong>Google Sign-In:</strong> We use Google Sign-In solely to verify your identity and
@@ -241,6 +248,13 @@ export default function PrivacyPage() {
                 files that you or an administrator explicitly generates within this application. We do
                 not access, read, or modify any pre-existing files in your Google Drive. Only files
                 created by AestheticRxNetwork are accessible to us.
+              </li>
+              <li>
+                <strong>No third-party AI on Google user data:</strong> AestheticRxNetwork does not send
+                Google Sign-In, Gmail, or Drive user data to Hugging Face, OpenAI, or any other
+                third-party AI/ML provider. Any future &quot;AI Research Assistant&quot; feature (currently
+                marked coming soon) will not process Google Workspace or Photos user data unless it
+                fully complies with Limited Use and is disclosed here first.
               </li>
             </ul>
             <p className="text-gray-700">

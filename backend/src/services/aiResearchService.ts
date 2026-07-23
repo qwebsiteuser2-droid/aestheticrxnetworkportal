@@ -147,6 +147,12 @@ class AIResearchService {
   }
 
   async generateResearchContent(request: AIResearchRequest): Promise<AIResearchResponse> {
+    // Third-party AI (Hugging Face) disabled — Google OAuth Limited Use compliance.
+    return {
+      success: false,
+      error: 'AI Research Assistant is coming soon. Third-party AI generation is currently disabled.',
+    };
+
     try {
       // Get the AI model and API token
       let aiModel: AIModel;
@@ -292,6 +298,13 @@ class AIResearchService {
   }
 
   async generateStreamingContent(request: AIResearchRequest, res: any): Promise<void> {
+    // Third-party AI (Hugging Face) disabled — Google OAuth Limited Use compliance.
+    res.status(503).json({
+      success: false,
+      error: 'AI Research Assistant is coming soon. Third-party AI generation is currently disabled.',
+    });
+    return;
+
     let responseStarted = false;
     
     console.log('=== Starting streaming content generation ===');
