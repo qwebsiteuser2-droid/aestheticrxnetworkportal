@@ -4,6 +4,8 @@ import { googleAuth, linkGoogleAccount, unlinkGoogleAccount, getGoogleClientId }
 import { getUserLeaderboardPosition } from '../controllers/leaderboardController';
 import { updateAvailability } from '../controllers/doctorSearchController';
 import { authenticate, authRateLimit } from '../middleware/auth';
+import { uploadProfilePhoto } from '../middleware/profilePhotoUpload';
+import { uploadMyProfilePhoto } from '../controllers/profilePhotoController';
 
 const router = Router();
 
@@ -33,6 +35,7 @@ router.post('/google', authRateLimit(loginMaxAttempts, loginWindowMs), googleAut
 // Protected routes
 router.get('/profile', authenticate, getProfile);
 router.put('/profile', authenticate, updateProfile);
+router.post('/profile-photo', authenticate, uploadProfilePhoto, uploadMyProfilePhoto);
 router.put('/change-password', authenticate, changePassword);
 router.post('/logout', authenticate, logout);
 

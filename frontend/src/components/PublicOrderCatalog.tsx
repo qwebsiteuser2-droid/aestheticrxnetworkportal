@@ -129,11 +129,11 @@ export default function PublicOrderCatalog() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-            <span style={{ color: BRAND.blue }}>Order</span>{' '}
-            <span style={{ color: BRAND.gold }}>Products</span>
+            <span style={{ color: BRAND.blue }}>Order skincare</span>{' '}
+            <span style={{ color: BRAND.gold }}>& aesthetic products</span>
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Browse and order medical supplies — no sign-in required to browse
+            Browse skincare & aesthetic products — no sign-in required to browse
           </p>
         </div>
         <button
@@ -150,7 +150,7 @@ export default function PublicOrderCatalog() {
       <div className="mb-4">
         <input
           type="search"
-          placeholder="Search products by name, description, or category..."
+          placeholder="Search skincare & aesthetic products..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"

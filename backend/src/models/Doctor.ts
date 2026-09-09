@@ -92,6 +92,10 @@ export class Doctor {
   @Column({ type: 'varchar', length: 500, nullable: true })
   profile_photo_url?: string;
 
+  /** Base64 data URL for uploaded profile photo (Railway-safe; not served in list JSON) */
+  @Column({ type: 'text', nullable: true, select: false })
+  profile_photo_data?: string | null;
+
   @Column({ type: 'boolean', default: false })
   consent_flag!: boolean;
 

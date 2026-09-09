@@ -55,6 +55,7 @@ import unsubscribeRoutes from './routes/unsubscribe';
 import badgeRoutes from './routes/badges';
 import conversationRoutes from './routes/conversations';
 import notificationRoutes from './routes/notifications';
+import { serveProfilePhoto } from './controllers/profilePhotoController';
 import { diagnoseGmailSetup, testGmailConnection, testOrderNotification, testPaymentConfirmation } from './controllers/testGmailController';
 import { sendManualOrderNotification, sendManualPaymentConfirmation } from './controllers/manualNotificationController';
 import { Doctor } from './models/Doctor';
@@ -711,6 +712,13 @@ app.get('/api/images/:path(*)', async (req, res): Promise<void> => {
 
 // Dedicated endpoint to serve product images from database by product ID
 // This is the most reliable way to serve images on Railway since it uses the database
+app.get('/api/profile-photos/:id', serveProfilePhoto);
+app.options('/api/profile-photos/:id', (_req, res): void => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.status(204).end();
+});
+
 app.get('/api/product-images/:productId', async (req, res): Promise<void> => {
   try {
     const { productId } = req.params;

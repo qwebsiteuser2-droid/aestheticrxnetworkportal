@@ -220,10 +220,11 @@ export const getNearbyDoctors = async (req: Request, res: Response): Promise<voi
  */
 export const searchDoctors = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { q, lat, lng, page = 1, limit = 20, sort, available_only, min_received, min_accepted } =
+    const { q, city, lat, lng, page = 1, limit = 20, sort, available_only, min_received, min_accepted } =
       req.query;
 
     const searchQuery = ((q as string) || '').trim().toLowerCase();
+    const cityFilter = ((city as string) || '').trim().toLowerCase();
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
     const offset = (pageNum - 1) * limitNum;
@@ -264,6 +265,12 @@ export const searchDoctors = async (req: Request, res: Response): Promise<void> 
         )`;
         params.push(`%${searchQuery}%`, searchQuery);
         paramIndex += 2;
+      }
+
+      if (cityFilter) {
+        baseWhere += ` AND LOWER(COALESCE(d.google_location->>'address', '')) LIKE $${paramIndex}`;
+        params.push(`%${cityFilter}%`);
+        paramIndex += 1;
       }
 
       let havingClause = '';
@@ -400,6 +407,13 @@ export const searchDoctors = async (req: Request, res: Response): Promise<void> 
       query = query.andWhere(
         '(LOWER(doctor.doctor_name) LIKE :search OR LOWER(doctor.clinic_name) LIKE :search OR :searchExact = ANY(doctor.tags))',
         { search: `%${searchQuery}%`, searchExact: searchQuery }
+      );
+    }
+
+    if (cityFilter) {
+      query = query.andWhere(
+        `LOWER(COALESCE(doctor.google_location->>'address', '')) LIKE :city`,
+        { city: `%${cityFilter}%` }
       );
     }
 

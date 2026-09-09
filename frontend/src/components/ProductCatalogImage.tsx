@@ -12,7 +12,7 @@ type ProductCatalogImageProps = {
 };
 
 /**
- * Product thumbnail with proxy URL + graceful placeholder (never shows API error text).
+ * Product thumbnail with proxy URL + skeleton while loading (never blocks page chrome).
  */
 export function ProductCatalogImage({
   productId,
@@ -22,6 +22,7 @@ export function ProductCatalogImage({
 }: ProductCatalogImageProps) {
   const [failed, setFailed] = useState(false);
   const [tryMain, setTryMain] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   if (!productId || failed) {
     return (
@@ -35,19 +36,27 @@ export function ProductCatalogImage({
   const src = getProductImageSrc(productId, tryMain ? 'main' : view);
 
   return (
-    <img
-      src={src}
-      alt={alt}
-      className={className}
-      loading="lazy"
-      decoding="async"
-      onError={() => {
-        if (!tryMain && view !== 'main') {
-          setTryMain(true);
-          return;
-        }
-        setFailed(true);
-      }}
-    />
+    <div className="relative w-full h-full bg-gray-100">
+      {!loaded && (
+        <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-gray-100 to-gray-200" aria-hidden />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        className={`${className} ${loaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200`}
+        loading="lazy"
+        decoding="async"
+        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 200px"
+        onLoad={() => setLoaded(true)}
+        onError={() => {
+          if (!tryMain && view !== 'main') {
+            setTryMain(true);
+            setLoaded(false);
+            return;
+          }
+          setFailed(true);
+        }}
+      />
+    </div>
   );
 }

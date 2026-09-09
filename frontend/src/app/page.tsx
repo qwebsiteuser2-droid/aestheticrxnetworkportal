@@ -1317,7 +1317,7 @@ function ProtectedNavigation() {
               ? 'text-gray-700 hover:text-blue-600' 
               : 'text-gray-400 cursor-pointer'
           }`}
-          title={getFeatureTitle('Order Products')}
+          title={getFeatureTitle('Order skincare & aesthetic products')}
           disabled={!canAccessFeature('order')}
         >
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-transform shadow-sm ${
@@ -1331,7 +1331,7 @@ function ProtectedNavigation() {
           </div>
           <span className={`font-medium ${
             canAccessFeature('order') ? 'text-gray-700' : 'text-gray-400'
-          }`}>Order Products</span>
+          }`}>Order skincare & aesthetic products</span>
         </button>
       )}
       

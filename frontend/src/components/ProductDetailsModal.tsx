@@ -367,7 +367,7 @@ export function ProductDetailsModal({
                   }`}
                 >
                   {inStock
-                    ? `In stock (${maxQty - cartQuantity} available)`
+                    ? 'In stock'
                     : 'Out of stock'}
                 </div>
 

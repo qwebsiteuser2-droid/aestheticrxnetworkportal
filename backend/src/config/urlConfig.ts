@@ -46,7 +46,7 @@ export const getFrontendUrl = (requestOrigin?: string): string => {
   // Priority 3: Fallback based on environment
   if (process.env.NODE_ENV === 'production') {
     // In production, default to Vercel if not set
-    return 'https://aestheticrxnetwork.vercel.app';
+    return 'https://www.aestheticrxnetwork.com';
   }
 
   // Development fallback
@@ -69,6 +69,8 @@ export const getAllFrontendUrls = (): string[] => {
   urls.push('https://aestheticrxnetworkportal-zeta.vercel.app');
   urls.push('https://aestheticrxnetworkportal-*.vercel.app');
 
+  urls.push('https://www.aestheticrxnetwork.com');
+  urls.push('https://aestheticrxnetwork.com');
   urls.push('https://aestheticrxnetwork.vercel.app');
   urls.push('https://aestheticrxnetwork-*.vercel.app');
 

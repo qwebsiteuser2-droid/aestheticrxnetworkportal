@@ -4,7 +4,7 @@
  */
 export const PRODUCTION_SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
-  'https://aestheticrxnetwork.vercel.app';
+  'https://www.aestheticrxnetwork.com';
 
 export function absoluteUrl(path: string): string {
   const p = path.startsWith('/') ? path : `/${path}`;

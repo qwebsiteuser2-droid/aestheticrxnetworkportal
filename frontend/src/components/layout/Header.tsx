@@ -136,20 +136,6 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
     <>
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 relative pl-0 overflow-visible md:overflow-visible">
       <MobileHeaderChrome onLoginClick={onLoginClick} onRegisterClick={onRegisterClick} />
-      {/* Desktop attribution banner — Hidden on mobile */}
-      <div className="hidden md:block bg-gradient-to-r from-blue-50 to-slate-50 border-b border-gray-100">
-        <div className="container mx-auto px-4 py-2">
-          <div className="flex items-center justify-center">
-            <p className="text-xs text-gray-600 flex items-center space-x-2">
-              <span>🤖</span>
-              <span>
-                AI Research Assistant is <strong className="font-semibold text-gray-800">coming soon</strong>
-              </span>
-            </p>
-          </div>
-        </div>
-      </div>
-      
       <nav className="w-full max-w-[1920px] mx-auto px-0 sm:px-1 lg:px-2 hidden md:block">
         {/* Desktop Header Layout */}
         <div className="hidden md:flex justify-between items-center min-h-[5rem] relative py-1">
@@ -190,28 +176,30 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
             
             <Link
               href="/order"
-              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all font-medium text-sm ${
+              className={`flex items-center space-x-1.5 px-2.5 py-2 rounded-lg transition-all font-medium text-xs leading-tight max-w-[9.5rem] ${
                 isActive('/order') 
                   ? 'bg-blue-500 text-white shadow-md' 
                   : 'text-gray-600 hover:text-blue-600 hover:bg-white'
               }`}
-              title="Order medical supplies and products"
+              title="Order skincare & aesthetic products"
+              aria-label="Order skincare & aesthetic products"
             >
-              <span>🛒</span>
-              <span>Order</span>
+              <span className="shrink-0">🛒</span>
+              <span className="text-left whitespace-normal">Order skincare & aesthetic products</span>
             </Link>
 
             <Link
               href="/doctors"
-              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all font-medium text-sm ${
+              className={`flex items-center space-x-1.5 px-2.5 py-2 rounded-lg transition-all font-medium text-xs leading-tight max-w-[11rem] ${
                 isActive('/doctors') 
                   ? 'bg-emerald-500 text-white shadow-md' 
                   : 'text-gray-600 hover:text-emerald-600 hover:bg-white'
               }`}
-              title="Find doctors near you"
+              title="Looking for skincare & aesthetic doctors nearby"
+              aria-label="Looking for skincare & aesthetic doctors nearby"
             >
-              <span>👨‍⚕️</span>
-              <span>Find Doctors</span>
+              <span className="shrink-0">👨‍⚕️</span>
+              <span className="text-left whitespace-normal">Looking for skincare & aesthetic doctors nearby</span>
             </Link>
             
             <Link

@@ -63,6 +63,7 @@ export default function DoctorsPage() {
   >('default');
   const [minAppointmentsReceived, setMinAppointmentsReceived] = useState(0);
   const [minAppointmentsAccepted, setMinAppointmentsAccepted] = useState(0);
+  const [cityQuery, setCityQuery] = useState('');
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 12,
@@ -79,6 +80,10 @@ export default function DoctorsPage() {
       
       if (searchQuery) {
         url += `&q=${encodeURIComponent(searchQuery)}`;
+      }
+
+      if (cityQuery.trim()) {
+        url += `&city=${encodeURIComponent(cityQuery.trim())}`;
       }
       
       if (userLocation) {
@@ -126,6 +131,7 @@ export default function DoctorsPage() {
     }
   }, [
     searchQuery,
+    cityQuery,
     userLocation,
     showOnlineOnly,
     selectedRadius,
@@ -207,7 +213,38 @@ export default function DoctorsPage() {
       <main className="container mx-auto px-4 py-8">
         {/* Header Section */}
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Find a Doctor</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+            Looking for skincare & aesthetic doctors nearby
+          </h1>
+
+          {/* Community links (moved from mobile bottom tabs) */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="text-sm text-gray-500 self-center mr-1">Community:</span>
+            <Link
+              href="/messages"
+              className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-800 border border-indigo-100 hover:bg-indigo-100"
+            >
+              Status
+            </Link>
+            <Link
+              href="/leaderboard"
+              className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-100 hover:bg-amber-100"
+            >
+              Ranks
+            </Link>
+            <Link
+              href="/research"
+              className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-50 text-blue-800 border border-blue-100 hover:bg-blue-100"
+            >
+              Research
+            </Link>
+            <Link
+              href="/hall-of-pride"
+              className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-800 border border-yellow-100 hover:bg-yellow-100"
+            >
+              Pride
+            </Link>
+          </div>
           
           {/* Quick Action Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
@@ -303,7 +340,8 @@ export default function DoctorsPage() {
 
         {/* Search and Filters */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-8">
-          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
+          <form onSubmit={handleSearch} className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
             {/* Search Input */}
             <div className="flex-1 relative">
               <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -318,6 +356,20 @@ export default function DoctorsPage() {
               />
             </div>
 
+            <div className="sm:w-56 relative">
+              <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="search"
+                value={cityQuery}
+                onChange={(e) => setCityQuery(e.target.value)}
+                placeholder="City / area"
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                aria-label="Filter by city"
+              />
+            </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4">
             {/* Location Button */}
             <button
               type="button"
@@ -367,6 +419,7 @@ export default function DoctorsPage() {
             >
               Search
             </button>
+            </div>
           </form>
 
           {/* Expanded Filters */}

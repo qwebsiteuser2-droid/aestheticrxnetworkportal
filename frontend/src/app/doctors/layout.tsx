@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
 
-// SEO Metadata for doctors/appointment pages
 export const metadata: Metadata = {
-  title: 'Find Doctors | AestheticRxNetwork',
-  description: 'Browse and connect with verified healthcare professionals. View doctor profiles, check online status, and book appointments on AestheticRxNetwork.',
-  keywords: 'doctors, healthcare, appointments, medical professionals, find doctors, book appointment, AestheticRx',
+  title: 'Looking for skincare & aesthetic doctors nearby | AestheticRxNetwork',
+  description:
+    'Looking for skincare & aesthetic doctors nearby. Browse verified professionals, check availability, and book appointments on AestheticRxNetwork.',
+  keywords:
+    'skincare doctors, aesthetic doctors, find doctors nearby, aesthetic clinic, AestheticRxNetwork',
   openGraph: {
-    title: 'Find Doctors | AestheticRxNetwork',
-    description: 'Connect with verified healthcare professionals and book appointments.',
+    title: 'Looking for skincare & aesthetic doctors nearby | AestheticRxNetwork',
+    description: 'Connect with skincare and aesthetic doctors near you.',
     type: 'website',
   },
 };
@@ -19,4 +20,3 @@ export default function DoctorsLayout({
 }) {
   return children;
 }
-

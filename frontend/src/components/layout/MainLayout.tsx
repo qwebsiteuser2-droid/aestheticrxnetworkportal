@@ -75,14 +75,16 @@ export function MainLayout({ children }: MainLayoutProps) {
 
             <Link
               href="/order"
-              className={`flex items-center space-x-1.5 px-4 py-2 rounded-lg transition-all font-medium text-sm ${
+              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all font-medium text-xs leading-tight max-w-[9.5rem] ${
                 isActive('/order')
                   ? 'bg-blue-500 text-white shadow-md'
                   : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
               }`}
+              title="Order skincare & aesthetic products"
+              aria-label="Order skincare & aesthetic products"
             >
-              <span>🛒</span>
-              <span>Order</span>
+              <span className="shrink-0">🛒</span>
+              <span className="text-left whitespace-normal">Order skincare & aesthetic products</span>
             </Link>
 
             <Link
@@ -111,14 +113,16 @@ export function MainLayout({ children }: MainLayoutProps) {
 
             <Link
               href="/doctors"
-              className={`flex items-center space-x-1.5 px-4 py-2 rounded-lg transition-all font-medium text-sm ${
+              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all font-medium text-xs leading-tight max-w-[11rem] ${
                 isActive('/doctors')
                   ? 'bg-emerald-500 text-white shadow-md'
                   : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
               }`}
+              title="Looking for skincare & aesthetic doctors nearby"
+              aria-label="Looking for skincare & aesthetic doctors nearby"
             >
-              <span>👨‍⚕️</span>
-              <span>Find Doctors</span>
+              <span className="shrink-0">👨‍⚕️</span>
+              <span className="text-left whitespace-normal">Looking for skincare & aesthetic doctors nearby</span>
             </Link>
 
             {isAuthenticated && (user?.user_type === 'doctor' || hasAdminAccess) && (

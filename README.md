@@ -1,34 +1,39 @@
-# AestheticRxNetwork - B2B Medical Platform
+# AestheticRxNetwork - B2B Skincare & Aesthetic Platform
 
-**Version:** 3.6.0  
-**Last Updated:** July 17, 2026  
+**Version:** 3.7.0  
+**Last Updated:** September 9, 2026  
 **Status:** Production Ready ✅  
 **Registered entity:** AESTHETICRXNETWORK (PRIVATE LIMITED)
 
-A comprehensive B2B platform designed for medical clinics and doctors to manage orders, share research papers, track performance, collaborate within a medical community, book appointments with doctors, and manage advertisements.
+A B2B network for aesthetic and skincare clinics: order skincare & aesthetic products, find skincare & aesthetic doctors nearby, share research, track clinic performance, book appointments, and grow together.
 
-> **v3.6.0 — Brand consolidation:** The product is now formally incorporated. UI, titles, and metadata use the display name **AestheticRxNetwork**; legal, invoice, and copyright text use the registered entity **AESTHETICRXNETWORK (PRIVATE LIMITED)**. The canonical site URL is `aestheticrxnetwork.vercel.app`.
+> **v3.7.0 — Aesthetic UI polish:** Visible nav labels for **Order skincare & aesthetic products** and **Looking for skincare & aesthetic doctors nearby** (desktop + mobile). Doctor cards show photos; city/address filter on Find Pros; Community links (Status, Ranks, Research, Pride) on `/doctors`. Doctor profile photo upload at `/profile` (client compress → Postgres, Railway-safe). Canonical site: `https://www.aestheticrxnetwork.com`. Product images tip: upload ~800px / under ~250KB JPEG/WebP for faster mobile loads.
+
+> **v3.6.0 — Brand consolidation:** UI and metadata use **AestheticRxNetwork**; legal text uses **AESTHETICRXNETWORK (PRIVATE LIMITED)**.
 
 ### Production stack
 
 | Layer | Hosting | Notes |
 |-------|---------|--------|
-| **Frontend** | [Vercel](https://vercel.com) (Next.js 14) | e.g. `aestheticrxnetwork.vercel.app` |
+| **Frontend** | [Vercel](https://vercel.com) (Next.js 14) | `https://www.aestheticrxnetwork.com` |
 | **Backend API** | [Railway](https://railway.app) (Node.js / Express) | REST + Socket.io |
-| **Database** | PostgreSQL 15 | TypeORM migrations on deploy |
+| **Database** | PostgreSQL 15 | TypeORM migrations on deploy; product + doctor profile photos in DB |
 | **Email** | Gmail API | Orders, invoices, appointments, tiers |
-| **Files** | PostgreSQL (product images) + optional uploads dir | Gallery stored in DB for Railway |
+| **Files** | PostgreSQL (product / profile images) + optional uploads dir | Prefer DB storage on Railway |
 
-Configure via root [`env.example`](env.example) — see [docs/ENVIRONMENT_VARIABLES_REFERENCE.md](docs/ENVIRONMENT_VARIABLES_REFERENCE.md).
+Set `NEXT_PUBLIC_SITE_URL=https://www.aestheticrxnetwork.com` on Vercel. Configure via root [`env.example`](env.example) — see [docs/ENVIRONMENT_VARIABLES_REFERENCE.md](docs/ENVIRONMENT_VARIABLES_REFERENCE.md).
 
 ### User roles
 
 | Role | Description |
 |------|-------------|
 | **Admin** | Full dashboard at `/admin` (users, products, orders, invoices, ads, tiers, exports) |
-| **Doctor / clinic** | Orders, research, advertisements, tier benefits, delivery location |
+| **Doctor / clinic** | Orders, research, Find Pros photo at `/profile`, advertisements, tier benefits |
 | **Employee** | Delivery assignment dashboard |
 | **Regular user** | Book appointments, comment on doctor profiles |
+
+### Mobile navigation
+Bottom tabs: **Home** | **Order skincare & aesthetic products** | **Looking for skincare & aesthetic doctors nearby**. Status / Ranks / Research / Pride live under Community on `/doctors`.
 
 ## 📋 Table of Contents
 
