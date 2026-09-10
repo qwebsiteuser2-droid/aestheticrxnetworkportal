@@ -8,40 +8,8 @@ import { useAuth } from '@/app/providers';
 import { Header } from '@/components/layout/Header';
 import api from '@/lib/api';
 import { getProfileImageUrl } from '@/lib/apiConfig';
+import { compressProfilePhoto } from '@/lib/compressProfilePhoto';
 import { CameraIcon } from '@heroicons/react/24/outline';
-
-const MAX_EDGE = 600;
-const JPEG_QUALITY = 0.75;
-const MAX_OUTPUT_BYTES = 150 * 1024;
-
-async function compressImageFile(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-  const width = Math.max(1, Math.round(bitmap.width * scale));
-  const height = Math.max(1, Math.round(bitmap.height * scale));
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Could not process image');
-  ctx.drawImage(bitmap, 0, 0, width, height);
-  bitmap.close();
-
-  const blob: Blob | null = await new Promise((resolve) =>
-    canvas.toBlob((b) => resolve(b), 'image/jpeg', JPEG_QUALITY)
-  );
-  if (!blob) throw new Error('Compression failed');
-  if (blob.size > MAX_OUTPUT_BYTES) {
-    const tighter: Blob | null = await new Promise((resolve) =>
-      canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.6)
-    );
-    if (!tighter || tighter.size > MAX_OUTPUT_BYTES) {
-      throw new Error('Image is still too large. Choose a smaller photo.');
-    }
-    return tighter;
-  }
-  return blob;
-}
 
 /**
  * Doctor profile settings — photo upload (then link to full public profile).
@@ -78,7 +46,7 @@ export default function ProfilePage() {
     }
     setUploading(true);
     try {
-      const compressed = await compressImageFile(file);
+      const compressed = await compressProfilePhoto(file);
       const form = new FormData();
       form.append('photo', compressed, 'profile.jpg');
       const res = await api.post('/auth/profile-photo', form, {
@@ -126,7 +94,8 @@ export default function ProfilePage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Profile photo</h1>
         <p className="text-sm text-gray-600 mb-6">
           Upload a clear professional photo for Find Pros cards. Images are compressed on your device
-          (max ~600px, under ~150KB) before upload.
+          (max ~600px, under ~150KB) before upload. You can also change your photo from your full
+          profile page.
         </p>
 
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col items-center">
@@ -159,13 +128,10 @@ export default function ProfilePage() {
           </button>
 
           <Link
-            href={user.id ? `/doctors/${user.id}` : '/'}
+            href={user.id ? `/user/${user.id}` : '/'}
             className="mt-6 text-sm text-blue-600 hover:underline"
           >
-            View public doctor profile →
-          </Link>
-          <Link href={`/user/${user.id}`} className="mt-2 text-sm text-gray-500 hover:underline">
-            Open full profile page
+            Open full profile page →
           </Link>
         </div>
       </main>

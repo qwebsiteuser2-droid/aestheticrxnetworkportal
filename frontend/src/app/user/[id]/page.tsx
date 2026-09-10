@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/app/providers';
 import { getAccessToken } from '@/lib/auth';
 import { getApiUrl } from '@/lib/getApiUrl';
 import api from '@/lib/api';
-import { FaTrophy, FaMedal, FaCalendarAlt, FaTag, FaEdit, FaSave, FaTimes, FaPlus, FaMinus, FaDownload, FaEye, FaThumbsUp, FaAward, FaStar, FaRibbon, FaCrown, FaGem, FaChartLine, FaCheck, FaUser } from 'react-icons/fa';
+import { FaTrophy, FaMedal, FaCalendarAlt, FaTag, FaEdit, FaSave, FaTimes, FaPlus, FaMinus, FaDownload, FaEye, FaThumbsUp, FaAward, FaStar, FaRibbon, FaCrown, FaGem, FaChartLine, FaCheck, FaUser, FaCamera } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import DoctorAppointmentStatsTab from '@/components/profile/DoctorAppointmentStatsTab';
 import DoctorPatientCommentsTab from '@/components/profile/DoctorPatientCommentsTab';
+import { getProfileImageUrl } from '@/lib/apiConfig';
+import { compressProfilePhoto } from '@/lib/compressProfilePhoto';
 
 interface ResearchPaper {
   id: string;
@@ -54,6 +56,7 @@ interface UserStats {
   whatsapp: string;
   bio: string;
   tags: string[];
+  profile_photo_url?: string;
   is_approved: boolean;
   is_admin: boolean;
   join_date: string;
@@ -174,6 +177,8 @@ export default function UserProfilePage() {
   const [userTags, setUserTags] = useState<string[]>([]);
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [userBio, setUserBio] = useState('');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   
   // State for section selection
   const [selectedSection, setSelectedSection] = useState('overview');
@@ -480,6 +485,36 @@ export default function UserProfilePage() {
     setIsEditingBio(false);
   };
 
+  const handlePhotoUpload = async (file: File | null) => {
+    if (!file || !isOwner) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please choose an image file');
+      return;
+    }
+    setUploadingPhoto(true);
+    try {
+      const compressed = await compressProfilePhoto(file);
+      const form = new FormData();
+      form.append('photo', compressed, 'profile.jpg');
+      const response = await api.post('/auth/profile-photo', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (response.data?.success) {
+        const url = (response.data.data?.profile_photo_url as string | undefined) || '';
+        setUser((prev) => (prev ? { ...prev, profile_photo_url: url } : null));
+        toast.success('Profile photo updated');
+      } else {
+        toast.error(response.data?.message || 'Upload failed');
+      }
+    } catch (error: any) {
+      console.error('Error uploading photo:', error);
+      toast.error(error?.response?.data?.message || error?.message || 'Upload failed');
+    } finally {
+      setUploadingPhoto(false);
+      if (photoInputRef.current) photoInputRef.current.value = '';
+    }
+  };
+
   const getOrdinalPosition = (num: number): string => {
     const j = num % 10;
     const k = num % 100;
@@ -720,6 +755,47 @@ export default function UserProfilePage() {
         {/* Profile Header */}
         <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-8">
           <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 sm:space-y-6 md:space-y-0 md:space-x-8">
+            {/* Profile photo */}
+            <div className="flex flex-col items-center shrink-0">
+              <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center text-white text-3xl sm:text-4xl font-semibold shadow-md ring-4 ring-white">
+                {getProfileImageUrl(user.profile_photo_url) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={getProfileImageUrl(user.profile_photo_url)!}
+                    alt={user.name || 'Profile'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  (user.name || '?')
+                    .split(/\s+/)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((p) => p[0]?.toUpperCase())
+                    .join('') || '?'
+                )}
+              </div>
+              {isOwner && (
+                <>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => handlePhotoUpload(e.target.files?.[0] || null)}
+                  />
+                  <button
+                    type="button"
+                    disabled={uploadingPhoto}
+                    onClick={() => photoInputRef.current?.click()}
+                    className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-blue-600 text-white text-xs sm:text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  >
+                    <FaCamera />
+                    {uploadingPhoto ? 'Uploading…' : 'Change photo'}
+                  </button>
+                </>
+              )}
+            </div>
+
             <div className="flex-1 text-center md:text-left w-full">
               {/* Tier and Rank */}
               <div className="mb-3 sm:mb-4">

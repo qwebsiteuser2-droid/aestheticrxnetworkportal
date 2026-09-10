@@ -128,15 +128,9 @@ export default function DoctorCard({ doctor, showDistance = true, variant = 'car
     distance_km,
     appointments_received,
     appointments_accepted,
-    google_location,
   } = doctor;
 
-  const profileUrl = `/doctors/${id}`;
-  const addressSnippet = google_location?.address
-    ? google_location.address.length > 60
-      ? `${google_location.address.slice(0, 57)}…`
-      : google_location.address
-    : null;
+  const profileUrl = `/user/${id}`;
   const showAppointmentStats =
     (appointments_received ?? 0) > 0 || (appointments_accepted ?? 0) > 0;
 
@@ -188,12 +182,6 @@ export default function DoctorCard({ doctor, showDistance = true, variant = 'car
           <Link href={profileUrl} className="flex-1 min-w-0 text-left">
             <h3 className="font-semibold text-gray-900 truncate hover:text-blue-600">{doctor_name}</h3>
             {clinic_name && <p className="text-sm text-gray-500 truncate">{clinic_name}</p>}
-            {addressSnippet && (
-              <p className="text-xs text-gray-400 truncate flex items-center mt-0.5">
-                <MapPinIcon className="w-3 h-3 mr-1 shrink-0" />
-                {addressSnippet}
-              </p>
-            )}
             <div className="flex items-center mt-1 space-x-3">
               <OnlineStatusDot
                 isOnline={is_online || false}
@@ -253,12 +241,6 @@ export default function DoctorCard({ doctor, showDistance = true, variant = 'car
             </h3>
           </Link>
           {clinic_name && <p className="text-sm text-gray-500 truncate mt-0.5">{clinic_name}</p>}
-          {addressSnippet && (
-            <p className="text-xs text-gray-400 mt-1 line-clamp-2 flex items-start justify-center gap-1">
-              <MapPinIcon className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-              <span>{addressSnippet}</span>
-            </p>
-          )}
           <div className="flex items-center justify-center space-x-3 mt-2">
             <OnlineStatusDot
               isOnline={is_online || false}
