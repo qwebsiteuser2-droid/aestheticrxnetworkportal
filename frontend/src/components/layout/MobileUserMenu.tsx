@@ -7,6 +7,12 @@ import {
   ArrowRightOnRectangleIcon,
   Cog6ToothIcon,
   ChevronDownIcon,
+  TrophyIcon,
+  CalendarDaysIcon,
+  BookOpenIcon,
+  StarIcon,
+  ChatBubbleLeftRightIcon,
+  ShoppingCartIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/app/providers';
 import { useAdminPermission } from '@/hooks/useAdminPermission';
@@ -47,6 +53,9 @@ export function MobileUserMenu() {
 
   const displayName = user?.doctor_name?.split(' ')[0] || 'Account';
 
+  const menuLinkClass =
+    'flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50';
+
   return (
     <div className="relative" ref={ref}>
       <button
@@ -69,7 +78,7 @@ export function MobileUserMenu() {
             onClick={() => setOpen(false)}
           />
           <div
-            className="absolute right-0 top-full mt-1 w-[min(16rem,calc(100vw-1rem))] bg-white rounded-xl shadow-xl border border-gray-200 z-[100] py-1 overflow-hidden"
+            className="absolute right-0 top-full mt-1 w-[min(16rem,calc(100vw-1rem))] max-h-[min(70vh,28rem)] overflow-y-auto bg-white rounded-xl shadow-xl border border-gray-200 z-[100] py-1"
             role="menu"
           >
             <div className="px-3 py-2 border-b border-gray-100">
@@ -79,14 +88,54 @@ export function MobileUserMenu() {
               )}
             </div>
 
-            {!isRegularUser && user?.is_approved && (
+            <Link
+              href="/leaderboard"
+              role="menuitem"
+              className={menuLinkClass}
+              onClick={() => setOpen(false)}
+            >
+              <TrophyIcon className="w-5 h-5" />
+              Leaderboard
+            </Link>
+
+            <Link
+              href="/appointments"
+              role="menuitem"
+              className={menuLinkClass}
+              onClick={() => setOpen(false)}
+            >
+              <CalendarDaysIcon className="w-5 h-5" />
+              Set Appointments
+            </Link>
+
+            <Link
+              href="/research"
+              role="menuitem"
+              className={menuLinkClass}
+              onClick={() => setOpen(false)}
+            >
+              <BookOpenIcon className="w-5 h-5" />
+              Research
+            </Link>
+
+            <Link
+              href="/hall-of-pride"
+              role="menuitem"
+              className={menuLinkClass}
+              onClick={() => setOpen(false)}
+            >
+              <StarIcon className="w-5 h-5" />
+              Hall of Pride
+            </Link>
+
+            {!isRegularUser && user?.is_approved && user?.user_type !== 'employee' && (
               <Link
                 href="/order"
                 role="menuitem"
-                className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                className={menuLinkClass}
                 onClick={() => setOpen(false)}
               >
-                <UserCircleIcon className="w-5 h-5" />
+                <ShoppingCartIcon className="w-5 h-5" />
                 Order Products
               </Link>
             )}
@@ -95,7 +144,7 @@ export function MobileUserMenu() {
               <Link
                 href="/waiting-approval"
                 role="menuitem"
-                className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                className={menuLinkClass}
                 onClick={() => setOpen(false)}
               >
                 <UserCircleIcon className="w-5 h-5" />
@@ -107,7 +156,7 @@ export function MobileUserMenu() {
               <Link
                 href="/employee/dashboard"
                 role="menuitem"
-                className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                className={menuLinkClass}
                 onClick={() => setOpen(false)}
               >
                 <UserCircleIcon className="w-5 h-5" />
@@ -119,7 +168,7 @@ export function MobileUserMenu() {
               <Link
                 href="/admin"
                 role="menuitem"
-                className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                className={menuLinkClass}
                 onClick={() => setOpen(false)}
               >
                 <Cog6ToothIcon className="w-5 h-5" />
@@ -127,14 +176,17 @@ export function MobileUserMenu() {
               </Link>
             )}
 
-            <Link
-              href="/messages"
-              role="menuitem"
-              className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-              onClick={() => setOpen(false)}
-            >
-              Appointment Status
-            </Link>
+            {(user?.user_type === 'doctor' || hasAdminAccess) && (
+              <Link
+                href="/messages"
+                role="menuitem"
+                className={menuLinkClass}
+                onClick={() => setOpen(false)}
+              >
+                <ChatBubbleLeftRightIcon className="w-5 h-5" />
+                Appointment Status
+              </Link>
+            )}
 
             <button
               type="button"

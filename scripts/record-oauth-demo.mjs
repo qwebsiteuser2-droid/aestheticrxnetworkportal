@@ -102,7 +102,13 @@ async function scrollSlowly(page, steps = 4) {
 }
 
 async function showCaption(page, lines, holdMs = 8000) {
-  await page.setContent(`<!DOCTYPE html>
+  // Leave restrictive Google pages first — setContent fails under Trusted Types CSP
+  try {
+    await page.goto('about:blank', { waitUntil: 'domcontentloaded', timeout: 10000 });
+  } catch {
+    /* ignore */
+  }
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -134,7 +140,8 @@ async function showCaption(page, lines, holdMs = 8000) {
     <div class="badge">Consent screen language: English</div>
   </div>
 </body>
-</html>`);
+</html>`;
+  await page.setContent(html, { waitUntil: 'domcontentloaded' });
   await pause(page, holdMs);
 }
 
@@ -307,9 +314,17 @@ async function showGmailSendConsentFlow(page, gmailClientId, signInClientId) {
     }
 
     console.log('Holding on OAuth consent / Google auth UI… URL:', page.url());
-    await pause(page, 16000);
+    await pause(page, 12000);
+    for (const label of ['Show all services', 'See details', 'Show more']) {
+      const expand = page.locator(`button:has-text("${label}"), a:has-text("${label}")`).first();
+      if ((await expand.count()) > 0 && (await expand.isVisible().catch(() => false))) {
+        console.log('Expanding scopes:', label);
+        await expand.click({ timeout: 3000 }).catch(() => {});
+        await pause(page, 5000);
+      }
+    }
     await page.evaluate(() => window.scrollBy(0, 180)).catch(() => {});
-    await pause(page, 6000);
+    await pause(page, 10000);
     await page.screenshot({
       path: path.join(OUT_DIR, 'oauth-consent-screen-snapshot.png'),
       fullPage: true,
@@ -449,6 +464,24 @@ async function trySiteLoginAndOtp(page) {
   } else {
     await pause(page, 5000);
   }
+
+  // Post-login feature tour (shows real product use after auth)
+  await showCaption(page, [
+    'After login — platform features that rely on account + transactional email:',
+    'Order catalogue · Leaderboard · Doctor search · Research',
+  ], 7000);
+
+  for (const pathPart of ['/order', '/leaderboard', '/doctors', '/research']) {
+    try {
+      await page.goto(`${SITE}${pathPart}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await pause(page, 3500);
+      await scrollSlowly(page, 2);
+      await pause(page, 2000);
+    } catch (e) {
+      console.warn(`Feature tour skip ${pathPart}:`, e?.message || e);
+    }
+  }
+
   return true;
 }
 
@@ -470,9 +503,9 @@ async function main() {
     args: ['--disable-blink-features=AutomationControlled'],
   });
   const context = await browser.newContext({
-    viewport: { width: 1280, height: 720 },
+    viewport: { width: 1920, height: 1080 },
     locale: 'en-US',
-    recordVideo: { dir: OUT_DIR, size: { width: 1280, height: 720 } },
+    recordVideo: { dir: OUT_DIR, size: { width: 1920, height: 1080 } },
   });
   const page = await context.newPage();
 

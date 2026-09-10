@@ -1020,23 +1020,25 @@ export default function OrderPage() {
     <MainLayout>
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:min-h-16 sm:py-0 sm:h-16">
+            <div className="flex items-start gap-2 sm:items-center sm:space-x-4 min-w-0">
               <button
                 onClick={handleBackClick}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="flex items-center space-x-2 px-2 sm:px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
                 title="Go back to previous page"
               >
                 <ArrowLeftIcon className="w-5 h-5" />
                 <span className="hidden sm:inline font-medium">Back</span>
               </button>
-              <h1 className="text-2xl font-bold text-gray-900">Order skincare & aesthetic products</h1>
+              <h1 className="text-base sm:text-xl lg:text-2xl font-bold text-gray-900 leading-snug min-w-0">
+                Order skincare &amp; aesthetic products
+              </h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-2 sm:gap-4 pl-9 sm:pl-0">
               <button
                 onClick={() => setShowCart(true)}
-                className="relative bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="relative bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base shrink-0"
               >
                 Cart ({getCartItemCount()})
                 {getCartItemCount() > 0 && (
@@ -1045,12 +1047,14 @@ export default function OrderPage() {
                   </span>
                 )}
               </button>
-              <button
-                onClick={() => router.push('/admin')}
-                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Dashboard
-              </button>
+              {user?.is_admin && (
+                <button
+                  onClick={() => router.push('/admin')}
+                  className="bg-gray-200 text-gray-700 px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors text-sm sm:text-base shrink-0"
+                >
+                  Dashboard
+                </button>
+              )}
             </div>
           </div>
         </div>

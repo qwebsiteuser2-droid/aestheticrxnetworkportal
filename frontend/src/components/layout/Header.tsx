@@ -20,6 +20,8 @@ import {
   DocumentTextIcon,
   StarIcon,
   MegaphoneIcon,
+  CalendarDaysIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/outline';
 import NotificationBell from '@/components/NotificationBell';
 import { BrandTitle } from '@/components/BrandTitle';
@@ -117,19 +119,30 @@ export function Header({ onLoginClick, onRegisterClick, isAuthenticated, user, o
     if (isRegularUser) {
       return null;
     }
-    if (user?.is_approved) {
-      return { name: 'Order Products', href: '/order', icon: UserCircleIcon };
-    } else {
+    if (user?.is_approved && user?.user_type !== 'employee') {
+      return { name: 'Order Products', href: '/order', icon: ShoppingCartIcon };
+    }
+    if (!user?.is_approved) {
       // Only show Dashboard for unapproved doctors/employees (not regular users)
       return { name: 'Dashboard', href: '/waiting-approval', icon: UserCircleIcon };
     }
+    return null;
   };
 
   const dashboardLink = getDashboardLink();
   const userNavigation = [
-    ...(dashboardLink ? [dashboardLink] : []), // Only add if not null
-    // Add Admin Dashboard to dropdown if user has admin access
+    { name: 'Leaderboard', href: '/leaderboard', icon: TrophyIcon },
+    { name: 'Set Appointments', href: '/appointments', icon: CalendarDaysIcon },
+    { name: 'Research', href: '/research', icon: BookOpenIcon },
+    { name: 'Hall of Pride', href: '/hall-of-pride', icon: StarIcon },
+    ...(dashboardLink ? [dashboardLink] : []),
+    ...(user?.user_type === 'employee' && user?.is_approved
+      ? [{ name: 'Employee Dashboard', href: '/employee/dashboard', icon: UserCircleIcon }]
+      : []),
     ...(hasAdminAccess ? [{ name: 'Admin Dashboard', href: '/admin', icon: Cog6ToothIcon }] : []),
+    ...((user?.user_type === 'doctor' || hasAdminAccess)
+      ? [{ name: 'Appointment Status', href: '/messages', icon: ChatBubbleLeftRightIcon }]
+      : []),
   ];
 
   return (
