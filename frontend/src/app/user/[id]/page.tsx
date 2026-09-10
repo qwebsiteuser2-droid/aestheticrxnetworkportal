@@ -134,7 +134,7 @@ interface UserStats {
 export default function UserProfilePage() {
   const params = useParams();
   const router = useRouter();
-  const { user: currentUser, isAuthenticated } = useAuth();
+  const { user: currentUser, isAuthenticated, updateUser } = useAuth();
   const userId = params.id as string;
   
   const [adminMode, setAdminMode] = useState(false);
@@ -500,8 +500,15 @@ export default function UserProfilePage() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       if (response.data?.success) {
-        const url = (response.data.data?.profile_photo_url as string | undefined) || '';
+        const baseUrl =
+          (response.data.data?.profile_photo_url as string | undefined) ||
+          `/api/profile-photos/${userId}`;
+        // Same path on every upload — bust browser/CDN cache so the new image shows
+        const url = `${baseUrl.split('?')[0]}?v=${Date.now()}`;
         setUser((prev) => (prev ? { ...prev, profile_photo_url: url } : null));
+        if (currentUser && String(currentUser.id) === String(userId)) {
+          updateUser({ ...currentUser, profile_photo_url: url });
+        }
         toast.success('Profile photo updated');
       } else {
         toast.error(response.data?.message || 'Upload failed');
@@ -761,6 +768,7 @@ export default function UserProfilePage() {
                 {getProfileImageUrl(user.profile_photo_url) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
+                    key={user.profile_photo_url}
                     src={getProfileImageUrl(user.profile_photo_url)!}
                     alt={user.name || 'Profile'}
                     className="w-full h-full object-cover"

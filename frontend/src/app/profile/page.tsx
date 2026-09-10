@@ -15,7 +15,7 @@ import { CameraIcon } from '@heroicons/react/24/outline';
  * Doctor profile settings — photo upload (then link to full public profile).
  */
 export default function ProfilePage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, updateUser } = useAuth();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -54,8 +54,16 @@ export default function ProfilePage() {
       });
       if (res.data?.success) {
         toast.success('Profile photo updated');
-        const url = res.data.data?.profile_photo_url as string | undefined;
-        if (url) setPreview(getProfileImageUrl(url));
+        const baseUrl =
+          (res.data.data?.profile_photo_url as string | undefined) ||
+          (user?.id ? `/api/profile-photos/${user.id}` : '');
+        if (baseUrl) {
+          const url = `${baseUrl.split('?')[0]}?v=${Date.now()}`;
+          setPreview(getProfileImageUrl(url));
+          if (user) {
+            updateUser({ ...user, profile_photo_url: url });
+          }
+        }
       } else {
         toast.error(res.data?.message || 'Upload failed');
       }

@@ -101,8 +101,9 @@ export const serveProfilePhoto = async (req: any, res: Response): Promise<void> 
 
     const contentType = match[1];
     const buffer = Buffer.from(match[2], 'base64');
+    // Photos keep a stable URL; avoid long browser cache so re-uploads show immediately
     res.setHeader('Content-Type', contentType);
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
     res.setHeader('Content-Length', String(buffer.length));
     res.send(buffer);
   } catch (error) {
