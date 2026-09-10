@@ -8,6 +8,7 @@ import { generateTokenPair } from '../utils/jwt';
 import { hashPassword, generateRandomPassword } from '../utils/password';
 import gmailService from '../services/gmailService';
 import { whatsappService } from '../services/whatsappService';
+import { resolvePublicProfilePhotoUrl } from '../utils/profilePhotoUrl';
 
 // Initialize Google OAuth client
 const GOOGLE_CLIENT_ID = process.env.CLIENT_ID_GOOGLESIGNIN;
@@ -303,7 +304,7 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
         user.google_id = googleUser.sub;
         user.is_google_user = true;
         user.google_email_verified = true;
-        if (!user.profile_photo_url && googleUser.picture) {
+        if (!user.profile_photo_data && !user.profile_photo_url && googleUser.picture) {
           user.profile_photo_url = googleUser.picture;
         }
         await doctorRepository.save(user);
@@ -353,7 +354,12 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
           is_admin: user.is_admin,
           is_approved: user.is_approved,
           is_google_user: user.is_google_user,
-          profile_photo_url: user.profile_photo_url,
+          profile_photo_url: resolvePublicProfilePhotoUrl({
+            id: user.id,
+            profile_photo_url: user.profile_photo_url,
+            profile_photo_data: user.profile_photo_data,
+            updated_at: user.updated_at,
+          }),
           tier: user.tier,
         },
         accessToken,
@@ -442,8 +448,8 @@ export const linkGoogleAccount = async (req: Request, res: Response): Promise<vo
     user.is_google_user = true;
     user.google_email_verified = googleUser.email_verified;
     
-    // Update profile photo if not set
-    if (!user.profile_photo_url && googleUser.picture) {
+    // Update profile photo if not set (never overwrite uploaded professional photo)
+    if (!user.profile_photo_data && !user.profile_photo_url && googleUser.picture) {
       user.profile_photo_url = googleUser.picture;
     }
 

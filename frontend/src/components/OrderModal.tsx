@@ -13,6 +13,7 @@ import { formatCurrency } from '@/lib/auth';
 import { getProductImageSrc } from '@/lib/productImageUrl';
 import DebtRestrictionModal from '@/components/DebtRestrictionModal';
 import { parseDebtLimitFromError } from '@/lib/debtLimitError';
+import { formatProductPriceLabel, hasVisibleProductPrice, parseProductPrice, PRICE_TBD_AT_DELIVERY } from '@/lib/productPrice';
 
 const orderSchema = z.object({
   qty: z.number().min(1, 'Quantity must be at least 1'),
@@ -210,11 +211,9 @@ export function OrderModal({ product, isOpen, onClose, onSuccess }: OrderModalPr
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900">{product.name}</h3>
                 <p className="text-sm text-gray-600">Slot {product.slot_index}</p>
-                {product.price && (
-                  <p className="text-lg font-bold text-primary-600">
-                    {formatCurrency(product.price)}
-                  </p>
-                )}
+                <p className={`text-lg font-bold ${hasVisibleProductPrice(product.price) ? 'text-primary-600' : 'text-gray-500'}`}>
+                  {formatProductPriceLabel(product.price)}
+                </p>
               </div>
             </div>
           </div>
@@ -334,12 +333,14 @@ export function OrderModal({ product, isOpen, onClose, onSuccess }: OrderModalPr
                       <span>Quantity:</span>
                       <span>{qty}</span>
                     </div>
-                    {product.price && (
-                      <div className="flex justify-between font-semibold">
-                        <span>Total:</span>
-                        <span>{formatCurrency(product.price * qty)}</span>
-                      </div>
-                    )}
+                    <div className="flex justify-between font-semibold">
+                      <span>Total:</span>
+                      <span>
+                        {hasVisibleProductPrice(product.price)
+                          ? formatCurrency((parseProductPrice(product.price) || 0) * qty)
+                          : PRICE_TBD_AT_DELIVERY}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </>
@@ -377,14 +378,14 @@ export function OrderModal({ product, isOpen, onClose, onSuccess }: OrderModalPr
                       }
                     </span>
                   </div>
-                  {product.price && (
-                    <div className="flex justify-between text-lg font-semibold border-t pt-3">
-                      <span>Total:</span>
-                      <span className="text-primary-600">
-                        {formatCurrency(product.price * qty)}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex justify-between text-lg font-semibold border-t pt-3">
+                    <span>Total:</span>
+                    <span className={hasVisibleProductPrice(product.price) ? 'text-primary-600' : 'text-gray-500'}>
+                      {hasVisibleProductPrice(product.price)
+                        ? formatCurrency((parseProductPrice(product.price) || 0) * qty)
+                        : PRICE_TBD_AT_DELIVERY}
+                    </span>
+                  </div>
                 </div>
               </>
             )}

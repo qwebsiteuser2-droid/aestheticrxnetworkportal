@@ -9,6 +9,7 @@ import { isValidEmail, filterValidEmails } from '../utils/emailValidator';
 import { createEmailDeliveryRecord, updateEmailDeliveryStatus } from './emailTrackingService';
 import { getFrontendUrl, getFrontendUrlWithPath } from '../config/urlConfig';
 import gmailApiService from './gmailApiService';
+import { formatPriceOrTbd, hasProductPrice, PRICE_TBD_AT_DELIVERY } from '../utils/productPrice';
 
 /**
  * Retry configuration for email sending
@@ -848,8 +849,14 @@ class GmailService {
                 <tr><td style="padding: 8px 0; font-weight: bold;">Description:</td><td style="padding: 8px 0;">${order.product?.description || 'No description available'}</td></tr>
                 <tr><td style="padding: 8px 0; font-weight: bold;">Category:</td><td style="padding: 8px 0;">${order.product?.category || 'General'}</td></tr>
                 <tr><td style="padding: 8px 0; font-weight: bold;">Quantity:</td><td style="padding: 8px 0;">${order.qty || 1}</td></tr>
-                <tr><td style="padding: 8px 0; font-weight: bold;">Unit Price:</td><td style="padding: 8px 0;">PKR ${order.product?.price || 0}</td></tr>
-                <tr><td style="padding: 8px 0; font-weight: bold;">Total Amount:</td><td style="padding: 8px 0; color: #28a745; font-weight: bold; font-size: 16px;">PKR ${order.order_total || 0}</td></tr>
+                <tr><td style="padding: 8px 0; font-weight: bold;">Unit Price:</td><td style="padding: 8px 0;">${formatPriceOrTbd(order.product?.price)}</td></tr>
+                <tr><td style="padding: 8px 0; font-weight: bold;">Total Amount:</td><td style="padding: 8px 0; color: #28a745; font-weight: bold; font-size: 16px;">${
+                  hasProductPrice(order.product?.price) && Number(order.order_total) > 0
+                    ? `PKR ${order.order_total}`
+                    : hasProductPrice(order.product?.price)
+                      ? formatPriceOrTbd(order.product?.price)
+                      : PRICE_TBD_AT_DELIVERY
+                }</td></tr>
                 <tr><td style="padding: 8px 0; font-weight: bold;">Payment Method:</td><td style="padding: 8px 0; color: #007bff; font-weight: bold;">${paymentMethodDisplay}</td></tr>
                 <tr><td style="padding: 8px 0; font-weight: bold;">Payment Status:</td><td style="padding: 8px 0; color: ${paymentMethod === 'payfast_online' && order.payment_status === 'paid' ? '#28a745' : paymentMethod === 'payfast_online' ? '#ffc107' : '#17a2b8'}; font-weight: bold;">${paymentStatusDisplay}</td></tr>
                 <tr><td style="padding: 8px 0; font-weight: bold;">Status:</td><td style="padding: 8px 0; background-color: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; font-weight: bold;">${order.status || 'PENDING'}</td></tr>

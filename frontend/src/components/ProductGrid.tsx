@@ -1,8 +1,8 @@
 'use client';
 
 import { Product } from '@/types';
-import { formatCurrency } from '@/lib/auth';
 import { getProductImageSrc } from '@/lib/productImageUrl';
+import { formatProductPriceLabel, hasVisibleProductPrice } from '@/lib/productPrice';
 
 interface ProductGridProps {
   products: Product[];
@@ -97,12 +97,10 @@ export function ProductGrid({ products, onProductClick }: ProductGridProps) {
 
                 <div className="flex items-center justify-between pt-2">
                   <div className="space-y-1">
-                    {product?.price && (
-                      <p className="text-lg font-bold text-gray-900">
-                        {formatCurrency(product?.price)}
-                      </p>
-                    )}
-                    {product?.unit && (
+                    <p className={`text-lg font-bold ${hasVisibleProductPrice(product?.price) ? 'text-gray-900' : 'text-gray-500'}`}>
+                      {formatProductPriceLabel(product?.price)}
+                    </p>
+                    {product?.unit && hasVisibleProductPrice(product?.price) && (
                       <p className="text-xs text-gray-500">
                         per {product?.unit}
                       </p>

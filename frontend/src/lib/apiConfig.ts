@@ -244,7 +244,12 @@ export const getProfileImageUrl = (imageUrl?: string | null): string | null => {
   const backendBaseUrl = getApiBaseUrl();
   
   // Ensure the image path starts with /
-  const imagePath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+  let imagePath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+
+  // Uploaded profile photos: always bust caches if API omitted ?v=
+  if (imagePath.includes('/api/profile-photos/') && !imagePath.includes('?')) {
+    imagePath = `${imagePath}?v=${Date.now()}`;
+  }
   
   return `${backendBaseUrl}${imagePath}`;
 };

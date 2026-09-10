@@ -1,6 +1,7 @@
 import PDFDocument from 'pdfkit';
 import { Order } from '../models/Order';
 import { getFrontendUrl, getBackendUrl, getFrontendUrlWithPath, getBackendUrlWithPath } from '../config/urlConfig';
+import { formatPriceOrTbd, hasProductPrice, PRICE_TBD_AT_DELIVERY } from '../utils/productPrice';
 
 class PDFService {
   /**
@@ -715,8 +716,18 @@ class PDFService {
            .text(`Product: ${order.product?.name}`, 70, 160)
            .text(`Description: ${order.product?.description || 'No description'}`, 70, 180)
            .text(`Quantity: ${order.qty}`, 70, 200)
-           .text(`Unit Price: PKR ${order.product?.price || 0}`, 70, 220)
-           .text(`Total Amount: PKR ${order.order_total}`, 70, 240)
+           .text(`Unit Price: ${formatPriceOrTbd(order.product?.price)}`, 70, 220)
+           .text(
+             `Total Amount: ${
+               hasProductPrice(order.product?.price) && Number(order.order_total) > 0
+                 ? `PKR ${order.order_total}`
+                 : hasProductPrice(order.product?.price)
+                   ? formatPriceOrTbd(order.product?.price)
+                   : PRICE_TBD_AT_DELIVERY
+             }`,
+             70,
+             240
+           )
            .text(`Payment Method: ${paymentMethod === 'payfast_online' ? 'PayFast Online Payment' : 'Cash on Delivery'}`, 70, 260)
            .text(`Status: ${order.payment_status || 'pending'}`, 70, 280)
            .text(`Order Date: ${order.created_at.toLocaleString()}`, 70, 300);

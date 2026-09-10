@@ -503,8 +503,9 @@ export default function UserProfilePage() {
         const baseUrl =
           (response.data.data?.profile_photo_url as string | undefined) ||
           `/api/profile-photos/${userId}`;
-        // Same path on every upload — bust browser/CDN cache so the new image shows
-        const url = `${baseUrl.split('?')[0]}?v=${Date.now()}`;
+        const url = baseUrl.includes('?')
+          ? baseUrl
+          : `${baseUrl.split('?')[0]}?v=${Date.now()}`;
         setUser((prev) => (prev ? { ...prev, profile_photo_url: url } : null));
         if (currentUser && String(currentUser.id) === String(userId)) {
           updateUser({ ...currentUser, profile_photo_url: url });

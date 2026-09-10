@@ -342,7 +342,7 @@ export default function ProductsPage() {
                   </div>
                 )}
                 <div className="text-sm text-green-600 font-bold">
-                  PKR {product.price != null && product.price !== '' ? Number(product.price).toLocaleString() : '— (hidden)'}
+                  PKR {product.price != null && product.price !== '' ? Number(product.price).toLocaleString() : '— (TBD at delivery)'}
                 </div>
                 <div className={`text-xs font-medium ${product.stock_quantity === 0 ? 'text-red-600' : 'text-blue-600'}`}>
                   Stock: {product.stock_quantity || 0}

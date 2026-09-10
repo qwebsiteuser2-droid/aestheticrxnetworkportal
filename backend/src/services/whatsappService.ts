@@ -2,6 +2,7 @@ import twilio from 'twilio';
 import { Doctor } from '../models/Doctor';
 import { Order } from '../models/Order';
 import { ResearchPaper } from '../models/ResearchPaper';
+import { formatPriceOrTbd, hasProductPrice, PRICE_TBD_AT_DELIVERY } from '../utils/productPrice';
 
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID?.trim();
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN?.trim();
@@ -153,8 +154,12 @@ _AestheticRxNetwork System_`;
 *Description:* ${order.product?.description || 'No description'}
 *Category:* ${order.product?.category || 'General'}
 *Quantity:* ${order.qty}
-*Unit Price:* PKR ${order.product?.price || 0}
-*Total:* PKR ${order.order_total}
+*Unit Price:* ${formatPriceOrTbd(order.product?.price)}
+*Total:* ${
+  hasProductPrice(order.product?.price) && Number(order.order_total) > 0
+    ? `PKR ${order.order_total}`
+    : PRICE_TBD_AT_DELIVERY
+}
 *Payment Method:* ${paymentMethodDisplay}
 *Payment Status:* ${paymentStatusDisplay}
 *Location:* ${order.order_location.address}

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../db/data-source';
 import { Doctor, UserType } from '../models/Doctor';
+import { resolvePublicProfilePhotoUrl } from '../utils/profilePhotoUrl';
 
 const ACCEPTED_APPOINTMENT_STATUSES = ['accepted', 'active'];
 
@@ -39,7 +40,14 @@ function mapDoctorSearchResult(
     id: doctor.id,
     doctor_name: doctor.doctor_name,
     clinic_name: doctor.clinic_name,
-    profile_photo_url: doctor.profile_photo_url,
+    profile_photo_url: resolvePublicProfilePhotoUrl({
+      id: doctor.id,
+      profile_photo_url: doctor.profile_photo_url,
+      has_stored_photo: Boolean(
+        doctor.profile_photo_url && String(doctor.profile_photo_url).includes('/api/profile-photos/')
+      ),
+      updated_at: doctor.updated_at,
+    }),
     bio: doctor.bio,
     tags: doctor.tags || [],
     specialties: (doctor as { specialties?: string[] }).specialties || [],
@@ -133,6 +141,7 @@ export const getNearbyDoctors = async (req: Request, res: Response): Promise<voi
         'doctor.google_location',
         'doctor.tier',
         'doctor.created_at',
+        'doctor.updated_at',
         'doctor.is_online',
         'doctor.availability_status',
         'doctor.last_active_at',
@@ -172,7 +181,14 @@ export const getNearbyDoctors = async (req: Request, res: Response): Promise<voi
           id: doctor.id,
           doctor_name: doctor.doctor_name,
           clinic_name: doctor.clinic_name,
-          profile_photo_url: doctor.profile_photo_url,
+          profile_photo_url: resolvePublicProfilePhotoUrl({
+            id: doctor.id,
+            profile_photo_url: doctor.profile_photo_url,
+            has_stored_photo: Boolean(
+              doctor.profile_photo_url && String(doctor.profile_photo_url).includes('/api/profile-photos/')
+            ),
+            updated_at: doctor.updated_at,
+          }),
           bio: doctor.bio,
           tags: doctor.tags || [],
           specialties: (doctor as any).specialties || [],
@@ -388,6 +404,7 @@ export const searchDoctors = async (req: Request, res: Response): Promise<void> 
         'doctor.google_location',
         'doctor.tier',
         'doctor.created_at',
+        'doctor.updated_at',
         'doctor.is_online',
         'doctor.availability_status',
         'doctor.last_active_at',
@@ -479,6 +496,7 @@ export const getDoctorProfile = async (req: Request, res: Response): Promise<voi
         'doctor.google_location',
         'doctor.tier',
         'doctor.created_at',
+        'doctor.updated_at',
         'doctor.is_online',
         'doctor.availability_status',
         'doctor.last_active_at',
@@ -506,7 +524,14 @@ export const getDoctorProfile = async (req: Request, res: Response): Promise<voi
         id: doctor.id,
         doctor_name: doctor.doctor_name,
         clinic_name: doctor.clinic_name,
-        profile_photo_url: doctor.profile_photo_url,
+        profile_photo_url: resolvePublicProfilePhotoUrl({
+          id: doctor.id,
+          profile_photo_url: doctor.profile_photo_url,
+          has_stored_photo: Boolean(
+            doctor.profile_photo_url && String(doctor.profile_photo_url).includes('/api/profile-photos/')
+          ),
+          updated_at: doctor.updated_at,
+        }),
         bio: doctor.bio,
         tags: doctor.tags || [],
         specialties: [],

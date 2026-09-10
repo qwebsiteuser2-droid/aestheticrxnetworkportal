@@ -5,6 +5,7 @@ import { Order } from '../models/Order';
 import gmailService from './gmailService';
 import { INVOICE_BRAND } from './invoiceBrand';
 import { resolveInvoiceLogoPath } from '../utils/resolveInvoiceLogoPath';
+import { PRICE_TBD_AT_DELIVERY, hasProductPrice, parseProductPrice, SHOW_CATALOGUE_PRICES_TO_USERS } from '../utils/productPrice';
 
 const BRAND_EMAIL =
   process.env.INVOICE_BRAND_EMAIL ||
@@ -45,12 +46,33 @@ function fmtDate(iso: string): string {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 }
 
-function lineTotal(item: InvoiceLineItem): number {
+function lineTotal(item: InvoiceLineItem): number | null {
+  if (item.unitPrice == null || !Number.isFinite(Number(item.unitPrice))) return null;
   return Number(item.qty) * Number(item.unitPrice);
 }
 
 export function computeGrandTotal(items: InvoiceLineItem[]): number {
-  return items.reduce((s, r) => s + lineTotal(r), 0);
+  return items.reduce((s, r) => {
+    const t = lineTotal(r);
+    return s + (t ?? 0);
+  }, 0);
+}
+
+function formatUnitPriceCell(item: InvoiceLineItem): string {
+  if (item.unitPrice == null || !Number.isFinite(Number(item.unitPrice))) {
+    return PRICE_TBD_AT_DELIVERY;
+  }
+  return fmtNum(Number(item.unitPrice));
+}
+
+function formatLineTotalCell(item: InvoiceLineItem): string {
+  const t = lineTotal(item);
+  if (t == null) return PRICE_TBD_AT_DELIVERY;
+  return fmtNum(t);
+}
+
+function invoiceHasAnyTbd(items: InvoiceLineItem[]): boolean {
+  return items.some((r) => r.unitPrice == null || !Number.isFinite(Number(r.unitPrice)));
 }
 
 function formatInvoiceNumber(n: number): string {
@@ -84,7 +106,7 @@ function drawGrandTotalRow(
   tableWidth: number,
   colX: number[],
   colW: number[],
-  grand: number
+  grandDisplay: string
 ): number {
   const grandH = 20;
   doc.strokeColor(INVOICE_BRAND.tableHeader).lineWidth(1.5);
@@ -94,7 +116,9 @@ function drawGrandTotalRow(
   doc.strokeColor(INVOICE_BRAND.tableHeader).lineWidth(1.5);
   doc.moveTo(pageLeft, y + grandH).lineTo(pageLeft + tableWidth, y + grandH).stroke();
 
-  const labelWidth = colX[4] - pageLeft - 12;
+  const totalColX = colX[4] ?? pageLeft;
+  const totalColW = colW[4] ?? 80;
+  const labelWidth = totalColX - pageLeft - 12;
   doc
     .font('Helvetica-Bold')
     .fontSize(11)
@@ -103,9 +127,9 @@ function drawGrandTotalRow(
 
   doc
     .font('Helvetica-Bold')
-    .fontSize(11)
+    .fontSize(grandDisplay === PRICE_TBD_AT_DELIVERY ? 9 : 11)
     .fillColor(INVOICE_BRAND.blue)
-    .text(fmtNum(grand), colX[4] + 2, y + 5, { width: colW[4] - 6, align: 'right' });
+    .text(grandDisplay, totalColX + 2, y + 5, { width: totalColW - 6, align: 'right' });
 
   return y + grandH;
 }
@@ -134,7 +158,14 @@ class InvoiceService {
 
   orderToLineItems(order: Order): InvoiceLineItem[] {
     const product = order.product;
-    const unitPrice = product?.price ? Number(product.price) : Number(order.order_total) / (order.qty || 1);
+    let unitPrice: number | null = null;
+    if (SHOW_CATALOGUE_PRICES_TO_USERS) {
+      const cataloguePrice = parseProductPrice(product?.price);
+      unitPrice = cataloguePrice;
+      if (unitPrice == null && hasProductPrice(order.order_total) && Number(order.order_total) > 0) {
+        unitPrice = Number(order.order_total) / (order.qty || 1);
+      }
+    }
     return [
       {
         qty: order.qty,
@@ -184,11 +215,15 @@ class InvoiceService {
 
         const items = draft.lineItems;
         const grand = computeGrandTotal(items);
-        const bodyRows = Math.max(MIN_TABLE_ROWS, items.length);
+        const grandDisplay = invoiceHasAnyTbd(items)
+          ? PRICE_TBD_AT_DELIVERY
+          : fmtNum(grand);
         const pageLeft = 40;
         const tableWidth = 515;
-        const rowH = 16;
         const headerH = 20;
+        const minRowH = 18;
+        const rowPadY = 5;
+        const pageBottom = doc.page.height - 60;
 
         const logoPath = resolveInvoiceLogoPath();
         const logoSize = 96;
@@ -227,28 +262,57 @@ class InvoiceService {
           y += 20;
         } else {
           billLines.forEach((line, i) => {
-            doc.text(line, pageLeft + 52, y + i * 16);
+            doc.text(line, pageLeft + 52, y + i * 16, { width: 300 });
           });
-          y += billLines.length * 16 + 8;
+          y += Math.max(1, billLines.length) * 16 + 8;
         }
 
         const colX = [pageLeft, pageLeft + 48, pageLeft + 168, pageLeft + 368, pageLeft + 448];
         const colW = [48, 120, 200, 80, 67];
 
-        doc.rect(pageLeft, y, tableWidth, headerH).fill(INVOICE_BRAND.tableHeader);
-        const headers = ['Qty', 'Item #', 'Description', 'Unit Price', 'Total'];
-        headers.forEach((h, i) => {
-          doc
-            .font('Helvetica-Bold')
-            .fontSize(9)
-            .fillColor('#ffffff')
-            .text(h, colX[i] + 4, y + 5, { width: colW[i] - 8, align: i >= 3 ? 'right' : 'left' });
-        });
-        y += headerH;
+        const drawTableHeader = () => {
+          doc.rect(pageLeft, y, tableWidth, headerH).fill(INVOICE_BRAND.tableHeader);
+          const headers = ['Qty', 'Item #', 'Description', 'Unit Price', 'Total'];
+          headers.forEach((h, i) => {
+            const x = colX[i] ?? pageLeft;
+            const w = colW[i] ?? 80;
+            doc
+              .font('Helvetica-Bold')
+              .fontSize(9)
+              .fillColor('#ffffff')
+              .text(h, x + 4, y + 5, { width: w - 8, align: i >= 3 ? 'right' : 'left' });
+          });
+          y += headerH;
+        };
 
-        for (let i = 0; i < bodyRows; i++) {
-          const row = items[i];
-          const bg = i % 2 === 0 ? '#ffffff' : INVOICE_BRAND.tableStripe;
+        drawTableHeader();
+
+        const measureRowHeight = (row: InvoiceLineItem): number => {
+          doc.font('Helvetica').fontSize(8);
+          const itemH = doc.heightOfString(String(row.item || ''), {
+            width: (colW[1] ?? 120) - 8,
+          });
+          const descH = doc.heightOfString(String(row.description || ''), {
+            width: (colW[2] ?? 200) - 8,
+          });
+          const priceH = doc.heightOfString(formatUnitPriceCell(row), {
+            width: (colW[3] ?? 80) - 8,
+          });
+          const totalH = doc.heightOfString(formatLineTotalCell(row), {
+            width: (colW[4] ?? 67) - 8,
+          });
+          return Math.max(minRowH, itemH, descH, priceH, totalH) + rowPadY * 2;
+        };
+
+        const drawDataRow = (row: InvoiceLineItem, index: number) => {
+          const rowH = measureRowHeight(row);
+          if (y + rowH > pageBottom) {
+            doc.addPage();
+            y = 40;
+            drawTableHeader();
+          }
+
+          const bg = index % 2 === 0 ? '#ffffff' : INVOICE_BRAND.tableStripe;
           doc.rect(pageLeft, y, tableWidth, rowH).fill(bg);
           doc
             .strokeColor(INVOICE_BRAND.tableBorder)
@@ -256,54 +320,74 @@ class InvoiceService {
             .rect(pageLeft, y, tableWidth, rowH)
             .stroke();
 
-          if (row) {
-            const vals = [
-              fmtQty(Number(row.qty)),
-              row.item,
-              row.description || '',
-              fmtNum(Number(row.unitPrice)),
-              fmtNum(lineTotal(row)),
-            ];
-            vals.forEach((v, ci) => {
-              doc
-                .font('Helvetica')
-                .fontSize(8)
-                .fillColor(INVOICE_BRAND.text)
-                .text(v, colX[ci] + 4, y + 4, {
-                  width: colW[ci] - 8,
-                  align: ci >= 3 ? 'right' : 'left',
-                  ellipsis: true,
-                });
-            });
-          }
+          const vals = [
+            fmtQty(Number(row.qty)),
+            row.item,
+            row.description || '',
+            formatUnitPriceCell(row),
+            formatLineTotalCell(row),
+          ];
+          vals.forEach((v, ci) => {
+            const x = colX[ci] ?? pageLeft;
+            const w = colW[ci] ?? 80;
+            doc
+              .font('Helvetica')
+              .fontSize(ci >= 3 && v === PRICE_TBD_AT_DELIVERY ? 7 : 8)
+              .fillColor(INVOICE_BRAND.text)
+              .text(String(v), x + 4, y + rowPadY, {
+                width: w - 8,
+                align: ci >= 3 ? 'right' : 'left',
+              });
+          });
           y += rowH;
+        };
+
+        items.forEach((row, index) => drawDataRow(row, index));
+
+        // Pad empty rows for challan look (short fixed height)
+        const emptyNeeded = Math.max(0, MIN_TABLE_ROWS - items.length);
+        for (let i = 0; i < emptyNeeded; i++) {
+          if (y + minRowH > pageBottom) break;
+          const bg = (items.length + i) % 2 === 0 ? '#ffffff' : INVOICE_BRAND.tableStripe;
+          doc.rect(pageLeft, y, tableWidth, minRowH).fill(bg);
+          doc
+            .strokeColor(INVOICE_BRAND.tableBorder)
+            .lineWidth(0.5)
+            .rect(pageLeft, y, tableWidth, minRowH)
+            .stroke();
+          y += minRowH;
         }
 
-        y = drawGrandTotalRow(doc, y, pageLeft, tableWidth, colX, colW, grand);
+        if (y + 28 > pageBottom) {
+          doc.addPage();
+          y = 40;
+        }
+        y = drawGrandTotalRow(doc, y, pageLeft, tableWidth, colX, colW, grandDisplay);
         y += 24;
 
         if (draft.customFooter?.trim()) {
           doc
             .font('Helvetica-Bold')
             .fontSize(9)
-            .fillColor(INVOICE_BRAND.blue)
+            .fillColor(INVOICE_BRAND.text)
             .text(draft.customFooter.trim(), pageLeft, y, { width: tableWidth, align: 'center' });
-          y += 18;
+          y += 20;
         }
 
         doc
           .font('Helvetica-Oblique')
-          .fontSize(9)
+          .fontSize(8)
           .fillColor(INVOICE_BRAND.muted)
-          .text('Payable to AESTHETICRXNETWORK (PRIVATE LIMITED)', pageLeft, y, { width: tableWidth, align: 'center' });
-        doc.text('Thank you for your connection with us!', pageLeft, y + 14, {
-          width: tableWidth,
-          align: 'center',
-        });
+          .text(
+            'Payable to AESTHETICRXNETWORK (PRIVATE LIMITED) · Thank you for your connection with us!',
+            pageLeft,
+            Math.min(y + 8, pageBottom - 20),
+            { width: tableWidth, align: 'center' }
+          );
 
         doc.end();
-      } catch (e) {
-        reject(e);
+      } catch (err) {
+        reject(err);
       }
     });
   }
@@ -402,7 +486,11 @@ class InvoiceService {
     const html = `
       <p>Dear ${invoice.doctor_name || 'Customer'},</p>
       <p>Thank you for your order with <strong>AestheticRxNetwork</strong>.</p>
-      <p>Please find your invoice <strong>${invoice.invoice_number}</strong> attached (Grand Total: PKR ${fmtNum(Number(invoice.grand_total))}).</p>
+      <p>Please find your invoice <strong>${invoice.invoice_number}</strong> attached (Grand Total: ${
+        invoiceHasAnyTbd(invoice.line_items || [])
+          ? PRICE_TBD_AT_DELIVERY
+          : `PKR ${fmtNum(Number(invoice.grand_total))}`
+      }).</p>
       <p>Payable to AESTHETICRXNETWORK (PRIVATE LIMITED).</p>
       <p>Thank you for your connection with us!</p>
     `;

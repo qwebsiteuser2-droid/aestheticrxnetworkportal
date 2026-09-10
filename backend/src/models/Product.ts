@@ -76,7 +76,7 @@ export class Product {
       // DO NOT include image_data in JSON - it's too large and served via /api/images endpoint
       name: this.name,
       description: this.description,
-      price: this.price,
+      price: this.price == null || this.price === ('' as any) ? null : Number(this.price),
       is_visible: this.is_visible,
       category: this.category,
       unit: this.unit,
@@ -95,7 +95,7 @@ export class Product {
       // DO NOT include image_data in JSON - it's too large and served via /api/images endpoint
       name: this.name,
       description: this.description,
-      price: this.price,
+      price: this.price == null || this.price === ('' as any) ? null : Number(this.price),
       category: this.category,
       unit: this.unit,
       stock_quantity: this.stock_quantity,

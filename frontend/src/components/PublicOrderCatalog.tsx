@@ -10,13 +10,14 @@ import { ProductCatalogImage } from '@/components/ProductCatalogImage';
 import { ProductDetailsModal, type OrderProduct } from '@/components/ProductDetailsModal';
 import { BRAND } from '@/lib/brandColors';
 import { buildOrderLoginUrl } from '@/lib/authRedirect';
+import { formatProductPriceLabel, hasVisibleProductPrice } from '@/lib/productPrice';
+
+const CART_KEY = 'order_cart';
 
 const formatPrice = (price: string | number): string => {
   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
   return isNaN(numPrice) ? '0.00' : numPrice.toFixed(2);
 };
-
-const CART_KEY = 'order_cart';
 
 export default function PublicOrderCatalog() {
   const router = useRouter();
@@ -179,11 +180,12 @@ export default function PublicOrderCatalog() {
                   <ProductCatalogImage productId={product.id} alt={product.name} view="front" />
                 </div>
                 <h4 className="font-medium text-gray-900 text-sm sm:text-base line-clamp-2 flex-1">{product.name}</h4>
-                {product.price != null && product.price !== '' && !Number.isNaN(Number(product.price)) && Number(product.price) > 0 && (
-                  <p className="text-sm font-semibold mt-1" style={{ color: BRAND.blue }}>
-                    ₨{formatPrice(product.price)}
-                  </p>
-                )}
+                <p
+                  className={`text-sm font-semibold mt-1 ${hasVisibleProductPrice(product.price) ? '' : 'text-gray-500 font-medium'}`}
+                  style={hasVisibleProductPrice(product.price) ? { color: BRAND.blue } : undefined}
+                >
+                  {formatProductPriceLabel(product.price)}
+                </p>
                 <span
                   className={`text-xs mt-1 inline-block px-2 py-0.5 rounded-full w-fit ${
                     inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'

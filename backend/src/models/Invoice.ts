@@ -14,7 +14,8 @@ export interface InvoiceLineItem {
   qty: number;
   item: string;
   description: string;
-  unitPrice: number;
+  /** Null when catalogue price is unset (paid / discounted at delivery). */
+  unitPrice: number | null;
 }
 
 export type InvoiceSource = 'manual' | 'order';

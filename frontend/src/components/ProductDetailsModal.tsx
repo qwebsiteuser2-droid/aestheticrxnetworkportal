@@ -10,6 +10,12 @@ import { toast } from 'react-hot-toast';
 import { useAuth } from '@/app/providers';
 import { useRouter } from 'next/navigation';
 import { buildOrderLoginUrl } from '@/lib/authRedirect';
+import {
+  formatProductPriceLabel,
+  hasVisibleProductPrice,
+  parseProductPrice,
+  PRICE_TBD_AT_DELIVERY,
+} from '@/lib/productPrice';
 
 export type ProductViewAngle = ProductImageView;
 
@@ -17,7 +23,7 @@ export interface OrderProduct {
   id: string;
   name: string;
   description: string;
-  price: string | number;
+  price: string | number | null;
   image_url: string | null;
   slot_index: number;
   is_visible: boolean;
@@ -72,11 +78,8 @@ export function ProductDetailsModal({
   const router = useRouter();
   const [mainImageError, setMainImageError] = useState(false);
 
-  const unitPrice = useMemo(() => {
-    const n = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
-    return isNaN(n) ? 0 : n;
-  }, [product.price]);
-
+  const unitPrice = useMemo(() => parseProductPrice(product.price) ?? 0, [product.price]);
+  const priceIsSet = hasVisibleProductPrice(product.price);
   const lineTotal = unitPrice * quantity;
   const maxQty = product.stock_quantity ?? 0;
   const inStock = maxQty > 0 && cartQuantity < maxQty;
@@ -184,7 +187,9 @@ export function ProductDetailsModal({
       </div>
       <div className="flex items-center justify-between text-sm">
         <span className="text-gray-600">Line total</span>
-        <span className="text-lg font-bold text-gray-900">₨{lineTotal.toFixed(2)}</span>
+        <span className={`text-lg font-bold ${priceIsSet ? 'text-gray-900' : 'text-gray-500'}`}>
+          {priceIsSet ? `₨${lineTotal.toFixed(2)}` : PRICE_TBD_AT_DELIVERY}
+        </span>
       </div>
     </div>
   );
@@ -348,16 +353,13 @@ export function ProductDetailsModal({
 
                 <div className="flex items-baseline justify-between border-t border-gray-100 pt-4">
                   <span className="text-sm text-gray-600">Unit price</span>
-                  {product.price != null &&
-                  product.price !== '' &&
-                  !Number.isNaN(Number(product.price)) &&
-                  Number(product.price) > 0 ? (
+                  {priceIsSet ? (
                     <span className="text-2xl font-bold text-blue-600">
-                      ₨{formatPrice(product.price)}
+                      {formatProductPriceLabel(product.price)}
                       {product.unit ? ` / ${product.unit}` : ''}
                     </span>
                   ) : (
-                    <span className="text-sm text-gray-500">Price on request</span>
+                    <span className="text-sm text-gray-500">{PRICE_TBD_AT_DELIVERY}</span>
                   )}
                 </div>
 

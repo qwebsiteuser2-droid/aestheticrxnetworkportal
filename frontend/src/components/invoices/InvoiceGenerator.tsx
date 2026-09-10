@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { toast } from 'react-hot-toast';
 import { BRAND } from '@/lib/brandColors';
+import { PRICE_TBD_AT_DELIVERY } from '@/lib/productPrice';
 
 export interface InvoiceLineItem {
   qty: number | string;
@@ -20,16 +21,30 @@ const emptyRow = (): InvoiceLineItem => ({
 });
 
 function parseAmt(v: number | string): number {
+  if (v === '' || v === null || v === undefined) return NaN;
   const n = Number(String(v).replace(/,/g, '').trim());
-  return isFinite(n) ? n : 0;
+  return isFinite(n) ? n : NaN;
+}
+
+function hasAmt(v: number | string): boolean {
+  return Number.isFinite(parseAmt(v));
 }
 
 function lineTotal(r: InvoiceLineItem): number {
+  if (!hasAmt(r.qty) || !hasAmt(r.unitPrice)) return 0;
   return parseAmt(r.qty) * parseAmt(r.unitPrice);
 }
 
 function fmtNum(n: number): string {
   return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(n);
+}
+
+function formatUnitCell(r: InvoiceLineItem): string {
+  return hasAmt(r.unitPrice) ? fmtNum(parseAmt(r.unitPrice)) : PRICE_TBD_AT_DELIVERY;
+}
+
+function formatLineCell(r: InvoiceLineItem): string {
+  return hasAmt(r.qty) && hasAmt(r.unitPrice) ? fmtNum(lineTotal(r)) : PRICE_TBD_AT_DELIVERY;
 }
 
 function fmtDate(iso: string): string {
@@ -52,6 +67,8 @@ export default function InvoiceGenerator() {
   const [recent, setRecent] = useState<any[]>([]);
 
   const grandTotal = rows.reduce((s, r) => s + lineTotal(r), 0);
+  const anyTbd = rows.some((r) => !hasAmt(r.unitPrice));
+  const grandTotalLabel = anyTbd ? PRICE_TBD_AT_DELIVERY : `PKR ${fmtNum(grandTotal)}`;
 
   const loadNextNumber = useCallback(async () => {
     try {
@@ -83,10 +100,10 @@ export default function InvoiceGenerator() {
     invoiceNumber: invoiceNo,
     customFooter,
     lineItems: rows.map((r) => ({
-      qty: parseAmt(r.qty),
+      qty: hasAmt(r.qty) ? parseAmt(r.qty) : 0,
       item: r.item,
       description: r.description,
-      unitPrice: parseAmt(r.unitPrice),
+      unitPrice: hasAmt(r.unitPrice) ? parseAmt(r.unitPrice) : null,
     })),
     orderId: orderId || undefined,
     sendEmail: !!recipientEmail,
@@ -302,7 +319,7 @@ export default function InvoiceGenerator() {
                     }}
                   />
                   <span className="text-xs font-mono font-semibold text-blue-800 whitespace-nowrap">
-                    Line: {fmtNum(lineTotal(row))}
+                    Line: {formatLineCell(row)}
                   </span>
                   {rows.length > 1 && (
                     <button
@@ -318,7 +335,7 @@ export default function InvoiceGenerator() {
             ))}
           </div>
           <p className="mt-3 text-right font-bold text-lg" style={{ color: BRAND.blue }}>
-            Grand total: PKR {fmtNum(grandTotal)}
+            Grand total: {grandTotalLabel}
           </p>
         </div>
 
@@ -422,8 +439,8 @@ export default function InvoiceGenerator() {
                     <td className="border p-1">{r.qty}</td>
                     <td className="border p-1">{r.item}</td>
                     <td className="border p-1">{r.description}</td>
-                    <td className="border p-1 text-right">{fmtNum(parseAmt(r.unitPrice))}</td>
-                    <td className="border p-1 text-right">{fmtNum(lineTotal(r))}</td>
+                    <td className="border p-1 text-right">{formatUnitCell(r)}</td>
+                    <td className="border p-1 text-right">{formatLineCell(r)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -432,7 +449,7 @@ export default function InvoiceGenerator() {
                   <td colSpan={4} className="border p-1 text-right">
                     Grand Total
                   </td>
-                  <td className="border p-1 text-right">{fmtNum(grandTotal)}</td>
+                  <td className="border p-1 text-right">{anyTbd ? PRICE_TBD_AT_DELIVERY : fmtNum(grandTotal)}</td>
                 </tr>
               </tfoot>
             </table>

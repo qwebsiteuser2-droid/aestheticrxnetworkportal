@@ -8,6 +8,7 @@ import { LeaderboardSnapshot } from '../models/LeaderboardSnapshot';
 import { Certificate } from '../models/Certificate';
 import { TierConfig } from '../models/TierConfig';
 import { Badge } from '../models/Badge';
+import { resolvePublicProfilePhotoUrl } from '../utils/profilePhotoUrl';
 
 interface UserStats {
   // Basic Info
@@ -520,7 +521,13 @@ export const getUserStats = async (req: Request, res: Response): Promise<void> =
       whatsapp: doctor.whatsapp || '',
       bio: doctor.bio || '',
       tags: doctor.tags || [],
-      profile_photo_url: doctor.profile_photo_url || '',
+      profile_photo_url:
+        resolvePublicProfilePhotoUrl({
+          id: doctor.id,
+          profile_photo_url: doctor.profile_photo_url,
+          profile_photo_data: doctor.profile_photo_data,
+          updated_at: doctor.updated_at,
+        }) || '',
       is_approved: doctor.is_approved,
       is_admin: doctor.is_admin,
       join_date: (doctor.created_at ? doctor.created_at.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]) as string,

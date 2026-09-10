@@ -7,18 +7,14 @@ import { ShoppingCartIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import api from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import { getProductImageSrc } from '@/lib/productImageUrl';
+import { formatProductPriceLabel } from '@/lib/productPrice';
 
 interface Product {
   id: string;
   name: string;
-  price: string | number;
+  price: string | number | null;
   image_url: string | null;
 }
-
-const formatPrice = (price: string | number): string => {
-  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-  return isNaN(numPrice) ? '0' : Math.round(numPrice).toLocaleString();
-};
 
 export default function HeroCards() {
   const router = useRouter();
@@ -123,14 +119,9 @@ export default function HeroCards() {
                           </div>
                         )}
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3 md:p-4">
-                          {product.price != null &&
-                            product.price !== '' &&
-                            !Number.isNaN(Number(product.price)) &&
-                            Number(product.price) > 0 && (
-                            <span className="text-white text-lg md:text-xl font-bold">
-                              ₨{formatPrice(product.price)}
-                            </span>
-                          )}
+                          <span className="text-white text-lg md:text-xl font-bold">
+                            {formatProductPriceLabel(product.price)}
+                          </span>
                           <span className="text-white text-sm md:text-base font-medium block line-clamp-1">
                             {product.name}
                           </span>

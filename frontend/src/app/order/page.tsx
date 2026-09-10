@@ -24,12 +24,19 @@ import {
   toDebtLimitError,
   type DebtStatusPayload,
 } from '@/lib/debtLimitError';
+import {
+  formatProductPriceLabel,
+  hasVisibleProductPrice,
+  parseProductPrice,
+  PRICE_TBD_AT_DELIVERY,
+  SHOW_CATALOGUE_PRICES_TO_USERS,
+} from '@/lib/productPrice';
 
 interface Product {
   id: string;
   name: string;
   description: string;
-  price: string | number; // API returns as string, but we'll handle both
+  price: string | number | null;
   image_url: string | null;
   slot_index: number;
   is_visible: boolean;
@@ -39,7 +46,6 @@ interface Product {
   stock_quantity: number | null;
 }
 
-// Helper function to format price safely
 const formatPrice = (price: string | number): string => {
   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
   return isNaN(numPrice) ? '0.00' : numPrice.toFixed(2);
@@ -605,9 +611,21 @@ export default function OrderPage() {
   const getCartTotal = () => {
     return Object.entries(cart).reduce((total, [productId, quantity]) => {
       const product = products.find(p => p.id === productId);
-      const price = typeof product?.price === 'string' ? parseFloat(product.price) : (product?.price || 0);
-      return total + (price * quantity);
+      const price = parseProductPrice(product?.price) ?? 0;
+      return total + price * quantity;
     }, 0);
+  };
+
+  const cartHasUnsetPrice = () => {
+    return Object.keys(cart).some((productId) => {
+      const product = products.find((p) => p.id === productId);
+      return !hasVisibleProductPrice(product?.price);
+    });
+  };
+
+  const formatCartTotalLabel = () => {
+    if (!SHOW_CATALOGUE_PRICES_TO_USERS || cartHasUnsetPrice()) return PRICE_TBD_AT_DELIVERY;
+    return `PKR ${getCartTotal().toLocaleString()}`;
   };
 
   const getCartItemCount = () => {
@@ -1105,10 +1123,8 @@ export default function OrderPage() {
                     
                     {/* Price and Stock */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm sm:text-base font-semibold text-blue-600">
-                        {product.price != null && Number(product.price) > 0
-                          ? `₨${formatPrice(product.price)}`
-                          : 'Price on request'}
+                      <span className={`text-sm sm:text-base font-semibold ${hasVisibleProductPrice(product.price) ? 'text-blue-600' : 'text-gray-500'}`}>
+                        {formatProductPriceLabel(product.price)}
                       </span>
                       <span className={`text-xs px-2 py-1 rounded-full ${
                         (() => {
@@ -1216,10 +1232,8 @@ export default function OrderPage() {
                         
                         {/* Price and Stock */}
                         <div className="flex items-center justify-between">
-                          <span className="text-sm sm:text-base font-semibold text-blue-600">
-                            {product.price != null && Number(product.price) > 0
-                              ? `₨${formatPrice(product.price)}`
-                              : 'Price on request'}
+                          <span className={`text-sm sm:text-base font-semibold ${hasVisibleProductPrice(product.price) ? 'text-blue-600' : 'text-gray-500'}`}>
+                            {formatProductPriceLabel(product.price)}
                           </span>
                           <span className={`text-xs px-2 py-1 rounded-full ${
                             (() => {
@@ -1318,9 +1332,9 @@ export default function OrderPage() {
                         <div className="flex-1">
                           <div className="font-medium text-gray-900">{product.name}</div>
                           <div className="text-sm text-gray-600">
-                            {product.price != null && Number(product.price) > 0
+                            {hasVisibleProductPrice(product.price)
                               ? `Rs ${Number(product.price).toLocaleString()} each`
-                              : 'Price on request'}
+                              : PRICE_TBD_AT_DELIVERY}
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -1351,7 +1365,7 @@ export default function OrderPage() {
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-lg font-bold text-gray-900">Total:</span>
-                    <span className="text-lg font-bold text-green-600">PKR {getCartTotal().toLocaleString()}</span>
+                    <span className="text-lg font-bold text-green-600">{formatCartTotalLabel()}</span>
                   </div>
                   
                   {/* Location Selection */}
@@ -1570,7 +1584,7 @@ export default function OrderPage() {
             <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <h3 className="font-semibold text-blue-800 mb-2">Order Summary:</h3>
               <div className="text-sm text-blue-700 space-y-1">
-                <div>Total: <span className="font-semibold">PKR {getCartTotal().toLocaleString()}</span></div>
+                <div>Total: <span className="font-semibold">{formatCartTotalLabel()}</span></div>
                 <div>Delivery to: <span className="font-semibold">{selectedLocation?.address}</span></div>
                 <div>Items: <span className="font-semibold">{Object.keys(cart).length} product(s)</span></div>
               </div>

@@ -1,7 +1,9 @@
+import { createHash } from 'crypto';
 import { Response } from 'express';
 import { AppDataSource } from '../db/data-source';
 import { Doctor, UserType } from '../models/Doctor';
 import { AuthenticatedRequest } from '../types/auth';
+import { resolvePublicProfilePhotoUrl } from '../utils/profilePhotoUrl';
 
 const MAX_STORED_BYTES = 180 * 1024; // ~180KB base64 payload
 
@@ -57,11 +59,18 @@ export const uploadMyProfilePhoto = async (
     doctor.profile_photo_url = publicPath;
     await doctorRepository.save(doctor);
 
+    const versionedUrl = resolvePublicProfilePhotoUrl({
+      id: doctor.id,
+      profile_photo_url: publicPath,
+      profile_photo_data: dataUrl,
+      updated_at: doctor.updated_at || new Date(),
+    });
+
     res.json({
       success: true,
       message: 'Profile photo updated',
       data: {
-        profile_photo_url: publicPath,
+        profile_photo_url: versionedUrl,
       },
     });
   } catch (error) {
@@ -82,7 +91,7 @@ export const serveProfilePhoto = async (req: any, res: Response): Promise<void> 
     }
 
     const rows = await AppDataSource.query(
-      `SELECT profile_photo_data, profile_photo_url FROM doctors WHERE id = $1`,
+      `SELECT profile_photo_data, updated_at FROM doctors WHERE id = $1`,
       [id]
     );
     const row = rows[0];
@@ -101,10 +110,20 @@ export const serveProfilePhoto = async (req: any, res: Response): Promise<void> 
 
     const contentType = match[1];
     const buffer = Buffer.from(match[2], 'base64');
-    // Photos keep a stable URL; avoid long browser cache so re-uploads show immediately
+    const etag = `"${createHash('sha1').update(buffer).digest('hex')}"`;
+
     res.setHeader('Content-Type', contentType);
-    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('ETag', etag);
     res.setHeader('Content-Length', String(buffer.length));
+
+    if (req.headers['if-none-match'] === etag) {
+      res.status(304).end();
+      return;
+    }
+
     res.send(buffer);
   } catch (error) {
     console.error('serveProfilePhoto error:', error);
